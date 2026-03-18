@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #013A63;
+  --color-accent: #FFC085;
+  --color-tertiary: #B2B2D2;
+  --color-background: #060834;
+}
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(90deg, #FFC085, white);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
