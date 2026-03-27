@@ -26,6 +26,7 @@ import VerifyEmail from "../pages/VerifyEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import Terms from "../pages/Terms";
 
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
