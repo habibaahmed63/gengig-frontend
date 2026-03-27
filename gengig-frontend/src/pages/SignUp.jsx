@@ -36,6 +36,7 @@ export default function SignUp() {
             });
             console.log("Success:", response.data);
             localStorage.setItem("role", formData.role);
+            localStorage.setItem("name", formData.name);
             navigate("/verify-email", { state: { email: formData.email } });
         } catch (error) {
             console.error("Signup error:", error);
