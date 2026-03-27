@@ -35,18 +35,17 @@ export default function ForgotPassword() {
         setLoading(true);
         setError("");
         try {
-            // TODO: await api.post("/auth/forgot-password", { email });
-            await new Promise((r) => setTimeout(r, 1500)); // mock
+            await api.post("/auth/forgot-password", { email });
             setStep(2);
             setResendTimer(60);
-        } catch {
-            setError("No account found with this email.");
+        } catch (err) {
+            setError(err.response?.data?.message || "No account found with this email.");
         } finally {
             setLoading(false);
         }
     };
 
-    // ── Step 2: Verify code ──
+    // ── Step 2: Code input handlers ──
     const handleCodeChange = (index, value) => {
         if (!/^\d*$/.test(value)) return;
         const newCode = [...code];
@@ -71,36 +70,34 @@ export default function ForgotPassword() {
         }
     };
 
+    // ── Step 2: Verify code ──
     const handleVerifyCode = async () => {
         const fullCode = code.join("");
         if (fullCode.length < 6) { setError("Please enter the full 6-digit code."); return; }
         setLoading(true);
         setError("");
         try {
-            // TODO: await api.post("/auth/verify-reset-code", { email, code: fullCode });
-            await new Promise((r) => setTimeout(r, 1500)); // mock
-            if (fullCode === "123456") {
-                setStep(3);
-            } else {
-                setError("Invalid code. Please try again.");
-                setCode(["", "", "", "", "", ""]);
-                inputRefs.current[0]?.focus();
-            }
-        } catch {
-            setError("Invalid or expired code.");
+            await api.post("/auth/verify-reset-code", { email, code: fullCode });
+            setStep(3);
+        } catch (err) {
+            setError(err.response?.data?.message || "Invalid or expired code.");
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
         } finally {
             setLoading(false);
         }
     };
 
+    // ── Step 2: Resend code ──
     const handleResend = async () => {
         setError("");
         try {
-            // TODO: await api.post("/auth/forgot-password", { email });
-            await new Promise((r) => setTimeout(r, 1000)); // mock
+            await api.post("/auth/forgot-password", { email });
             setResendTimer(60);
-        } catch {
-            setError("Failed to resend. Try again.");
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to resend. Try again.");
         }
     };
 
@@ -116,12 +113,15 @@ export default function ForgotPassword() {
         setLoading(true);
         setError("");
         try {
-            // TODO: await api.post("/auth/reset-password", { email, code: code.join(""), newPassword: passwords.newPassword });
-            await new Promise((r) => setTimeout(r, 1500)); // mock
+            await api.post("/auth/reset-password", {
+                email,
+                code: code.join(""),
+                newPassword: passwords.newPassword,
+            });
             setDone(true);
             setTimeout(() => navigate("/signin"), 3000);
-        } catch {
-            setError("Something went wrong. Please try again.");
+        } catch (err) {
+            setError(err.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -134,17 +134,13 @@ export default function ForgotPassword() {
                 <div className="text-center flex flex-col items-center gap-4">
                     <div className="relative">
                         <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "#FFC085" }} />
-                        <div
-                            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl relative z-10"
-                            style={{ background: "rgba(255,192,133,0.15)", border: "2px solid #FFC085" }}
-                        >
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl relative z-10"
+                            style={{ background: "rgba(255,192,133,0.15)", border: "2px solid #FFC085" }}>
                             ✓
                         </div>
                     </div>
                     <h2 className="text-white font-bold text-xl">Password Reset!</h2>
-                    <p className="text-sm" style={{ color: "#B2B2D2" }}>
-                        Redirecting you to Sign In...
-                    </p>
+                    <p className="text-sm" style={{ color: "#B2B2D2" }}>Redirecting you to Sign In...</p>
                 </div>
             </div>
         );
@@ -153,36 +149,29 @@ export default function ForgotPassword() {
     return (
         <div className="min-h-screen" style={{ background: "#060834" }}>
             <Navbar />
-
-            {/* Background orbs */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute rounded-full blur-3xl opacity-10" style={{ width: "400px", height: "400px", background: "#FFC085", top: "-100px", right: "-100px" }} />
                 <div className="absolute rounded-full blur-3xl opacity-10" style={{ width: "300px", height: "300px", background: "#6366f1", bottom: "50px", left: "-80px" }} />
             </div>
 
             <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-12">
-                <div
-                    className="w-full max-w-md p-8 rounded-3xl flex flex-col items-center text-center gap-6"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-                >
+                <div className="w-full max-w-md p-8 rounded-3xl flex flex-col items-center text-center gap-6"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+
                     {/* Step Indicators */}
                     <div className="flex items-center gap-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex items-center gap-2">
-                                <div
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+                                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
                                     style={{
                                         background: step >= s ? "linear-gradient(90deg, #FFC085, #e8a060)" : "rgba(255,255,255,0.08)",
                                         color: step >= s ? "white" : "#B2B2D2",
-                                    }}
-                                >
+                                    }}>
                                     {step > s ? "✓" : s}
                                 </div>
                                 {s < 3 && (
-                                    <div
-                                        className="w-8 h-0.5 rounded-full transition-all"
-                                        style={{ background: step > s ? "#FFC085" : "rgba(255,255,255,0.1)" }}
-                                    />
+                                    <div className="w-8 h-0.5 rounded-full transition-all"
+                                        style={{ background: step > s ? "#FFC085" : "rgba(255,255,255,0.1)" }} />
                                 )}
                             </div>
                         ))}
@@ -191,10 +180,8 @@ export default function ForgotPassword() {
                     {/* ── STEP 1: Email ── */}
                     {step === 1 && (
                         <>
-                            <div
-                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
-                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}
-                            >
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
+                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}>
                                 🔑
                             </div>
                             <div>
@@ -221,12 +208,9 @@ export default function ForgotPassword() {
 
                                 {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
+                                <button type="submit" disabled={loading}
                                     className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                                >
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                     {loading ? "Sending..." : "Send Reset Code →"}
                                 </button>
                             </form>
@@ -240,10 +224,8 @@ export default function ForgotPassword() {
                     {/* ── STEP 2: Code ── */}
                     {step === 2 && (
                         <>
-                            <div
-                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
-                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}
-                            >
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
+                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}>
                                 📧
                             </div>
                             <div>
@@ -283,12 +265,9 @@ export default function ForgotPassword() {
 
                             {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 
-                            <button
-                                onClick={handleVerifyCode}
-                                disabled={loading || code.join("").length < 6}
+                            <button onClick={handleVerifyCode} disabled={loading || code.join("").length < 6}
                                 className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                            >
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 {loading ? "Verifying..." : "Verify Code →"}
                             </button>
 
@@ -303,7 +282,8 @@ export default function ForgotPassword() {
                                 )}
                             </div>
 
-                            <button onClick={() => { setStep(1); setCode(["", "", "", "", "", ""]); setError(""); }} className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
+                            <button onClick={() => { setStep(1); setCode(["", "", "", "", "", ""]); setError(""); }}
+                                className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
                                 ← Change email
                             </button>
                         </>
@@ -312,10 +292,8 @@ export default function ForgotPassword() {
                     {/* ── STEP 3: New Password ── */}
                     {step === 3 && (
                         <>
-                            <div
-                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
-                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}
-                            >
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
+                                style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}>
                                 🔒
                             </div>
                             <div>
@@ -328,7 +306,6 @@ export default function ForgotPassword() {
                             </div>
 
                             <form onSubmit={handleResetPassword} className="w-full flex flex-col gap-4">
-                                {/* New Password */}
                                 <div className="flex flex-col gap-1 text-left">
                                     <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>New Password</label>
                                     <div className="relative">
@@ -351,7 +328,6 @@ export default function ForgotPassword() {
                                     </div>
                                 </div>
 
-                                {/* Confirm Password */}
                                 <div className="flex flex-col gap-1 text-left">
                                     <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>Confirm Password</label>
                                     <div className="relative">
@@ -376,12 +352,9 @@ export default function ForgotPassword() {
 
                                 {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
+                                <button type="submit" disabled={loading}
                                     className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                                >
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                     {loading ? "Resetting..." : "Reset Password →"}
                                 </button>
                             </form>
