@@ -28,8 +28,24 @@ export default function SignIn() {
                 email: formData.email,
                 password: formData.password,
             });
+            localStorage.removeItem("name");
+            localStorage.removeItem("photo");
+            localStorage.removeItem("bio");
+            localStorage.removeItem("skills");
+            localStorage.removeItem("education");
+            localStorage.removeItem("availability");
+            localStorage.removeItem("hourlyRate");
+            localStorage.removeItem("company");
+            localStorage.removeItem("industry");
+            localStorage.removeItem("workTypes");
+            localStorage.removeItem("location");
+            localStorage.removeItem("joinDate");
+
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.role);
+
+            if (response.data.name) localStorage.setItem("name", response.data.name);
+            if (response.data.photo) localStorage.setItem("photo", response.data.photo);
             console.log("Success:", response.data);
             if (response.data.role === "teenlancer") {
                 navigate("/teenlancer/dashboard");

@@ -35,7 +35,11 @@ export default function AgentOnboarding() {
     };
 
     const handleSubmit = () => {
-        // TODO: send formData to backend
+        localStorage.setItem("company", formData.companyName);
+        localStorage.setItem("industry", formData.industry);
+        localStorage.setItem("workTypes", JSON.stringify(formData.workTypes));
+        if (formData.photo) localStorage.setItem("photo", formData.photo);
+
         console.log(formData);
         navigate("/agent/dashboard");
     };
