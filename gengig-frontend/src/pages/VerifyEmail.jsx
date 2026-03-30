@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import api from "../services/api"; // ← add this import
+import api from "../services/api";
 
 export default function VerifyEmail() {
     const navigate = useNavigate();
@@ -52,7 +51,6 @@ export default function VerifyEmail() {
         }
     };
 
-    // ✅ Fixed: calls real backend
     const handleVerify = async () => {
         const fullCode = code.join("");
         if (fullCode.length < 6) {
@@ -81,7 +79,6 @@ export default function VerifyEmail() {
         }
     };
 
-    // ✅ Fixed: calls real backend
     const handleResend = async () => {
         setResendLoading(true);
         setError("");
@@ -115,7 +112,7 @@ export default function VerifyEmail() {
 
     return (
         <div className="min-h-screen" style={{ background: "#060834" }}>
-            <Navbar />
+
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute rounded-full blur-3xl opacity-10"
                     style={{ width: "400px", height: "400px", background: "#FFC085", top: "-100px", right: "-100px" }} />
@@ -168,7 +165,7 @@ export default function VerifyEmail() {
                     <button onClick={handleVerify} disabled={loading || code.join("").length < 6}
                         className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
                         style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                        {loading ? "Verifying..." : "Verify Email →"}
+                        {loading ? "Verifying..." : "Verify Email"}
                     </button>
 
                     <div className="text-sm" style={{ color: "#B2B2D2" }}>

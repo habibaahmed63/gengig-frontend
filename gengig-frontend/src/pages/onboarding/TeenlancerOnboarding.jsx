@@ -37,7 +37,13 @@ export default function TeenlancerOnboarding() {
     };
 
     const handleSubmit = () => {
-        // TODO: send formData to backend
+        localStorage.setItem("bio", formData.bio);
+        localStorage.setItem("skills", JSON.stringify(formData.skills));
+        localStorage.setItem("education", formData.education);
+        localStorage.setItem("availability", formData.availability);
+        localStorage.setItem("hourlyRate", formData.hourlyRate);
+        if (formData.photo) localStorage.setItem("photo", formData.photo);
+
         console.log(formData);
         navigate("/teenlancer/dashboard");
     };

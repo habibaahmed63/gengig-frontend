@@ -211,12 +211,12 @@ export default function ForgotPassword() {
                                 <button type="submit" disabled={loading}
                                     className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
                                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                    {loading ? "Sending..." : "Send Reset Code →"}
+                                    {loading ? "Sending..." : "Send Reset Code"}
                                 </button>
                             </form>
 
                             <Link to="/signin" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
-                                ← Back to Sign In
+                                Back to Sign In
                             </Link>
                         </>
                     )}
@@ -268,7 +268,7 @@ export default function ForgotPassword() {
                             <button onClick={handleVerifyCode} disabled={loading || code.join("").length < 6}
                                 className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
                                 style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                {loading ? "Verifying..." : "Verify Code →"}
+                                {loading ? "Verifying..." : "Verify Code"}
                             </button>
 
                             <div className="text-sm" style={{ color: "#B2B2D2" }}>
@@ -284,7 +284,7 @@ export default function ForgotPassword() {
 
                             <button onClick={() => { setStep(1); setCode(["", "", "", "", "", ""]); setError(""); }}
                                 className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
-                                ← Change email
+                                Change email
                             </button>
                         </>
                     )}
