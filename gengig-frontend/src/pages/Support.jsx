@@ -13,7 +13,7 @@ const faqs = [
 const contactOptions = [
   { icon: "📧", title: "Email Us", desc: "We reply within 24 hours", value: "support@gengig.com" },
   { icon: "💬", title: "Live Chat", desc: "Available 9am - 6pm", value: "Start Chat" },
-  { icon: "📱", title: "WhatsApp", desc: "Quick responses", value: "+20 100 000 0000" },
+  { icon: "📱", title: "WhatsApp", desc: "Quick responses", value: "+20 1500991704" },
 ];
 
 export default function Support() {
