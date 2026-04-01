@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import GengigChatbot from "../components/GengigChatbot";
 
 export default function TeenlancerLayout({ children }) {
     const location = useLocation();
@@ -194,6 +195,7 @@ export default function TeenlancerLayout({ children }) {
                 <main className="flex-1 p-4 md:p-8">
                     {children}
                 </main>
+                <GengigChatbot />
 
             </div>
         </div>

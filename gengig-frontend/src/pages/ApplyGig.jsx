@@ -1,25 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
-const gig = {
-    id: 1,
-    title: "Brand Identity Design",
-    category: "Graphic Design",
-    budget: "$150",
-    deadline: "7 days",
-    agent: {
-        name: "Khaled Ramzy",
-        company: "Creative Studio Co.",
-        img: "https://i.pravatar.cc/100?img=3",
-    },
-};
+import api from "../services/api";
 
 export default function ApplyGig() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
+    const [gig, setGig] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState(null);
     const [fileName, setFileName] = useState(null);
@@ -30,6 +20,36 @@ export default function ApplyGig() {
         portfolioLink: "",
         file: null,
     });
+
+    useEffect(() => {
+        const fetchGig = async () => {
+            setLoading(true);
+            try {
+                // TODO: Replace with real API call: GET /gigs/:id
+                // const response = await api.get(`/gigs/${id}`);
+                // setGig(response.data);
+
+                // Mock data until backend is ready
+                setGig({
+                    id,
+                    title: "Brand Identity Design",
+                    category: "Graphic Design",
+                    budget: "$150",
+                    deadline: "7 days",
+                    agent: {
+                        name: "Khaled Ramzy",
+                        company: "Creative Studio Co.",
+                        img: "https://i.pravatar.cc/100?img=3",
+                    },
+                });
+            } catch (err) {
+                console.error("Failed to fetch gig:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchGig();
+    }, [id]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,14 +69,41 @@ export default function ApplyGig() {
             setError("Please fill in all required fields.");
             return;
         }
-        setLoading(true);
+        setSubmitting(true);
         setError(null);
-        // TODO: send to backend
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            // TODO: Replace with real API call: POST /gigs/:id/apply
+            // const form = new FormData();
+            // form.append("message", formData.message);
+            // form.append("proposedRate", formData.proposedRate);
+            // form.append("timeline", formData.timeline);
+            // form.append("portfolioLink", formData.portfolioLink);
+            // if (formData.file) form.append("file", formData.file);
+            // await api.post(`/gigs/${id}/apply`, form);
+            await new Promise((r) => setTimeout(r, 1500)); // mock delay
             setSubmitted(true);
-        }, 1500);
+        } catch (err) {
+            setError("Failed to submit application. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div style={{ background: "#060834" }}>
+                <Navbar />
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                        <p className="text-sm" style={{ color: "#B2B2D2" }}>Loading gig details...</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     // Success screen
     if (submitted) {
@@ -74,13 +121,23 @@ export default function ApplyGig() {
                         Application Sent!
                     </h2>
                     <p className="text-sm mb-8 max-w-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
-                        Your application for <strong className="text-white">"{gig.title}"</strong> has been sent. The agent will review it and get back to you soon.
+                        Your application for{" "}
+                        <strong className="text-white">"{gig?.title}"</strong>{" "}
+                        has been sent. The agent will review it and get back to you soon.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <Link to="/explore" className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                        <Link
+                            to="/Exploreagig"
+                            className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity"
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
+                        >
                             Explore More Gigs
                         </Link>
-                        <Link to="/teenlancer/dashboard" className="px-8 py-3 rounded-full font-semibold text-white hover:bg-white/10 transition-all" style={{ border: "1px solid rgba(255,255,255,0.3)" }}>
+                        <Link
+                            to="/teenlancer/dashboard"
+                            className="px-8 py-3 rounded-full font-semibold text-white hover:bg-white/10 transition-all"
+                            style={{ border: "1px solid rgba(255,255,255,0.3)" }}
+                        >
                             Go to Dashboard
                         </Link>
                     </div>
@@ -100,9 +157,9 @@ export default function ApplyGig() {
                 <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                     <Link to="/home" className="hover:text-white">Home</Link>
                     {" / "}
-                    <Link to="/explore" className="hover:text-white">Explore</Link>
+                    <Link to="/Exploreagig" className="hover:text-white">Explore</Link>
                     {" / "}
-                    <Link to={`/gig/${id}`} className="hover:text-white">Gig Details</Link>
+                    <Link to={"/gig/" + id} className="hover:text-white">Gig Details</Link>
                     {" / "}
                     <span style={{ color: "#FFC085" }}>Apply</span>
                 </p>
@@ -126,13 +183,13 @@ export default function ApplyGig() {
                                     Intro Message <span style={{ color: "#f87171" }}>*</span>
                                 </label>
                                 <p className="text-xs" style={{ color: "#B2B2D2" }}>
-                                    2-3 sentences about yourself and why you're a good fit for this gig.
+                                    2-3 sentences about yourself and why you are a good fit for this gig.
                                 </p>
                                 <textarea
                                     name="message"
                                     value={formData.message}
                                     onChange={handleChange}
-                                    placeholder="Hi! I'm a graphic designer with experience in brand identity and logo design. I've worked on similar projects and I'm confident I can deliver great results within your timeline."
+                                    placeholder="Hi! I am a graphic designer with experience in brand identity and logo design. I have worked on similar projects and I am confident I can deliver great results within your timeline."
                                     rows={4}
                                     className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
                                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
@@ -157,7 +214,9 @@ export default function ApplyGig() {
                                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                                         />
                                     </div>
-                                    <p className="text-xs" style={{ color: "#B2B2D2" }}>Agent's budget: {gig.budget}</p>
+                                    {gig?.budget && (
+                                        <p className="text-xs" style={{ color: "#B2B2D2" }}>{"Agent's budget: " + gig.budget}</p>
+                                    )}
                                 </div>
 
                                 <div className="flex flex-col gap-2">
@@ -178,33 +237,34 @@ export default function ApplyGig() {
                                         <option style={{ background: "#060834" }}>2 weeks</option>
                                         <option style={{ background: "#060834" }}>1 month</option>
                                     </select>
-                                    <p className="text-xs" style={{ color: "#B2B2D2" }}>Agent's deadline: {gig.deadline}</p>
+                                    {gig?.deadline && (
+                                        <p className="text-xs" style={{ color: "#B2B2D2" }}>{"Agent's deadline: " + gig.deadline}</p>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Portfolio Link */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-white text-sm font-medium">
-                                    Portfolio Link <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
+                                    Portfolio Link{" "}
+                                    <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
                                 </label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style={{ color: "#B2B2D2" }}>🔗</span>
-                                    <input
-                                        type="url"
-                                        name="portfolioLink"
-                                        value={formData.portfolioLink}
-                                        onChange={handleChange}
-                                        placeholder="https://behance.net/yourprofile"
-                                        className="w-full rounded-xl pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                                    />
-                                </div>
+                                <input
+                                    type="url"
+                                    name="portfolioLink"
+                                    value={formData.portfolioLink}
+                                    onChange={handleChange}
+                                    placeholder="https://behance.net/yourprofile"
+                                    className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+                                />
                             </div>
 
                             {/* File Upload */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-white text-sm font-medium">
-                                    Sample Work <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
+                                    Sample Work{" "}
+                                    <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
                                 </label>
                                 <label
                                     className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-xl cursor-pointer transition-colors hover:bg-white/5"
@@ -223,23 +283,21 @@ export default function ApplyGig() {
                                 </label>
                             </div>
 
-                            {/* Error */}
                             {error && (
                                 <p className="text-xs text-center" style={{ color: "#f87171" }}>{error}</p>
                             )}
 
-                            {/* Buttons */}
                             <div className="flex flex-col sm:flex-row gap-4 mt-2">
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className="flex-1 py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
                                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                                 >
-                                    {loading ? "Submitting..." : "Submit Application →"}
+                                    {submitting ? "Submitting..." : "Submit Application →"}
                                 </button>
                                 <Link
-                                    to={`/gig/${id}`}
+                                    to={"/gig/" + id}
                                     className="flex-1 py-3 rounded-full font-semibold text-center hover:bg-white/10 transition-all"
                                     style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#B2B2D2" }}
                                 >
@@ -252,40 +310,57 @@ export default function ApplyGig() {
 
                     {/* Right - Gig Summary */}
                     <div className="w-full lg:w-64 flex-shrink-0">
-                        <div className="p-5 rounded-2xl sticky top-28" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                            <h2 className="text-white font-semibold mb-4">Gig Summary</h2>
+                        {gig && (
+                            <div className="p-5 rounded-2xl sticky top-28" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                <h2 className="text-white font-semibold mb-4">Gig Summary</h2>
 
-                            <div className="flex items-center gap-3 mb-4 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                                <img src={gig.agent.img} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: "2px solid #FFC085" }} />
-                                <div>
-                                    <p className="text-white text-sm font-semibold">{gig.agent.name}</p>
-                                    <p className="text-xs" style={{ color: "#FFC085" }}>{gig.agent.company}</p>
-                                </div>
-                            </div>
-
-                            <p className="text-white font-semibold text-sm mb-4">{gig.title}</p>
-
-                            <div className="flex flex-col gap-3">
-                                {[
-                                    { label: "Category", value: gig.category },
-                                    { label: "Budget", value: gig.budget },
-                                    { label: "Deadline", value: gig.deadline },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center justify-between text-sm">
-                                        <span style={{ color: "#B2B2D2" }}>{item.label}</span>
-                                        <span className="font-medium" style={{ color: "#FFC085" }}>{item.value}</span>
+                                {gig.agent && (
+                                    <div className="flex items-center gap-3 mb-4 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                                        <div
+                                            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+                                            style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.1)" }}
+                                        >
+                                            {gig.agent.img ? (
+                                                <img src={gig.agent.img} alt={gig.agent.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#FFC085" strokeWidth={1.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="text-white text-sm font-semibold">{gig.agent.name}</p>
+                                            {gig.agent.company && (
+                                                <p className="text-xs" style={{ color: "#FFC085" }}>{gig.agent.company}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
+                                )}
 
-                            <Link
-                                to={`/gig/${id}`}
-                                className="mt-5 block text-center text-xs hover:text-white transition-colors"
-                                style={{ color: "#B2B2D2" }}
-                            >
-                                ← Back to gig details
-                            </Link>
-                        </div>
+                                <p className="text-white font-semibold text-sm mb-4">{gig.title}</p>
+
+                                <div className="flex flex-col gap-3">
+                                    {[
+                                        gig.category && { label: "Category", value: gig.category },
+                                        gig.budget && { label: "Budget", value: gig.budget },
+                                        gig.deadline && { label: "Deadline", value: gig.deadline },
+                                    ].filter(Boolean).map((item) => (
+                                        <div key={item.label} className="flex items-center justify-between text-sm">
+                                            <span style={{ color: "#B2B2D2" }}>{item.label}</span>
+                                            <span className="font-medium" style={{ color: "#FFC085" }}>{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Link
+                                    to={"/gig/" + id}
+                                    className="mt-5 block text-center text-xs hover:text-white transition-colors"
+                                    style={{ color: "#B2B2D2" }}
+                                >
+                                    ← Back to gig details
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                 </div>
