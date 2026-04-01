@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
+import api from "../../services/api";
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
@@ -9,21 +11,57 @@ export default function AgentDashboard() {
   const dateStr = now.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
   const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
-  // TODO: Replace with API call: GET /agent/gigs?status=active
-  const currentGigs = [];
+  const [currentGigs, setCurrentGigs] = useState([]);
+  const [previousGigs, setPreviousGigs] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [recentApplications, setRecentApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: Replace with API call: GET /agent/gigs?status=completed
-  const previousGigs = [];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // TODO: Replace with real API calls:
+        // const [currentRes, previousRes, statsRes, appsRes] = await Promise.all([
+        //   api.get("/agent/gigs?status=active"),
+        //   api.get("/agent/gigs?status=completed"),
+        //   api.get("/agent/stats"),
+        //   api.get("/agent/applications?limit=3"),
+        // ]);
+        // setCurrentGigs(currentRes.data);
+        // setPreviousGigs(previousRes.data);
+        // setStats(statsRes.data);
+        // setRecentApplications(appsRes.data);
 
-  // TODO: Replace with API call: GET /agent/stats
-  const stats = [
-    { label: "Active Gigs", value: currentGigs.length, icon: "📋" },
-    { label: "Completed Gigs", value: previousGigs.length, icon: "✅" },
-    { label: "Total Spent", value: localStorage.getItem("totalSpent") || "$0", icon: "💳" },
-    { label: "Teenlancers Hired", value: localStorage.getItem("teenlancersHired") || "0", icon: "👥" },
-  ];
+        // Mock data until backend is ready
+        setCurrentGigs([]);
+        setPreviousGigs([]);
+        setRecentApplications([]);
+        setStats({
+          activeGigs: 0,
+          completedGigs: 0,
+          totalSpent: "$0",
+          teenlancersHired: 0,
+        });
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
 
   const hasActivity = currentGigs.length > 0 || previousGigs.length > 0;
+
+  const statCards = stats
+    ? [
+      { label: "Active Gigs", value: stats.activeGigs ?? currentGigs.length, icon: "📋", color: "#63b3ed" },
+      { label: "Completed Gigs", value: stats.completedGigs ?? previousGigs.length, icon: "✅", color: "#4ade80" },
+      { label: "Total Spent", value: stats.totalSpent ?? "$0", icon: "💳", color: "#FFC085" },
+      { label: "Teenlancers Hired", value: stats.teenlancersHired ?? 0, icon: "👥", color: "#FFC085" },
+    ]
+    : [];
 
   return (
     <AgentLayout>
@@ -36,13 +74,13 @@ export default function AgentDashboard() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
+            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span> 👋
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>
         <button
           onClick={() => navigate("/post")}
-          className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity flex-shrink-0"
+          className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200 flex-shrink-0"
           style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
         >
           + Post a Gig
@@ -50,35 +88,57 @@ export default function AgentDashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="p-5 rounded-2xl flex items-center justify-between"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-          >
-            <div>
-              <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
-              <p className="text-white font-bold text-xl">{stat.value}</p>
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="p-5 rounded-2xl animate-pulse"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", height: "90px" }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {statCards.map((stat) => (
+            <div
+              key={stat.label}
+              className="p-5 rounded-2xl flex items-center justify-between hover:scale-105 transition-all duration-200"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <div>
+                <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
+                <p
+                  className="font-bold text-xl"
+                  style={{ color: stat.value === 0 || stat.value === "$0" ? "#B2B2D2" : "white" }}
+                >
+                  {stat.value}
+                </p>
+              </div>
+              <span className="text-2xl">{stat.icon}</span>
             </div>
-            <span className="text-2xl">{stat.icon}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Main Content */}
-      {!hasActivity ? (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div
+            className="w-10 h-10 rounded-full border-2 animate-spin"
+            style={{ borderColor: "#FFC085", borderTopColor: "transparent" }}
+          />
+          <p className="text-sm" style={{ color: "#B2B2D2" }}>Loading your dashboard...</p>
+        </div>
+      ) : !hasActivity ? (
+
         /* ── Empty State ── */
         <div
           className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)" }}
         >
-          {/* Animated icon */}
           <div className="relative mb-6">
-            <div
-              className="absolute inset-0 rounded-full animate-ping opacity-10"
-              style={{ background: "#FFC085" }}
-            />
+            <div className="absolute inset-0 rounded-full animate-ping opacity-10" style={{ background: "#FFC085" }} />
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center text-3xl relative z-10"
               style={{ background: "rgba(255,192,133,0.1)", border: "2px solid rgba(255,192,133,0.3)" }}
@@ -97,7 +157,7 @@ export default function AgentDashboard() {
 
           <button
             onClick={() => navigate("/post")}
-            className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity"
+            className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
           >
             Post Your First Gig →
@@ -106,13 +166,14 @@ export default function AgentDashboard() {
           {/* Quick tips */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
-              { icon: "✍️", title: "Post a gig", desc: "Describe what you need and set your budget" },
-              { icon: "👀", title: "Review applications", desc: "Browse teenlancers who apply to your gig" },
-              { icon: "🤝", title: "Hire & collaborate", desc: "Accept the best fit and get your project done" },
+              { icon: "✍️", title: "Post a gig", desc: "Describe what you need and set your budget", action: () => navigate("/post") },
+              { icon: "👀", title: "Review applications", desc: "Browse teenlancers who apply to your gig", action: () => navigate("/agent/applications") },
+              { icon: "🤝", title: "Hire & collaborate", desc: "Accept the best fit and get your project done", action: null },
             ].map((tip) => (
               <div
                 key={tip.title}
-                className="p-4 rounded-2xl text-left"
+                onClick={tip.action || undefined}
+                className={`p-4 rounded-2xl text-left transition-all duration-200 ${tip.action ? "cursor-pointer hover:scale-105 hover:border-[#FFC085]" : ""}`}
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <p className="text-xl mb-2">{tip.icon}</p>
@@ -123,8 +184,68 @@ export default function AgentDashboard() {
           </div>
         </div>
       ) : (
+
         /* ── Has Activity ── */
         <div className="flex flex-col gap-8">
+
+          {/* Recent Applications — shows when there are gigs but quick access to applications */}
+          {recentApplications.length > 0 && (
+            <div
+              className="p-6 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white font-semibold">Recent Applications</h2>
+                <button
+                  onClick={() => navigate("/agent/applications")}
+                  className="text-xs hover:opacity-80 transition-opacity"
+                  style={{ color: "#FFC085" }}
+                >
+                  View all →
+                </button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {recentApplications.map((app) => (
+                  <div
+                    key={app.id}
+                    onClick={() => navigate("/agent/applications")}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+                      style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.1)" }}
+                    >
+                      {app.applicant?.img ? (
+                        <img src={app.applicant.img} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
+                          {app.applicant?.name?.charAt(0) || "?"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold truncate">
+                        {app.applicant?.name || "Unknown"}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
+                        {"Applied for: " + (app.gigTitle || "Unknown gig")}
+                      </p>
+                    </div>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                      style={{
+                        background: app.status === "pending" ? "rgba(255,192,133,0.15)" : "rgba(74,222,128,0.1)",
+                        color: app.status === "pending" ? "#FFC085" : "#4ade80",
+                      }}
+                    >
+                      {app.status === "pending" ? "New" : "Reviewed"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Current Gigs */}
           {currentGigs.length > 0 && (
@@ -140,27 +261,38 @@ export default function AgentDashboard() {
                   {currentGigs.length} active
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentGigs.map((group, i) => (
+              <div className="flex flex-col gap-3">
+                {currentGigs.map((gig) => (
                   <div
-                    key={i}
-                    className="p-5 rounded-2xl"
+                    key={gig.id || gig.title}
+                    onClick={() => gig.id && navigate("/gig/" + gig.id)}
+                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-white text-sm font-semibold">{group.date}</p>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(255,192,133,0.15)" }}
+                    >
+                      <span className="text-lg">📋</span>
                     </div>
-                    <div className="flex flex-col gap-4">
-                      {group.gigs.map((gig, j) => (
-                        <div key={j} className="flex items-start gap-3">
-                          <span className="text-xs font-medium mt-0.5 w-10 flex-shrink-0" style={{ color: "#B2B2D2" }}>{gig.time}</span>
-                          <div className="w-0.5 h-10 rounded-full flex-shrink-0" style={{ background: gig.color }} />
-                          <div>
-                            <p className="text-xs mb-0.5" style={{ color: gig.color }}>{gig.category}</p>
-                            <p className="text-white text-sm font-medium">{gig.title}</p>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold truncate">{gig.title}</p>
+                      <p className="text-xs" style={{ color: "#B2B2D2" }}>
+                        {gig.category && gig.category}
+                        {gig.applications !== undefined && " · " + gig.applications + " applicant" + (gig.applications !== 1 ? "s" : "")}
+                        {gig.deadline && " · Due " + gig.deadline}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      {gig.budget && (
+                        <span className="text-sm font-bold" style={{ color: "#FFC085" }}>{gig.budget}</span>
+                      )}
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}
+                      >
+                        Active
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -171,10 +303,7 @@ export default function AgentDashboard() {
           {/* Previous Gigs */}
           {previousGigs.length > 0 && (
             <div>
-              <h2
-                className="text-white font-bold mb-4"
-                style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)" }}
-              >
+              <h2 className="text-white font-bold mb-4" style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)" }}>
                 Previous Gigs
               </h2>
               <div
@@ -183,21 +312,52 @@ export default function AgentDashboard() {
               >
                 {previousGigs.map((gig, i) => (
                   <div
-                    key={i}
+                    key={gig.id || gig.title}
+                    onClick={() => gig.id && navigate("/gig/" + gig.id)}
                     className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors cursor-pointer"
                     style={{ borderBottom: i < previousGigs.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}
                   >
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(255,192,133,0.1)" }}
+                      style={{ background: "rgba(74,222,128,0.1)" }}
                     >
                       <span className="text-sm">✅</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-white text-sm font-semibold">{gig.title}</p>
-                      <p className="text-xs" style={{ color: "#B2B2D2" }}>{gig.category} · Completed {gig.completedDate}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold truncate">{gig.title}</p>
+                      <p className="text-xs" style={{ color: "#B2B2D2" }}>
+                        {gig.category && gig.category}
+                        {gig.completedDate && " · Completed " + gig.completedDate}
+                      </p>
                     </div>
-                    <span className="text-sm font-bold" style={{ color: "#FFC085" }}>{gig.budget}</span>
+                    {gig.budget && (
+                      <span className="text-sm font-bold flex-shrink-0" style={{ color: "#FFC085" }}>
+                        {gig.budget}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Spending Summary — only when there's real data */}
+          {stats && stats.totalSpent !== "$0" && (
+            <div
+              className="p-6 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <h2 className="text-white font-semibold mb-4">Spending Summary</h2>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { label: "Total Spent", value: stats.totalSpent },
+                  { label: "Gigs Completed", value: stats.completedGigs },
+                  { label: "Teenlancers Hired", value: stats.teenlancersHired },
+                  { label: "Avg per Gig", value: stats.avgPerGig || "—" },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <p className="text-xs mb-1" style={{ color: "#B2B2D2" }}>{item.label}</p>
+                    <p className="text-white font-bold text-lg">{item.value}</p>
                   </div>
                 ))}
               </div>

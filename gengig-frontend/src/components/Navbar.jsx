@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/Gengig LOGO.png";
 
@@ -7,8 +7,24 @@ export default function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
-  const photo = localStorage.getItem("photo")
+  const photo = localStorage.getItem("photo");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!token) return;
+    const fetchUnreadCount = async () => {
+      try {
+        // TODO: Replace with API call: GET /notifications/unread-count
+        // const response = await api.get("/notifications/unread-count");
+        // setUnreadCount(response.data.count);
+        setUnreadCount(3); // mock until backend ready
+      } catch (err) {
+        console.error("Failed to fetch unread count:", err);
+      }
+    };
+    fetchUnreadCount();
+  }, [token]);
 
   const navLinks = [
     { label: "Home", path: "/home" },
@@ -96,17 +112,25 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {token ? (
               <>
-                <Link to="/notifications" className="relative text-[#B2B2D2] hover:text-white transition-colors">
+                {/* Bell icon with dynamic unread count */}
+                <Link
+                  to="/notifications"
+                  className="relative text-[#B2B2D2] hover:text-white transition-colors"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
-                  <span
-                    className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-xs flex items-center justify-center font-bold"
-                    style={{ background: "#FFC085", color: "#060834", fontSize: "8px" }}
-                  >
-                    3
-                  </span>
+                  {unreadCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-xs flex items-center justify-center font-bold"
+                      style={{ background: "#FFC085", color: "#060834", fontSize: "8px" }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
+
+                {/* Avatar → goes to profile */}
                 <button
                   onClick={handleProfile}
                   className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
@@ -143,6 +167,7 @@ export default function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </button>
+                {/* Profile icon */}
                 <button
                   onClick={handleProfile}
                   className="text-[#B2B2D2] hover:text-white transition-colors"
@@ -198,12 +223,36 @@ export default function Navbar() {
             <div className="h-px w-full" style={{ background: "rgba(255,255,255,0.08)" }} />
             {token ? (
               <>
-                <button onClick={handleProfile} className="text-sm font-medium text-left py-2 transition-colors hover:text-[#FFC085]" style={{ color: "#B2B2D2" }}>
+                <button
+                  onClick={handleProfile}
+                  className="text-sm font-medium text-left py-2 transition-colors hover:text-[#FFC085]"
+                  style={{ color: "#B2B2D2" }}
+                >
                   My Profile
                 </button>
-                <Link to="/notifications" onClick={() => setMenuOpen(false)} className="text-sm font-medium py-2 transition-colors hover:text-[#FFC085]" style={{ color: "#B2B2D2" }}>
+                <Link
+                  to="/notifications"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium py-2 transition-colors hover:text-[#FFC085] flex items-center gap-2"
+                  style={{ color: "#B2B2D2" }}
+                >
                   Notifications
+                  {unreadCount > 0 && (
+                    <span
+                      className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
+                      style={{ background: "#FFC085", color: "#060834" }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-left py-2"
+                  style={{ color: "#f87171" }}
+                >
+                  Logout
+                </button>
               </>
             ) : (
               <>

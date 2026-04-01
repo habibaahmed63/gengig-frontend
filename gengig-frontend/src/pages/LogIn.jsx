@@ -44,8 +44,16 @@ export default function SignIn() {
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.role);
 
+            // Save user data if backend returns it directly in login response
             if (response.data.name) localStorage.setItem("name", response.data.name);
             if (response.data.photo) localStorage.setItem("photo", response.data.photo);
+            if (response.data.bio) localStorage.setItem("bio", response.data.bio);
+            if (response.data.location) localStorage.setItem("location", response.data.location);
+            if (response.data.skills) localStorage.setItem("skills", JSON.stringify(response.data.skills));
+            if (response.data.availability) localStorage.setItem("availability", response.data.availability);
+            if (response.data.hourlyRate) localStorage.setItem("hourlyRate", response.data.hourlyRate);
+            if (response.data.company) localStorage.setItem("company", response.data.company);
+            if (response.data.industry) localStorage.setItem("industry", response.data.industry);
             console.log("Success:", response.data);
             if (response.data.role === "teenlancer") {
                 navigate("/teenlancer/dashboard");

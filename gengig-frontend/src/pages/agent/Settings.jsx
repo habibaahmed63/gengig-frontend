@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
+import api from "../../services/api";
 
 export default function AgentSettings() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        name: "Habiba Ahmed",
-        email: "habiba@example.com",
-        language: "English",
+        name: localStorage.getItem("name") || "",
+        email: localStorage.getItem("email") || "",
+        language: localStorage.getItem("language") || "English",
         notifications: {
             email: true,
             push: false,
@@ -20,6 +23,12 @@ export default function AgentSettings() {
     });
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [saveLoading, setSaveLoading] = useState(false);
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [passwordSuccess, setPasswordSuccess] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,16 +41,86 @@ export default function AgentSettings() {
     const handleNotification = (key) => {
         setFormData({
             ...formData,
-            notifications: {
-                ...formData.notifications,
-                [key]: !formData.notifications[key],
-            },
+            notifications: { ...formData.notifications, [key]: !formData.notifications[key] },
         });
+    };
+
+    const handleSaveInfo = async () => {
+        setSaveLoading(true);
+        try {
+            // TODO: await api.put("/users/settings", { name: formData.name, email: formData.email, language: formData.language });
+            localStorage.setItem("name", formData.name);
+            localStorage.setItem("email", formData.email);
+            localStorage.setItem("language", formData.language);
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch {
+            // handle error
+        } finally {
+            setSaveLoading(false);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        setPasswordError("");
+        if (!passwords.current) { setPasswordError("Please enter your current password."); return; }
+        if (passwords.newPass.length < 6) { setPasswordError("New password must be at least 6 characters."); return; }
+        if (passwords.newPass !== passwords.confirm) { setPasswordError("Passwords do not match."); return; }
+        setPasswordLoading(true);
+        try {
+            // TODO: await api.put("/auth/change-password", { currentPassword: passwords.current, newPassword: passwords.newPass });
+            await new Promise((r) => setTimeout(r, 1000)); // mock
+            setPasswords({ current: "", newPass: "", confirm: "" });
+            setPasswordSuccess(true);
+            setTimeout(() => setPasswordSuccess(false), 3000);
+        } catch {
+            setPasswordError("Current password is incorrect.");
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("name");
+        localStorage.removeItem("email");
+        localStorage.removeItem("photo");
+        localStorage.removeItem("bio");
+        localStorage.removeItem("company");
+        localStorage.removeItem("industry");
+        localStorage.removeItem("workTypes");
+        localStorage.removeItem("location");
+        localStorage.removeItem("joinDate");
+        localStorage.removeItem("language");
+        navigate("/signin");
+    };
+
+    const handleDeleteAccount = async () => {
+        setDeleteLoading(true);
+        try {
+            // TODO: await api.delete("/users/account");
+            await new Promise((r) => setTimeout(r, 1500)); // mock
+            handleLogout();
+        } catch {
+            setDeleteLoading(false);
+        }
     };
 
     return (
         <AgentLayout>
-            {/* Breadcrumb */}
+            {/* Success toasts */}
+            {saveSuccess && (
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                    ✓ Settings saved!
+                </div>
+            )}
+            {passwordSuccess && (
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg" style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }}>
+                    ✓ Password updated!
+                </div>
+            )}
+
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 Home › Account › <span style={{ color: "#FFC085" }}>Settings</span>
             </p>
@@ -90,8 +169,13 @@ export default function AgentSettings() {
                                 <option style={{ background: "#060834" }}>French</option>
                             </select>
                         </div>
-                        <button className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                            Save Changes
+                        <button
+                            onClick={handleSaveInfo}
+                            disabled={saveLoading}
+                            className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
+                        >
+                            {saveLoading ? "Saving..." : "Save Changes"}
                         </button>
                     </div>
                 </div>
@@ -117,8 +201,16 @@ export default function AgentSettings() {
                                 />
                             </div>
                         ))}
-                        <button className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                            Update Password
+                        {passwordError && (
+                            <p className="text-xs" style={{ color: "#f87171" }}>{passwordError}</p>
+                        )}
+                        <button
+                            onClick={handleUpdatePassword}
+                            disabled={passwordLoading}
+                            className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
+                        >
+                            {passwordLoading ? "Updating..." : "Update Password"}
                         </button>
                     </div>
                 </div>
@@ -144,10 +236,7 @@ export default function AgentSettings() {
                                 >
                                     <span
                                         className="absolute top-0.5 w-5 h-5 rounded-full transition-all"
-                                        style={{
-                                            background: "white",
-                                            left: formData.notifications[item.key] ? "22px" : "2px",
-                                        }}
+                                        style={{ background: "white", left: formData.notifications[item.key] ? "22px" : "2px" }}
                                     />
                                 </button>
                             </div>
@@ -159,7 +248,7 @@ export default function AgentSettings() {
                 <div className="p-6 rounded-2xl" style={{ background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.2)" }}>
                     <h2 className="font-semibold mb-2" style={{ color: "#f87171" }}>Danger Zone</h2>
                     <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>
-                        Once you delete your account, there is no going back. Please be certain.
+                        Once you delete your account, there is no going back. All your data will be permanently removed.
                     </p>
                     {!showDeleteConfirm ? (
                         <button
@@ -171,10 +260,17 @@ export default function AgentSettings() {
                         </button>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            <p className="text-sm" style={{ color: "#f87171" }}>Are you sure? This action cannot be undone.</p>
+                            <p className="text-sm" style={{ color: "#f87171" }}>
+                                Are you sure? This will permanently delete your account and all your data.
+                            </p>
                             <div className="flex gap-3">
-                                <button className="px-6 py-2 rounded-full text-sm font-semibold text-white" style={{ background: "#f87171" }}>
-                                    Yes, Delete
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    disabled={deleteLoading}
+                                    className="px-6 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50 hover:opacity-90 transition-opacity"
+                                    style={{ background: "#f87171" }}
+                                >
+                                    {deleteLoading ? "Deleting..." : "Yes, Delete"}
                                 </button>
                                 <button
                                     onClick={() => setShowDeleteConfirm(false)}
@@ -189,7 +285,11 @@ export default function AgentSettings() {
                 </div>
 
                 {/* Log Out */}
-                <button className="w-full py-3 rounded-full text-sm font-semibold transition-opacity hover:opacity-90" style={{ background: "rgba(255,255,255,0.05)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
+                <button
+                    onClick={handleLogout}
+                    className="w-full py-3 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
+                    style={{ background: "rgba(255,255,255,0.05)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}
+                >
                     Log Out
                 </button>
 
