@@ -65,6 +65,8 @@ export default function GengigChatbot() {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const token = localStorage.getItem("token");
+ 
 
   useEffect(() => {
     if (isOpen) {
@@ -84,14 +86,14 @@ export default function GengigChatbot() {
     setLoading(true);
 
     try {
-      response = await fetch("http://localhost:3000/chat/send", {
+      const response = await fetch("http://localhost:3000/chat/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + token  // the user's JWT token
         },
         body: JSON.stringify({
-          message: userMessage,
+          message: userMessage.content,
           sessionId: "session-001",
           userType: "teenlancer"  // or "agent" depending on the user's role
         }),
@@ -100,7 +102,7 @@ export default function GengigChatbot() {
       const data = await response.json();
       const assistantMessage = {
         role: "assistant",
-        content: data.content[0].text,
+        content: data.reply,
       };
       setMessages((prev) => [...prev, assistantMessage]);
       if (!isOpen) setHasNewMessage(true);
