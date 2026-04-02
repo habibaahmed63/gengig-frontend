@@ -62,10 +62,12 @@ export default function ExplorePage() {
     }, []);
 
     const handleCategoryClick = (categoryLabel) => {
-        // TODO: Navigate to filtered page when built
-        // Agent → teenlancers by category
-        // Teenlancer → gigs by category
-        navigate("/search?q=" + categoryLabel);
+        const role = localStorage.getItem("role");
+        if (role === "agent") {
+            navigate(`/teenlancers/category/${encodeURIComponent(categoryLabel)}`);
+        } else {
+            navigate(`/gigs/category/${encodeURIComponent(categoryLabel)}`);
+        }
     };
 
     const handleSearch = (e) => {

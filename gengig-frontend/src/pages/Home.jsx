@@ -93,16 +93,16 @@ export default function Home() {
         fetchHomeData();
     }, []);
 
-    const handleCategoryClick = (category) => {
+    const handleCategoryClick = (categoryLabel) => {
+        const role = localStorage.getItem("role");
         if (role === "agent") {
-            // TODO: navigate to /teenlancers?category=X when that page is built
-            navigate("/Exploreagig");
+            // Agents see teenlancers filtered by that skill
+            navigate(`/teenlancers/category/${encodeURIComponent(categoryLabel)}`);
         } else {
-            // TODO: navigate to /Exploreagig?category=X when filtering is ready
-            navigate("/Exploreagig");
+            // Teenlancers (and logged-out users) see gigs filtered by category
+            navigate(`/gigs/category/${encodeURIComponent(categoryLabel)}`);
         }
     };
-
     return (
         <div style={{ background: "#060834" }}>
             <Navbar />
