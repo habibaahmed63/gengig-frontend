@@ -70,7 +70,7 @@ export default function TeenlancerDashboard() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span> 👋
+            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span> 
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>
