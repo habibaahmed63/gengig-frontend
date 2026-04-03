@@ -10,6 +10,8 @@ import Notifications from "../pages/Notifications";
 import Support from "../pages/Support";
 import Terms from "../pages/Terms";
 import NotFound from "../pages/NotFound";
+import PostGig from "../pages/PostGig";
+
 
 // Auth
 import SignUp from "../pages/SignUp";
@@ -35,6 +37,8 @@ import AgentProfile from "../pages/agent/Profile";
 import AgentPayment from "../pages/agent/PaymentDetails";
 import AgentSettings from "../pages/agent/Settings";
 import AgentApplications from "../pages/agent/Applications";
+import MyGigs from "../pages/agent/MyGigs";
+
 
 // Category pages — NEW
 import GigsByCategory from "../pages/GigsByCategory";
@@ -53,6 +57,7 @@ export default function AppRouter() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/Support" element={<Support />} />
         <Route path="/Terms" element={<Terms />} />
+        <Route path="/post" element={<PostGig />} />
 
         {/* ── Category Pages ── */}
         <Route path="/gigs/category/:category" element={<GigsByCategory />} />
@@ -82,6 +87,8 @@ export default function AppRouter() {
         <Route path="/agent/payment" element={<AgentPayment />} />
         <Route path="/agent/settings" element={<AgentSettings />} />
         <Route path="/agent/applications" element={<AgentApplications />} />
+        <Route path="/agent/my-gigs" element={<MyGigs />} />
+
 
         {/* ── Fallback ── */}
         <Route path="/" element={<LogIn />} />
