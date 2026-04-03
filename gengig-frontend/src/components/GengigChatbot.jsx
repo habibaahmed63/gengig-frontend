@@ -65,8 +65,8 @@ export default function GengigChatbot() {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const token = localStorage.getItem("token");
- 
+
+  // ← REMOVED: const token = localStorage.getItem("token") from here
 
   useEffect(() => {
     if (isOpen) {
@@ -79,9 +79,26 @@ export default function GengigChatbot() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
+    // ← Read token and role fresh on every send so they're never stale
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    // ← Guard: if no token yet, show friendly message instead of hitting backend
+    if (!token) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: input.trim() },
+        {
+          role: "assistant",
+          content: "Please log in first to chat with the Gengig Assistant! 😊",
+        },
+      ]);
+      setInput("");
+      return;
+    }
+
     const userMessage = { role: "user", content: input.trim() };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
@@ -90,29 +107,40 @@ export default function GengigChatbot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + token  // the user's JWT token
+          "Authorization": "Bearer " + token, // ← token is always fresh now
         },
         body: JSON.stringify({
           message: userMessage.content,
           sessionId: "session-001",
-          userType: "teenlancer"  // or "agent" depending on the user's role
+          userType: role || "teenlancer", // ← dynamic from localStorage, not hardcoded
         }),
       });
 
+      if (!response.ok) {
+        // ← Handle specific status codes with clear messages
+        if (response.status === 401) {
+          throw new Error("unauthorized");
+        }
+        throw new Error("server_error");
+      }
+
       const data = await response.json();
-      const assistantMessage = {
-        role: "assistant",
-        content: data.reply,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      if (!isOpen) setHasNewMessage(true);
-    } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: "Sorry, I'm having trouble connecting right now. Please try again or visit our Support page for help!",
-        },
+        { role: "assistant", content: data.reply },
+      ]);
+      if (!isOpen) setHasNewMessage(true);
+
+    } catch (err) {
+      let errorMsg = "Sorry, I'm having trouble connecting right now. Please try again or visit our Support page for help!";
+
+      if (err.message === "unauthorized") {
+        errorMsg = "Your session has expired. Please log in again to continue chatting!";
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: errorMsg },
       ]);
     } finally {
       setLoading(false);

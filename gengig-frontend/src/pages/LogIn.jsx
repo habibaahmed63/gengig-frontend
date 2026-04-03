@@ -5,11 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function SignIn() {
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-        rememberMe: false,
-    });
+    const [formData, setFormData] = useState({ email: "", password: "", rememberMe: false });
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -28,43 +24,75 @@ export default function SignIn() {
                 email: formData.email,
                 password: formData.password,
             });
-            localStorage.removeItem("name");
-            localStorage.removeItem("photo");
-            localStorage.removeItem("bio");
-            localStorage.removeItem("skills");
-            localStorage.removeItem("education");
-            localStorage.removeItem("availability");
-            localStorage.removeItem("hourlyRate");
-            localStorage.removeItem("company");
-            localStorage.removeItem("industry");
-            localStorage.removeItem("workTypes");
-            localStorage.removeItem("location");
-            localStorage.removeItem("joinDate");
 
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("role", response.data.role);
+            const d = response.data;
+            console.log("Login response:", d);
 
-            // Save user data if backend returns it directly in login response
-            if (response.data.name) localStorage.setItem("name", response.data.name);
-            if (response.data.photo) localStorage.setItem("photo", response.data.photo);
-            if (response.data.bio) localStorage.setItem("bio", response.data.bio);
-            if (response.data.location) localStorage.setItem("location", response.data.location);
-            if (response.data.skills) localStorage.setItem("skills", JSON.stringify(response.data.skills));
-            if (response.data.availability) localStorage.setItem("availability", response.data.availability);
-            if (response.data.hourlyRate) localStorage.setItem("hourlyRate", response.data.hourlyRate);
-            if (response.data.company) localStorage.setItem("company", response.data.company);
-            if (response.data.industry) localStorage.setItem("industry", response.data.industry);
-            console.log("Success:", response.data);
-            if (response.data.role === "teenlancer") {
+            // ── Only wipe profile data if a DIFFERENT user is logging in ──
+            const previousEmail = localStorage.getItem("email");
+            if (previousEmail && previousEmail !== formData.email) {
+                [
+                    "name", "photo", "bio", "skills", "education", "availability",
+                    "hourlyRate", "company", "industry", "workTypes", "location",
+                    "joinDate", "language", "notificationPrefs", "portfolio",
+                    "savedCard", "paymentHistory", "agentPaymentHistory",
+                    "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
+                    "pendingPayments", "totalSpent", "agentPendingPayments",
+                ].forEach((key) => localStorage.removeItem(key));
+            }
+
+            // ── Always save auth ──
+            localStorage.setItem("token", d.token);
+            localStorage.setItem("role", d.role);
+
+            // ── Save profile fields — backend value takes priority,
+            //    falls back to whatever is already in localStorage,
+            //    so data is NEVER lost on logout/login ──
+            localStorage.setItem("name", d.name || localStorage.getItem("name") || "");
+            localStorage.setItem("email", d.email || formData.email);
+            localStorage.setItem("photo", d.photo || localStorage.getItem("photo") || "");
+            localStorage.setItem("bio", d.bio || localStorage.getItem("bio") || "");
+            localStorage.setItem("location", d.location || localStorage.getItem("location") || "");
+            localStorage.setItem("hourlyRate", d.hourlyRate || localStorage.getItem("hourlyRate") || "");
+            localStorage.setItem("availability", d.availability || localStorage.getItem("availability") || "");
+            localStorage.setItem("education", d.education || localStorage.getItem("education") || "");
+            localStorage.setItem("joinDate", d.joinDate || localStorage.getItem("joinDate") || "");
+            localStorage.setItem("language", d.language || localStorage.getItem("language") || "English");
+            localStorage.setItem("company", d.company || localStorage.getItem("company") || "");
+            localStorage.setItem("industry", d.industry || localStorage.getItem("industry") || "");
+
+            // ── Arrays — parse existing safely before falling back ──
+            const existingSkills = JSON.parse(localStorage.getItem("skills") || "[]");
+            const existingPortfolio = JSON.parse(localStorage.getItem("portfolio") || "[]");
+            const existingWorkTypes = JSON.parse(localStorage.getItem("workTypes") || "[]");
+            const existingNotifs = JSON.parse(localStorage.getItem("notificationPrefs") || "null");
+
+            localStorage.setItem("skills", JSON.stringify(d.skills || existingSkills));
+            localStorage.setItem("portfolio", JSON.stringify(d.portfolio || existingPortfolio));
+            localStorage.setItem("workTypes", JSON.stringify(d.workTypes || existingWorkTypes));
+            localStorage.setItem("notificationPrefs", JSON.stringify(d.notificationPrefs || existingNotifs || { email: true, push: true, sms: false }));
+
+            // ── Stats if backend returns them ──
+            if (d.stats) {
+                if (d.stats.completedGigs != null) localStorage.setItem("completedGigs", d.stats.completedGigs);
+                if (d.stats.totalEarnings != null) localStorage.setItem("totalEarnings", d.stats.totalEarnings);
+                if (d.stats.responseRate != null) localStorage.setItem("responseRate", d.stats.responseRate);
+                if (d.stats.onTimeDelivery != null) localStorage.setItem("onTimeDelivery", d.stats.onTimeDelivery);
+                if (d.stats.totalSpent != null) localStorage.setItem("totalSpent", d.stats.totalSpent);
+            }
+
+            // ── Navigate by role ──
+            if (d.role === "teenlancer") {
                 navigate("/teenlancer/dashboard");
-            } else if (response.data.role === "agent") {
+            } else if (d.role === "agent") {
                 navigate("/agent/dashboard");
             } else {
                 navigate("/home");
             }
-        } catch (error) {
-            console.error("Login error:", error);
-            setError(error.response?.data?.message || "Something went wrong. Please try again.");
+
+        } catch (err) {
+            console.error("Login error:", err);
+            setError(err.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -73,49 +101,41 @@ export default function SignIn() {
     return (
         <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden" style={{ background: "#060834" }}>
 
-            {/* Logo */}
             <div className="absolute top-4 left-4 z-20">
                 <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
             </div>
 
-            {/* Left side - hidden on mobile */}
             <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-10">
                 <h1 className="font-bold leading-tight text-center whitespace-nowrap" style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)" }}>
                     <span className="text-gradient">Welcome Back</span>
                 </h1>
             </div>
 
-            {/* Right side - Form */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-20 lg:py-10">
                 <h2 className="text-white text-2xl font-semibold mb-6">Sign In</h2>
 
                 <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
-                    {/* Email */}
+
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Email Address</label>
                         <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            type="email" name="email" value={formData.email} onChange={handleChange}
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                         />
                     </div>
 
-                    {/* Password */}
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Password</label>
                         <div className="relative">
                             <input
-                                type={showPassword ? "text" : "password"}
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
+                                type={showPassword ? "text" : "password"} name="password"
+                                value={formData.password} onChange={handleChange}
                                 className="w-full rounded-md px-3 py-2 pr-10 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                             />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B2B2D2] hover:text-white transition-colors">
+                            <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B2B2D2] hover:text-white transition-colors">
                                 {showPassword ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -130,7 +150,6 @@ export default function SignIn() {
                         </div>
                     </div>
 
-                    {/* Remember me + Forgot password */}
                     <div className="flex items-center justify-between">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} className="w-3.5 h-3.5 accent-[#FFC085]" />
@@ -138,29 +157,23 @@ export default function SignIn() {
                         </label>
                         <Link to="/forgot-password" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
                             Forgot password?
-                        </Link>                    </div>
+                        </Link>
+                    </div>
 
-                    {/* Error */}
                     {error && <p className="text-red-400 text-xs text-center">{error}</p>}
 
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        disabled={loading}
+                    <button type="submit" disabled={loading}
                         className="w-full py-2.5 rounded-full font-semibold text-white mt-1 transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                    >
+                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                         {loading ? "Logging in..." : "Login"}
                     </button>
 
-                    {/* Divider */}
                     <div className="flex items-center gap-3 my-1">
                         <div className="flex-1 h-px bg-white/20" />
                         <span className="text-[#B2B2D2] text-sm">or</span>
                         <div className="flex-1 h-px bg-white/20" />
                     </div>
 
-                    {/* Social Icons */}
                     <div className="flex justify-center gap-4">
                         <button type="button" className="w-9 h-9 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform">
                             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -182,7 +195,6 @@ export default function SignIn() {
                         </button>
                     </div>
 
-                    {/* Sign up link */}
                     <p className="text-center text-sm mt-1" style={{ color: "#B2B2D2" }}>
                         No Account Yet?{" "}
                         <Link to="/signup" className="text-[#FFC085] font-medium hover:underline">Sign Up</Link>

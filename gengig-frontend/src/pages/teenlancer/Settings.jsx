@@ -34,8 +34,6 @@ export default function TeenlancerSettings() {
                 //   language: response.data.language,
                 //   notifications: response.data.notifications,
                 // });
-
-                // Load from localStorage until backend ready
                 setFormData({
                     name: localStorage.getItem("name") || "",
                     email: localStorage.getItem("email") || "",
@@ -51,41 +49,26 @@ export default function TeenlancerSettings() {
         fetchSettings();
     }, []);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handlePasswordChange = (e) => setPasswords({ ...passwords, [e.target.name]: e.target.value });
 
-    const handlePasswordChange = (e) => {
-        setPasswords({ ...passwords, [e.target.name]: e.target.value });
-    };
-
-    const handleNotification = async (key) => {
-        const updated = {
-            ...formData.notifications,
-            [key]: !formData.notifications[key],
-        };
+    const handleNotification = (key) => {
+        const updated = { ...formData.notifications, [key]: !formData.notifications[key] };
         setFormData({ ...formData, notifications: updated });
         localStorage.setItem("notificationPrefs", JSON.stringify(updated));
-        // TODO: Replace with API call: PUT /users/notifications
-        // await api.put("/users/notifications", updated);
+        // TODO: await api.put("/users/notifications", updated);
     };
 
     const handleSaveInfo = async () => {
         setSaveLoading(true);
         try {
-            // TODO: Replace with API call: PUT /users/settings
-            // await api.put("/users/settings", {
-            //   name: formData.name,
-            //   email: formData.email,
-            //   language: formData.language,
-            // });
+            // TODO: await api.put("/users/settings", { name: formData.name, email: formData.email, language: formData.language });
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
             localStorage.setItem("language", formData.language);
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch {
-            // handle error
         } finally {
             setSaveLoading(false);
         }
@@ -98,11 +81,7 @@ export default function TeenlancerSettings() {
         if (passwords.newPass !== passwords.confirm) { setPasswordError("Passwords do not match."); return; }
         setPasswordLoading(true);
         try {
-            // TODO: Replace with API call: PUT /auth/change-password
-            // await api.put("/auth/change-password", {
-            //   currentPassword: passwords.current,
-            //   newPassword: passwords.newPass,
-            // });
+            // TODO: await api.put("/auth/change-password", { currentPassword: passwords.current, newPassword: passwords.newPass });
             await new Promise((r) => setTimeout(r, 1000));
             setPasswords({ current: "", newPass: "", confirm: "" });
             setPasswordSuccess(true);
@@ -114,22 +93,26 @@ export default function TeenlancerSettings() {
         }
     };
 
+    // ── FIXED: Only removes token + role, profile data stays ──
     const handleLogout = () => {
-        ["token", "role", "name", "email", "photo", "bio", "skills", "education",
-            "availability", "hourlyRate", "location", "joinDate", "language",
-            "notificationPrefs", "portfolio", "savedCard", "paymentHistory"].forEach(
-                (key) => localStorage.removeItem(key)
-            );
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
         navigate("/signin");
     };
 
+    // ── Delete account: wipes everything then logs out ──
     const handleDeleteAccount = async () => {
         setDeleteLoading(true);
         try {
-            // TODO: Replace with API call: DELETE /users/account
-            // await api.delete("/users/account");
+            // TODO: await api.delete("/users/account");
             await new Promise((r) => setTimeout(r, 1500));
-            handleLogout();
+            [
+                "token", "role", "name", "email", "photo", "bio", "skills",
+                "education", "availability", "hourlyRate", "location", "joinDate",
+                "language", "notificationPrefs", "portfolio", "savedCard", "paymentHistory",
+                "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery", "pendingPayments",
+            ].forEach((key) => localStorage.removeItem(key));
+            navigate("/signin");
         } catch {
             setDeleteLoading(false);
         }
@@ -161,7 +144,6 @@ export default function TeenlancerSettings() {
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 Home › Account › <span style={{ color: "#FFC085" }}>Settings</span>
             </p>
-
             <h1 className="text-white font-bold text-2xl mb-8">Settings</h1>
 
             <div className="flex flex-col gap-6 max-w-2xl">
@@ -177,10 +159,7 @@ export default function TeenlancerSettings() {
                             <div key={field.name} className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{field.label}</label>
                                 <input
-                                    type={field.type}
-                                    name={field.name}
-                                    value={formData[field.name]}
-                                    onChange={handleChange}
+                                    type={field.type} name={field.name} value={formData[field.name]} onChange={handleChange}
                                     className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                                 />
@@ -188,24 +167,17 @@ export default function TeenlancerSettings() {
                         ))}
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>Language</label>
-                            <select
-                                name="language"
-                                value={formData.language}
-                                onChange={handleChange}
+                            <select name="language" value={formData.language} onChange={handleChange}
                                 className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                            >
+                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
                                 {["English", "Arabic", "French"].map((lang) => (
                                     <option key={lang} style={{ background: "#060834" }}>{lang}</option>
                                 ))}
                             </select>
                         </div>
-                        <button
-                            onClick={handleSaveInfo}
-                            disabled={saveLoading}
+                        <button onClick={handleSaveInfo} disabled={saveLoading}
                             className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                             {saveLoading ? "Saving..." : "Save Changes"}
                         </button>
                     </div>
@@ -222,23 +194,16 @@ export default function TeenlancerSettings() {
                         ].map((field) => (
                             <div key={field.name} className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{field.label}</label>
-                                <input
-                                    type="password"
-                                    name={field.name}
-                                    value={passwords[field.name]}
-                                    onChange={handlePasswordChange}
+                                <input type="password" name={field.name} value={passwords[field.name]} onChange={handlePasswordChange}
                                     className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                                 />
                             </div>
                         ))}
                         {passwordError && <p className="text-xs" style={{ color: "#f87171" }}>{passwordError}</p>}
-                        <button
-                            onClick={handleUpdatePassword}
-                            disabled={passwordLoading}
+                        <button onClick={handleUpdatePassword} disabled={passwordLoading}
                             className="self-end px-6 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                             {passwordLoading ? "Updating..." : "Update Password"}
                         </button>
                     </div>
@@ -258,15 +223,11 @@ export default function TeenlancerSettings() {
                                     <p className="text-white text-sm font-medium">{item.label}</p>
                                     <p className="text-xs" style={{ color: "#B2B2D2" }}>{item.desc}</p>
                                 </div>
-                                <button
-                                    onClick={() => handleNotification(item.key)}
+                                <button onClick={() => handleNotification(item.key)}
                                     className="w-11 h-6 rounded-full transition-colors relative flex-shrink-0"
-                                    style={{ background: formData.notifications[item.key] ? "#FFC085" : "rgba(255,255,255,0.15)" }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-5 h-5 rounded-full transition-all"
-                                        style={{ background: "white", left: formData.notifications[item.key] ? "22px" : "2px" }}
-                                    />
+                                    style={{ background: formData.notifications[item.key] ? "#FFC085" : "rgba(255,255,255,0.15)" }}>
+                                    <span className="absolute top-0.5 w-5 h-5 rounded-full transition-all"
+                                        style={{ background: "white", left: formData.notifications[item.key] ? "22px" : "2px" }} />
                                 </button>
                             </div>
                         ))}
@@ -280,11 +241,9 @@ export default function TeenlancerSettings() {
                         Once you delete your account, there is no going back. All your data will be permanently removed.
                     </p>
                     {!showDeleteConfirm ? (
-                        <button
-                            onClick={() => setShowDeleteConfirm(true)}
+                        <button onClick={() => setShowDeleteConfirm(true)}
                             className="px-6 py-2 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-                            style={{ background: "rgba(248,113,113,0.15)", color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}
-                        >
+                            style={{ background: "rgba(248,113,113,0.15)", color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}>
                             Delete Account
                         </button>
                     ) : (
@@ -293,19 +252,14 @@ export default function TeenlancerSettings() {
                                 Are you sure? This will permanently delete your account and all your data.
                             </p>
                             <div className="flex gap-3">
-                                <button
-                                    onClick={handleDeleteAccount}
-                                    disabled={deleteLoading}
+                                <button onClick={handleDeleteAccount} disabled={deleteLoading}
                                     className="px-6 py-2 rounded-full text-sm font-semibold text-white disabled:opacity-50 hover:opacity-90 transition-opacity"
-                                    style={{ background: "#f87171" }}
-                                >
+                                    style={{ background: "#f87171" }}>
                                     {deleteLoading ? "Deleting..." : "Yes, Delete"}
                                 </button>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(false)}
+                                <button onClick={() => setShowDeleteConfirm(false)}
                                     className="px-6 py-2 rounded-full text-sm font-semibold"
-                                    style={{ background: "rgba(255,255,255,0.08)", color: "#B2B2D2" }}
-                                >
+                                    style={{ background: "rgba(255,255,255,0.08)", color: "#B2B2D2" }}>
                                     Cancel
                                 </button>
                             </div>
@@ -314,11 +268,9 @@ export default function TeenlancerSettings() {
                 </div>
 
                 {/* Log Out */}
-                <button
-                    onClick={handleLogout}
+                <button onClick={handleLogout}
                     className="w-full py-3 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-                    style={{ background: "rgba(255,255,255,0.05)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}
-                >
+                    style={{ background: "rgba(255,255,255,0.05)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
                     Log Out
                 </button>
             </div>
