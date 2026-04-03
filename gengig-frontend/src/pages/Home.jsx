@@ -146,7 +146,7 @@ export default function Home() {
                                 className="px-6 py-3 rounded-full font-semibold text-white text-sm hover:opacity-80 hover:scale-105 transition-all duration-200"
                                 style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                             >
-                                Go to Dashboard →
+                                Go to Dashboard
                             </Link>
                         ) : (
                             <>
@@ -245,7 +245,7 @@ export default function Home() {
                                 <h3 className="text-white font-semibold mb-2 text-lg">{step.title}</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>{step.desc}</p>
                                 {i < 2 && (
-                                    <div className="hidden md:block absolute top-10 -right-4 text-2xl" style={{ color: "#FFC085" }}>→</div>
+                                    <div className="hidden md:block absolute top-10 -right-4 text-2xl" style={{ color: "#FFC085" }}></div>
                                 )}
                             </div>
                         ))}
@@ -305,7 +305,7 @@ export default function Home() {
                         className="flex-shrink-0 px-10 py-4 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200 text-lg"
                         style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                     >
-                        Explore a Gig →
+                        Explore a Gig
                     </Link>
                 </div>
             </section>
@@ -325,7 +325,7 @@ export default function Home() {
                             className="text-sm font-medium hover:opacity-80 transition-opacity flex items-center gap-1 whitespace-nowrap"
                             style={{ color: "#FFC085" }}
                         >
-                            View all gigs →
+                            View all gigs
                         </Link>
                     </div>
 
@@ -547,7 +547,7 @@ export default function Home() {
                             className="px-8 py-4 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200 text-lg"
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                         >
-                            Join as Teenlancer →
+                            Join as Teenlancer
                         </Link>
                         <Link
                             to="/signup"
