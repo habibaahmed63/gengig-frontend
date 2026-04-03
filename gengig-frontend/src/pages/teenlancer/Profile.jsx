@@ -47,18 +47,10 @@ export default function TeenlancerProfile() {
             // Fetch stats
             setStatsLoading(true);
             try {
-                // TODO: Replace with API call: GET /teenlancer/stats
-                // const statsRes = await api.get("/teenlancer/stats");
-                // setStats(statsRes.data);
+                const statsRes = await api.get("/teenlancer/stats");
+                setStats(statsRes.data);
 
-                // Mock until backend ready
-                setStats({
-                    completedGigs: 0,
-                    totalEarnings: "$0",
-                    responseRate: "—",
-                    onTimeDelivery: "—",
-                    rating: "—",
-                });
+
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
             } finally {
@@ -68,12 +60,10 @@ export default function TeenlancerProfile() {
             // Fetch reviews
             setReviewsLoading(true);
             try {
-                // TODO: Replace with API call: GET /teenlancer/reviews
-                // const reviewsRes = await api.get("/teenlancer/reviews");
-                // setReviews(reviewsRes.data);
+                const reviewsRes = await api.get("/teenlancer/reviews");
+                setReviews(reviewsRes.data);
 
-                // Mock until backend ready — empty so empty state shows
-                setReviews([]);
+
             } catch (err) {
                 console.error("Failed to fetch reviews:", err);
             } finally {
@@ -134,33 +124,39 @@ export default function TeenlancerProfile() {
     const handleSave = async () => {
         setSaveLoading(true);
         try {
-            // TODO: Replace with API call: PUT /users/profile
-            // await api.put("/users/profile", {
-            //   name: editData.name,
-            //   bio: editData.bio,
-            //   location: editData.location,
-            //   skills: editData.skills,
-            //   portfolio: editData.portfolio,
-            //   hourlyRate: editData.hourlyRate,
-            //   availability: editData.availability,
-            //   photo: editData.photo,
-            // });
+            // API call — sends data to backend
+            const res = await api.put("/users/profile", {
+                name: editData.name,
+                bio: editData.bio,
+                location: editData.location,
+                skills: editData.skills,
+                portfolio: editData.portfolio,
+                hourlyRate: editData.hourlyRate,
+                availability: editData.availability,
+                photo: editData.photo,
+            });
 
-            localStorage.setItem("name", editData.name);
-            localStorage.setItem("bio", editData.bio);
-            localStorage.setItem("location", editData.location);
-            localStorage.setItem("skills", JSON.stringify(editData.skills));
-            localStorage.setItem("portfolio", JSON.stringify(editData.portfolio));
-            localStorage.setItem("hourlyRate", editData.hourlyRate);
-            localStorage.setItem("availability", editData.availability);
-            if (editData.photo) localStorage.setItem("photo", editData.photo);
+            // Update localStorage — use backend response if available, fall back to editData
+            const saved = res.data || editData;
+            localStorage.setItem("name", saved.name || editData.name);
+            localStorage.setItem("bio", saved.bio || editData.bio);
+            localStorage.setItem("location", saved.location || editData.location);
+            localStorage.setItem("skills", JSON.stringify(saved.skills || editData.skills));
+            localStorage.setItem("portfolio", JSON.stringify(saved.portfolio || editData.portfolio));
+            localStorage.setItem("hourlyRate", saved.hourlyRate || editData.hourlyRate);
+            localStorage.setItem("availability", saved.availability || editData.availability);
+            if (editData.photo) localStorage.setItem("photo", saved.photo || editData.photo);
 
+            // Update local state
             setProfile({ ...editData });
             setEditMode(false);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
+
         } catch (err) {
             console.error("Failed to save profile:", err);
+            // Show error to user
+            alert("Failed to save profile. Please try again.");
         } finally {
             setSaveLoading(false);
         }

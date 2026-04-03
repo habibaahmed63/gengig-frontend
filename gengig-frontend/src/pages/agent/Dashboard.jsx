@@ -21,22 +21,17 @@ export default function AgentDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with real API calls:
-        // const [currentRes, previousRes, statsRes, appsRes] = await Promise.all([
-        //   api.get("/agent/gigs?status=active"),
-        //   api.get("/agent/gigs?status=completed"),
-        //   api.get("/agent/stats"),
-        //   api.get("/agent/applications?limit=3"),
-        // ]);
-        // setCurrentGigs(currentRes.data);
-        // setPreviousGigs(previousRes.data);
-        // setStats(statsRes.data);
-        // setRecentApplications(appsRes.data);
+         const [currentRes, previousRes, statsRes, appsRes] = await Promise.all([
+         api.get("/agent/gigs?status=active"),
+          api.get("/agent/gigs?status=completed"),
+          api.get("/agent/stats"),
+           api.get("/agent/applications?limit=3"),
+         ]);
+         setCurrentGigs(currentRes.data);
+         setPreviousGigs(previousRes.data);
+         setStats(statsRes.data);
+         setRecentApplications(appsRes.data);
 
-        setCurrentGigs([]);
-        setPreviousGigs([]);
-        setRecentApplications([]);
-        setStats({ activeGigs: 0, completedGigs: 0, totalSpent: "$0", teenlancersHired: 0 });
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
       } finally {

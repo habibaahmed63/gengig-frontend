@@ -15,10 +15,8 @@ export default function Navbar() {
     if (!token) return;
     const fetchUnreadCount = async () => {
       try {
-        // TODO: Replace with API call: GET /notifications/unread-count
-        // const response = await api.get("/notifications/unread-count");
-        // setUnreadCount(response.data.count);
-        setUnreadCount(3); // mock until backend ready
+        const response = await api.get("/notifications/unread-count");
+        setUnreadCount(response.data.count);
       } catch (err) {
         console.error("Failed to fetch unread count:", err);
       }

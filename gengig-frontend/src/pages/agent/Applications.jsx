@@ -20,93 +20,11 @@ export default function AgentApplications() {
         const fetchApplications = async () => {
             setLoading(true);
             try {
-                // TODO: Replace with real API call: GET /agent/applications
-                // const response = await api.get("/agent/applications");
-                // const data = response.data;
-                // setApplications(data);
-                // setStatuses(Object.fromEntries(data.map((a) => [a.id, a.status])));
+                const response = await api.get("/agent/applications");
+                const data = response.data;
+                setApplications(data);
+                setStatuses(Object.fromEntries(data.map((a) => [a.id, a.status])));
 
-                // Mock data until backend is ready
-                const mock = [
-                    {
-                        id: 1,
-                        gigTitle: "Brand Identity Design",
-                        category: "Graphic Design",
-                        applicant: {
-                            name: "Salma Tamer",
-                            role: "Graphic Designer",
-                            rating: 4.9,
-                            completedGigs: 12,
-                            img: "https://i.pravatar.cc/100?img=1",
-                        },
-                        message: "Hi! I am a graphic designer with experience in brand identity and logo design. I have worked on similar projects and I am confident I can deliver great results.",
-                        proposedRate: "$130",
-                        timeline: "5 days",
-                        portfolioLink: "https://behance.net/salmatamer",
-                        file: "brand_samples.pdf",
-                        status: "pending",
-                        appliedDate: "March 2, 2026",
-                    },
-                    {
-                        id: 2,
-                        gigTitle: "Brand Identity Design",
-                        category: "Graphic Design",
-                        applicant: {
-                            name: "Ahmed Karim",
-                            role: "UI/UX Designer",
-                            rating: 4.7,
-                            completedGigs: 8,
-                            img: "https://i.pravatar.cc/100?img=2",
-                        },
-                        message: "Hello! I specialize in branding and visual identity. I have a strong portfolio of logo and brand guideline projects that I would love to share.",
-                        proposedRate: "$150",
-                        timeline: "1 week",
-                        portfolioLink: "https://dribbble.com/ahmedkarim",
-                        file: null,
-                        status: "pending",
-                        appliedDate: "March 3, 2026",
-                    },
-                    {
-                        id: 3,
-                        gigTitle: "Social Media Campaign",
-                        category: "Marketing",
-                        applicant: {
-                            name: "Mariam Assem",
-                            role: "Content Creator",
-                            rating: 4.8,
-                            completedGigs: 15,
-                            img: "https://i.pravatar.cc/100?img=5",
-                        },
-                        message: "Hi there! I have run several social media campaigns for small businesses and I know exactly how to create engaging content that converts.",
-                        proposedRate: "$180",
-                        timeline: "1 week",
-                        portfolioLink: "https://instagram.com/mariamassem",
-                        file: "campaign_samples.pdf",
-                        status: "accepted",
-                        appliedDate: "March 1, 2026",
-                    },
-                    {
-                        id: 4,
-                        gigTitle: "Social Media Campaign",
-                        category: "Marketing",
-                        applicant: {
-                            name: "Omar Fathy",
-                            role: "Social Media Manager",
-                            rating: 4.5,
-                            completedGigs: 6,
-                            img: "https://i.pravatar.cc/100?img=7",
-                        },
-                        message: "I manage social media for 3 local brands currently and have experience creating campaigns from scratch.",
-                        proposedRate: "$160",
-                        timeline: "3-5 days",
-                        portfolioLink: "",
-                        file: null,
-                        status: "rejected",
-                        appliedDate: "March 2, 2026",
-                    },
-                ];
-                setApplications(mock);
-                setStatuses(Object.fromEntries(mock.map((a) => [a.id, a.status])));
             } catch (err) {
                 console.error("Failed to fetch applications:", err);
             } finally {
@@ -119,9 +37,7 @@ export default function AgentApplications() {
     const handleAccept = async (id) => {
         setActionLoading(id + "-accept");
         try {
-            // TODO: Replace with API call: PUT /applications/:id/accept
-            // await api.put(`/applications/${id}/accept`);
-            setStatuses((prev) => ({ ...prev, [id]: "accepted" }));
+            await api.put(`/applications/${id}/accept`);
         } catch (err) {
             console.error("Failed to accept:", err);
         } finally {
@@ -132,9 +48,7 @@ export default function AgentApplications() {
     const handleReject = async (id) => {
         setActionLoading(id + "-reject");
         try {
-            // TODO: Replace with API call: PUT /applications/:id/reject
-            // await api.put(`/applications/${id}/reject`);
-            setStatuses((prev) => ({ ...prev, [id]: "rejected" }));
+            await api.put(`/applications/${id}/reject`);
         } catch (err) {
             console.error("Failed to reject:", err);
         } finally {
@@ -145,9 +59,7 @@ export default function AgentApplications() {
     const handleUndo = async (id) => {
         setActionLoading(id + "-undo");
         try {
-            // TODO: Replace with API call: PUT /applications/:id/reset
-            // await api.put(`/applications/${id}/reset`);
-            setStatuses((prev) => ({ ...prev, [id]: "pending" }));
+            await api.put(`/applications/${id}/reset`);
         } catch (err) {
             console.error("Failed to undo:", err);
         } finally {
