@@ -20,25 +20,15 @@ export default function TeenlancerDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with real API calls:
-        // const [activeRes, completedRes, statsRes] = await Promise.all([
-        //   api.get("/teenlancer/gigs?status=active"),
-        //   api.get("/teenlancer/gigs?status=completed"),
-        //   api.get("/teenlancer/stats"),
-        // ]);
-        // setActiveGigs(activeRes.data);
-        // setCompletedGigs(completedRes.data);
-        // setStats(statsRes.data);
+        const [activeRes, completedRes, statsRes] = await Promise.all([
+          api.get("/teenlancer/gigs?status=active"),
+          api.get("/teenlancer/gigs?status=completed"),
+          api.get("/teenlancer/stats"),
+        ]);
+        setActiveGigs(activeRes.data);
+        setCompletedGigs(completedRes.data);
+        setStats(statsRes.data);
 
-        // Mock data until backend is ready
-        setActiveGigs([]);
-        setCompletedGigs([]);
-        setStats({
-          activeGigs: 0,
-          completedGigs: 0,
-          totalEarnings: "$0",
-          rating: "—",
-        });
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
       } finally {
@@ -70,7 +60,7 @@ export default function TeenlancerDashboard() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span> 
+            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>

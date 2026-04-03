@@ -26,19 +26,12 @@ export default function AgentSettings() {
         const fetchSettings = async () => {
             setSettingsLoading(true);
             try {
-                // TODO: Replace with API call: GET /users/settings
-                // const response = await api.get("/users/settings");
-                // setFormData({
-                //   name: response.data.name,
-                //   email: response.data.email,
-                //   language: response.data.language,
-                //   notifications: response.data.notifications,
-                // });
+                const response = await api.get("/users/settings");
                 setFormData({
-                    name: localStorage.getItem("name") || "",
-                    email: localStorage.getItem("email") || "",
-                    language: localStorage.getItem("language") || "English",
-                    notifications: JSON.parse(localStorage.getItem("notificationPrefs") || '{"email":true,"push":false,"sms":true}'),
+                    name: response.data.name,
+                    email: response.data.email,
+                    language: response.data.language,
+                    notifications: response.data.notifications,
                 });
             } catch (err) {
                 console.error("Failed to fetch settings:", err);
@@ -52,17 +45,17 @@ export default function AgentSettings() {
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
     const handlePasswordChange = (e) => setPasswords({ ...passwords, [e.target.name]: e.target.value });
 
-    const handleNotification = (key) => {
+    const handleNotification = async (key) => {
         const updated = { ...formData.notifications, [key]: !formData.notifications[key] };
         setFormData({ ...formData, notifications: updated });
         localStorage.setItem("notificationPrefs", JSON.stringify(updated));
-        // TODO: await api.put("/users/notifications", updated);
+        await api.put("/users/notifications", updated);
     };
 
     const handleSaveInfo = async () => {
         setSaveLoading(true);
         try {
-            // TODO: await api.put("/users/settings", { name: formData.name, email: formData.email, language: formData.language });
+            await api.put("/users/settings", { name: formData.name, email: formData.email, language: formData.language });
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
             localStorage.setItem("language", formData.language);
@@ -81,8 +74,7 @@ export default function AgentSettings() {
         if (passwords.newPass !== passwords.confirm) { setPasswordError("Passwords do not match."); return; }
         setPasswordLoading(true);
         try {
-            // TODO: await api.put("/auth/change-password", { currentPassword: passwords.current, newPassword: passwords.newPass });
-            await new Promise((r) => setTimeout(r, 1000));
+            await api.put("/auth/change-password", { currentPassword: passwords.current, newPassword: passwords.newPass });
             setPasswords({ current: "", newPass: "", confirm: "" });
             setPasswordSuccess(true);
             setTimeout(() => setPasswordSuccess(false), 3000);
@@ -93,19 +85,16 @@ export default function AgentSettings() {
         }
     };
 
-    // ── FIXED: Only removes token + role, profile data stays ──
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         navigate("/signin");
     };
 
-    // ── Delete account: wipes everything then navigates ──
     const handleDeleteAccount = async () => {
         setDeleteLoading(true);
         try {
-            // TODO: await api.delete("/users/account");
-            await new Promise((r) => setTimeout(r, 1500));
+            await api.delete("/users/account");
             [
                 "token", "role", "name", "email", "photo", "bio", "company",
                 "industry", "workTypes", "location", "joinDate", "language",

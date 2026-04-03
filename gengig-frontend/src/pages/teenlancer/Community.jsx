@@ -34,86 +34,15 @@ export default function Community() {
         const fetchCommunityData = async () => {
             setPostsLoading(true);
             try {
-                // TODO: Replace with real API calls:
-                // const [postsRes, membersRes, tagsRes] = await Promise.all([
-                //   api.get("/community/posts"),
-                //   api.get("/community/active-members"),
-                //   api.get("/community/trending-tags"),
-                // ]);
-                // setPosts(postsRes.data);
-                // setActiveMembers(membersRes.data);
-                // setTrendingTags(tagsRes.data);
-
-                // Mock data until backend is ready
-                setPosts([
-                    {
-                        id: 1,
-                        user: { name: "Salma Tamer", role: "Graphic Designer", img: "https://i.pravatar.cc/100?img=1" },
-                        content: "Just finished my first brand identity project on Gengig! Consistency is key when it comes to branding — make sure your colors, fonts and tone all speak the same language.",
-                        image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600",
-                        tags: ["Branding", "Design", "Tips"],
-                        likes: 24,
-                        comments: [
-                            { id: 1, user: { name: "Ahmed Karim", img: "https://i.pravatar.cc/100?img=2" }, text: "This looks amazing! What tools did you use?" },
-                            { id: 2, user: { name: "Mariam Assem", img: "https://i.pravatar.cc/100?img=5" }, text: "Congrats! You deserve it!" },
-                        ],
-                        time: "2 hours ago",
-                        liked: false,
-                    },
-                    {
-                        id: 2,
-                        user: { name: "Ahmed Karim", role: "UI/UX Designer", img: "https://i.pravatar.cc/100?img=2" },
-                        content: "Pro tip: Always ask the client for a brief before starting ANY work. A clear brief saves you from unlimited revisions and keeps expectations aligned from day one.",
-                        image: null,
-                        tags: ["Tips", "ClientWork", "Advice"],
-                        likes: 41,
-                        comments: [
-                            { id: 1, user: { name: "Omar Fathy", img: "https://i.pravatar.cc/100?img=7" }, text: "100% agree. Learned this the hard way!" },
-                        ],
-                        time: "5 hours ago",
-                        liked: true,
-                    },
-                    {
-                        id: 3,
-                        user: { name: "Mariam Assem", role: "Content Creator", img: "https://i.pravatar.cc/100?img=5" },
-                        content: "Sharing my latest video editing project — a product promo for a local brand. Really happy with how the color grading came out. Feedback welcome!",
-                        image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600",
-                        tags: ["VideoEditing", "Portfolio", "Creative"],
-                        likes: 18,
-                        comments: [],
-                        time: "1 day ago",
-                        liked: false,
-                    },
-                    {
-                        id: 4,
-                        user: { name: "Omar Fathy", role: "Social Media Manager", img: "https://i.pravatar.cc/100?img=7" },
-                        content: "Reminder: Your rate reflects your value. Do not undersell yourself just to get a gig. Know your worth, price accordingly, and the right clients will come.",
-                        image: null,
-                        tags: ["Mindset", "Freelancing", "Tips"],
-                        likes: 67,
-                        comments: [
-                            { id: 1, user: { name: "Salma Tamer", img: "https://i.pravatar.cc/100?img=1" }, text: "Needed to hear this today. Thank you!" },
-                            { id: 2, user: { name: "Ahmed Karim", img: "https://i.pravatar.cc/100?img=2" }, text: "Facts only." },
-                        ],
-                        time: "2 days ago",
-                        liked: false,
-                    },
+                const [postsRes, membersRes, tagsRes] = await Promise.all([
+                    api.get("/community/posts"),
+                    api.get("/community/active-members"),
+                    api.get("/community/trending-tags"),
                 ]);
+                setPosts(postsRes.data);
+                setActiveMembers(membersRes.data);
+                setTrendingTags(tagsRes.data);
 
-                setActiveMembers([
-                    { id: 1, name: "Salma Tamer", role: "Graphic Designer", img: "https://i.pravatar.cc/100?img=1", online: true },
-                    { id: 2, name: "Ahmed Karim", role: "UI/UX Designer", img: "https://i.pravatar.cc/100?img=2", online: true },
-                    { id: 3, name: "Mariam Assem", role: "Content Creator", img: "https://i.pravatar.cc/100?img=5", online: false },
-                    { id: 4, name: "Omar Fathy", role: "Social Media", img: "https://i.pravatar.cc/100?img=7", online: true },
-                ]);
-
-                setTrendingTags([
-                    { tag: "Tips", count: 24 },
-                    { tag: "Design", count: 18 },
-                    { tag: "Freelancing", count: 15 },
-                    { tag: "Portfolio", count: 12 },
-                    { tag: "Mindset", count: 9 },
-                ]);
             } catch (err) {
                 console.error("Failed to fetch community data:", err);
             } finally {
@@ -124,7 +53,6 @@ export default function Community() {
     }, []);
 
     const handleLike = async (id) => {
-        // Optimistic update
         setPosts((prev) =>
             prev.map((p) =>
                 p.id === id
@@ -133,11 +61,9 @@ export default function Community() {
             )
         );
         try {
-            // TODO: Replace with API call: POST /community/posts/:id/like
-            // await api.post(`/community/posts/${id}/like`);
+            await api.post(`/community/posts/${id}/like`);
         } catch (err) {
             console.error("Failed to like post:", err);
-            // Revert on failure
             setPosts((prev) =>
                 prev.map((p) =>
                     p.id === id
@@ -159,7 +85,6 @@ export default function Community() {
             },
             text,
         };
-        // Optimistic update
         setPosts((prev) =>
             prev.map((p) =>
                 p.id === postId
@@ -170,8 +95,7 @@ export default function Community() {
         setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
         setExpandedComments((prev) => ({ ...prev, [postId]: true }));
         try {
-            // TODO: Replace with API call: POST /community/posts/:id/comment
-            // await api.post(`/community/posts/${postId}/comment`, { text });
+            await api.post(`/community/posts/${postId}/comment`, { text });
         } catch (err) {
             console.error("Failed to post comment:", err);
         }
@@ -207,17 +131,14 @@ export default function Community() {
         setNewPost({ content: "", image: null, imagePreview: null });
         setNewTags("");
         try {
-            // TODO: Replace with API call: POST /community/posts
-            // const formData = new FormData();
-            // formData.append("content", newPost.content);
-            // formData.append("tags", JSON.stringify(tags));
-            // if (newPost.image) formData.append("image", newPost.image);
-            // const response = await api.post("/community/posts", formData);
-            // Replace optimistic post with real one from server
-            // setPosts((prev) => prev.map((p) => p.id === optimisticPost.id ? response.data : p));
+            const formData = new FormData();
+            formData.append("content", newPost.content);
+            formData.append("tags", JSON.stringify(tags));
+            if (newPost.image) formData.append("image", newPost.image);
+            const response = await api.post("/community/posts", formData);
+            setPosts((prev) => prev.map((p) => p.id === optimisticPost.id ? response.data : p));
         } catch (err) {
             console.error("Failed to create post:", err);
-            // Remove optimistic post on failure
             setPosts((prev) => prev.filter((p) => p.id !== optimisticPost.id));
         } finally {
             setPostLoading(false);

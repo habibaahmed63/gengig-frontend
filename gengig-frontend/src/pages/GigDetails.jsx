@@ -18,44 +18,9 @@ export default function GigDetails() {
         const fetchGig = async () => {
             setLoading(true);
             try {
-                // TODO: Replace with real API call: GET /gigs/:id
-                // const response = await api.get(`/gigs/${id}`);
-                // setGig(response.data.gig);
-                // setRelatedGigs(response.data.relatedGigs);
-
-                // Mock data until backend is ready
-                setGig({
-                    id,
-                    title: "Brand Identity Design",
-                    category: "Graphic Design",
-                    budget: "$150",
-                    deadline: "7 days",
-                    postedDate: "March 1, 2025",
-                    description: `We are looking for a talented young designer to create a complete brand identity for our new startup. The project includes logo design, color palette, typography selection, and basic brand guidelines.\n\nWe want something modern, clean, and memorable that represents our company values of innovation and creativity. The final deliverables should include all source files and a brand guidelines document.`,
-                    requirements: [
-                        "Experience with logo design and branding",
-                        "Proficiency in Adobe Illustrator or Figma",
-                        "Ability to deliver source files (AI, SVG, PNG)",
-                        "Strong understanding of typography and color theory",
-                        "Previous portfolio work in branding",
-                    ],
-                    skills: ["Logo Design", "Graphic Design", "Adobe Illustrator", "Figma", "Branding"],
-                    agent: {
-                        name: "Khaled Ramzy",
-                        company: "Creative Studio Co.",
-                        rating: 4.9,
-                        reviews: 24,
-                        gigsPosted: 12,
-                        img: "https://i.pravatar.cc/100?img=3",
-                    },
-                    applications: 8,
-                    img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800",
-                });
-                setRelatedGigs([
-                    { id: 2, title: "Social Media Kit Design", category: "Graphic Design", budget: "$120", img: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400" },
-                    { id: 3, title: "Logo Redesign", category: "Logo Design", budget: "$80", img: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400" },
-                    { id: 4, title: "Business Card Design", category: "Print Design", budget: "$60", img: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400" },
-                ]);
+                const response = await api.get(`/gigs/${id}`);
+                setGig(response.data.gig);
+                setRelatedGigs(response.data.relatedGigs);
             } catch (err) {
                 console.error("Failed to fetch gig:", err);
             } finally {
@@ -75,8 +40,7 @@ export default function GigDetails() {
 
     const handleSave = async () => {
         setSaved(!saved);
-        // TODO: Replace with API call: POST /gigs/:id/save
-        // await api.post(`/gigs/${id}/save`);
+        await api.post(`/gigs/${id}/save`);
     };
 
     // Loading State

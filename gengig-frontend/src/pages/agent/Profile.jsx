@@ -49,17 +49,8 @@ export default function AgentProfile() {
             // Fetch gigs
             setGigsLoading(true);
             try {
-                // TODO: Replace with API call: GET /agent/gigs
-                // const gigsRes = await api.get("/agent/gigs");
-                // setPostedGigs(gigsRes.data);
-
-                // Mock until backend ready
-                setPostedGigs([
-                    { id: 1, title: "Social Media Campaign", category: "Marketing", budget: "$150", status: "Active", applications: 4 },
-                    { id: 2, title: "Mobile App UI Design", category: "UI/UX", budget: "$300", status: "Active", applications: 7 },
-                    { id: 3, title: "Brand Logo Design", category: "Logo Design", budget: "$100", status: "Completed", applications: 3 },
-                    { id: 4, title: "Product Video Edit", category: "Video Editing", budget: "$200", status: "Completed", applications: 5 },
-                ]);
+                const gigsRes = await api.get("/agent/gigs");
+                setPostedGigs(gigsRes.data);
             } catch (err) {
                 console.error("Failed to fetch gigs:", err);
             } finally {
@@ -87,17 +78,10 @@ export default function AgentProfile() {
             // Fetch stats
             setStatsLoading(true);
             try {
-                // TODO: Replace with API call: GET /agent/stats
-                // const statsRes = await api.get("/agent/stats");
-                // setStats(statsRes.data);
+                const statsRes = await api.get("/agent/stats");
+                setStats(statsRes.data);
 
-                // Mock until backend ready
-                setStats({
-                    gigsPosted: 4,
-                    teenlancersHired: 3,
-                    totalSpent: "$750",
-                    completionRate: "96%",
-                });
+
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
             } finally {
@@ -119,30 +103,33 @@ export default function AgentProfile() {
     const handleSave = async () => {
         setSaveLoading(true);
         try {
-            // TODO: Replace with API call: PUT /users/profile
-            // await api.put("/users/profile", {
-            //   name: editData.name,
-            //   bio: editData.bio,
-            //   location: editData.location,
-            //   company: editData.company,
-            //   industry: editData.industry,
-            //   photo: editData.photo,
-            // });
+            const res = await api.put("/users/profile", {
+                name: editData.name,
+                bio: editData.bio,
+                location: editData.location,
+                company: editData.company,
+                industry: editData.industry,
+                photo: editData.photo,
+            });
 
-            // Save to localStorage
-            localStorage.setItem("name", editData.name);
-            localStorage.setItem("bio", editData.bio);
-            localStorage.setItem("location", editData.location);
-            localStorage.setItem("company", editData.company);
-            localStorage.setItem("industry", editData.industry);
-            if (editData.photo) localStorage.setItem("photo", editData.photo);
+            // Use backend response if available, fall back to editData
+            const saved = res.data || editData;
+            localStorage.setItem("name", saved.name || editData.name);
+            localStorage.setItem("bio", saved.bio || editData.bio);
+            localStorage.setItem("location", saved.location || editData.location);
+            localStorage.setItem("company", saved.company || editData.company);
+            localStorage.setItem("industry", saved.industry || editData.industry);
+            if (editData.photo) localStorage.setItem("photo", saved.photo || editData.photo);
 
+            // Update local state — only on success
             setProfile({ ...editData });
             setEditMode(false);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
+
         } catch (err) {
             console.error("Failed to save profile:", err);
+            alert("Failed to save profile. Please try again.");
         } finally {
             setSaveLoading(false);
         }

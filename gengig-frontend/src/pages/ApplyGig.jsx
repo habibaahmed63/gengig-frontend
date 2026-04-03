@@ -25,23 +25,9 @@ export default function ApplyGig() {
         const fetchGig = async () => {
             setLoading(true);
             try {
-                // TODO: Replace with real API call: GET /gigs/:id
-                // const response = await api.get(`/gigs/${id}`);
-                // setGig(response.data);
+                const response = await api.get(`/gigs/${id}`);
+                setGig(response.data);
 
-                // Mock data until backend is ready
-                setGig({
-                    id,
-                    title: "Brand Identity Design",
-                    category: "Graphic Design",
-                    budget: "$150",
-                    deadline: "7 days",
-                    agent: {
-                        name: "Khaled Ramzy",
-                        company: "Creative Studio Co.",
-                        img: "https://i.pravatar.cc/100?img=3",
-                    },
-                });
             } catch (err) {
                 console.error("Failed to fetch gig:", err);
             } finally {
@@ -72,16 +58,14 @@ export default function ApplyGig() {
         setSubmitting(true);
         setError(null);
         try {
-            // TODO: Replace with real API call: POST /gigs/:id/apply
-            // const form = new FormData();
-            // form.append("message", formData.message);
-            // form.append("proposedRate", formData.proposedRate);
-            // form.append("timeline", formData.timeline);
-            // form.append("portfolioLink", formData.portfolioLink);
-            // if (formData.file) form.append("file", formData.file);
-            // await api.post(`/gigs/${id}/apply`, form);
-            await new Promise((r) => setTimeout(r, 1500)); // mock delay
-            setSubmitted(true);
+            const form = new FormData();
+            form.append("message", formData.message);
+            form.append("proposedRate", formData.proposedRate);
+            form.append("timeline", formData.timeline);
+            form.append("portfolioLink", formData.portfolioLink);
+            if (formData.file) form.append("file", formData.file);
+            await api.post(`/gigs/${id}/apply`, form);
+
         } catch (err) {
             setError("Failed to submit application. Please try again.");
         } finally {

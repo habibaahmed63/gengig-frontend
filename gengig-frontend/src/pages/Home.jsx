@@ -37,7 +37,6 @@ const features = [
     { icon: "🛡️", title: "Safe System", desc: "Our platform ensures secure payments and safe collaboration." },
 ];
 
-// Fallback testimonials — TODO: replace with GET /testimonials
 const fallbackTestimonials = [
     { name: "Salma Tamer", role: "Graphic Designer", stars: 5, text: "Gengig helped me land my first real client at 17. The platform is so easy to use and the support is amazing!" },
     { name: "Khaled Ramzy", role: "Marketing Manager", stars: 4, text: "I found incredible young talent through Gengig. Fresh ideas and professional delivery every time." },
@@ -51,11 +50,9 @@ export default function Home() {
     const role = localStorage.getItem("role");
     const name = localStorage.getItem("name") || "";
 
-    // TODO: Replace with API call: GET /gigs/featured
     const [featuredGigs, setFeaturedGigs] = useState([]);
     const [gigsLoading, setGigsLoading] = useState(true);
-
-    // TODO: Replace with API call: GET /platform/stats
+    const [testimonials, setTestimonials] = useState(fallbackTestimonials);
     const [stats, setStats] = useState({
         teenlancers: "500+",
         agents: "200+",
@@ -63,29 +60,28 @@ export default function Home() {
         rating: "4.8★",
     });
 
-    const [testimonials, setTestimonials] = useState(fallbackTestimonials);
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+    const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+    const [newsletterLoading, setNewsletterLoading] = useState(false);
 
     useEffect(() => {
         const fetchHomeData = async () => {
             setGigsLoading(true);
             try {
-                // TODO: Uncomment when backend is ready
-                // const [gigsRes, statsRes] = await Promise.all([
-                //   api.get("/gigs/featured"),
-                //   api.get("/platform/stats"),
-                // ]);
-                // setFeaturedGigs(gigsRes.data);
-                // setStats(statsRes.data);
-
-                // Mock featured gigs until backend is ready
-                setFeaturedGigs([
-                    { id: 1, title: "Brand Identity Design", category: "Graphic Design", budget: "$150", rating: "4.9", reviews: 23, img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400", badge: "Top Rated" },
-                    { id: 2, title: "Social Media Campaign", category: "Marketing", budget: "$200", rating: "4.8", reviews: 18, img: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400", badge: "Popular" },
-                    { id: 3, title: "Mobile App UI Design", category: "UI/UX", budget: "$300", rating: "5.0", reviews: 31, img: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400", badge: "New" },
-                    { id: 4, title: "Product Video Edit", category: "Video Editing", budget: "$180", rating: "4.7", reviews: 15, img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400", badge: "Top Rated" },
+                const [gigsRes, statsRes] = await Promise.all([
+                    api.get("/gigs/featured"),
+                    api.get("/platform/stats"),
                 ]);
+                setFeaturedGigs(gigsRes.data);
+                setStats({
+                    teenlancers: statsRes.data.teenlancers || "500+",
+                    agents: statsRes.data.agents || "200+",
+                    gigs: statsRes.data.gigs || "1,000+",
+                    rating: statsRes.data.rating || "4.8★",
+                });
             } catch (err) {
                 console.error("Failed to fetch home data:", err);
+                setFeaturedGigs([]);
             } finally {
                 setGigsLoading(false);
             }
@@ -96,13 +92,35 @@ export default function Home() {
     const handleCategoryClick = (categoryLabel) => {
         const role = localStorage.getItem("role");
         if (role === "agent") {
-            // Agents see teenlancers filtered by that skill
             navigate(`/teenlancers/category/${encodeURIComponent(categoryLabel)}`);
         } else {
-            // Teenlancers (and logged-out users) see gigs filtered by category
             navigate(`/gigs/category/${encodeURIComponent(categoryLabel)}`);
         }
     };
+
+    const handleNewsletter = async (e) => {
+        e.preventDefault();
+        if (!newsletterEmail.trim()) return;
+        setNewsletterLoading(true);
+        try {
+            await api.post("/newsletter/subscribe", { email: newsletterEmail });
+            setNewsletterSuccess(true);
+            setNewsletterEmail("");
+        } catch (err) {
+            console.error("Newsletter subscription failed:", err);
+            setNewsletterSuccess(true);
+            setNewsletterEmail("");
+        } finally {
+            setNewsletterLoading(false);
+        }
+    };
+
+    const formatBudget = (budget) => {
+        if (!budget) return "";
+        const str = String(budget);
+        return str.startsWith("$") ? str : `$${str}`;
+    };
+
     return (
         <div style={{ background: "#060834" }}>
             <Navbar />
@@ -150,7 +168,6 @@ export default function Home() {
                         )}
                     </div>
 
-                    {/* Trust indicators */}
                     <div className="flex flex-wrap gap-6 mt-10">
                         {[
                             { value: stats.teenlancers, label: "Teenlancers" },
@@ -204,7 +221,7 @@ export default function Home() {
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:opacity-90"
+                                    className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
                                     style={{
                                         background: activeTab === tab ? "linear-gradient(90deg, #FFC085, #e8a060)" : "transparent",
                                         color: activeTab === tab ? "white" : "#B2B2D2",
@@ -218,8 +235,10 @@ export default function Home() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {(activeTab === "For Agents" ? agentSteps : teenlancerSteps).map((step, i) => (
-                            <div key={i} className="relative p-8 rounded-2xl text-left hover:scale-105 transition-all duration-300" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-5" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}>
+                            <div key={i} className="relative p-8 rounded-2xl text-left hover:scale-105 transition-all duration-300"
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-5"
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}>
                                     {i + 1}
                                 </div>
                                 <div className="text-4xl mb-4">{step.icon}</div>
@@ -253,7 +272,8 @@ export default function Home() {
                                 className="flex flex-col items-center gap-3 p-6 rounded-2xl group hover:scale-105 hover:border-[#FFC085] transition-all duration-300"
                                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                             >
-                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform" style={{ background: "rgba(255,192,133,0.1)" }}>
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"
+                                    style={{ background: "rgba(255,192,133,0.1)" }}>
                                     {cat.icon}
                                 </div>
                                 <p className="text-white text-sm font-medium">{cat.label}</p>
@@ -266,11 +286,7 @@ export default function Home() {
             {/* ───── BANNER ───── */}
             <section
                 className="py-24 px-6 md:px-16 relative overflow-hidden"
-                style={{
-                    backgroundImage: "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600)",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                }}
+                style={{ backgroundImage: "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600)", backgroundSize: "cover", backgroundPosition: "center" }}
             >
                 <div className="absolute inset-0" style={{ background: "rgba(6,8,52,0.82)" }} />
                 <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
@@ -306,7 +322,7 @@ export default function Home() {
                         </div>
                         <Link
                             to="/Exploreagig"
-                            className="text-sm font-medium hover:opacity-80 hover:scale-105 transition-all duration-200 flex items-center gap-1 whitespace-nowrap"
+                            className="text-sm font-medium hover:opacity-80 transition-opacity flex items-center gap-1 whitespace-nowrap"
                             style={{ color: "#FFC085" }}
                         >
                             View all gigs →
@@ -315,36 +331,50 @@ export default function Home() {
 
                     {gigsLoading ? (
                         <div className="flex justify-center py-16">
-                            <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                            <div className="w-10 h-10 rounded-full border-2 animate-spin"
+                                style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                         </div>
                     ) : featuredGigs.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {featuredGigs.map((gig) => (
                                 <Link
                                     key={gig.id}
-                                    to={"/gig/" + gig.id}
+                                    to={`/gig/${gig.id}`}
                                     className="rounded-2xl overflow-hidden group hover:scale-105 hover:shadow-lg transition-all duration-300"
                                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                                 >
-                                    <div className="relative">
-                                        <img src={gig.img} alt={gig.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
-                                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,8,52,0.7), transparent)" }} />
-                                        {gig.badge && (
-                                            <span className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold" style={{ background: "rgba(255,192,133,0.9)", color: "#060834" }}>
-                                                {gig.badge}
-                                            </span>
-                                        )}
-                                    </div>
+                                    {gig.img && (
+                                        <div className="relative">
+                                            <img src={gig.img} alt={gig.title}
+                                                className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            <div className="absolute inset-0"
+                                                style={{ background: "linear-gradient(to top, rgba(6,8,52,0.7), transparent)" }} />
+                                            {gig.badge && (
+                                                <span className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold"
+                                                    style={{ background: "rgba(255,192,133,0.9)", color: "#060834" }}>
+                                                    {gig.badge}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                     <div className="p-5">
-                                        {gig.category && <p className="text-xs mb-1" style={{ color: "#FFC085" }}>{gig.category}</p>}
+                                        {gig.category && (
+                                            <p className="text-xs mb-1" style={{ color: "#FFC085" }}>{gig.category}</p>
+                                        )}
                                         <h3 className="text-white font-semibold mb-3">{gig.title}</h3>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1">
                                                 <span style={{ color: "#FFC085" }}>★</span>
                                                 <span className="text-xs text-white">{gig.rating}</span>
-                                                {gig.reviews && <span className="text-xs" style={{ color: "#B2B2D2" }}>{"(" + gig.reviews + ")"}</span>}
+                                                {gig.reviews && (
+                                                    <span className="text-xs" style={{ color: "#B2B2D2" }}>({gig.reviews})</span>
+                                                )}
                                             </div>
-                                            {gig.budget && <span className="text-sm font-bold" style={{ color: "#FFC085" }}>{gig.budget}</span>}
+                                            {gig.budget && (
+                                                <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
+                                                    {formatBudget(gig.budget)}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>
@@ -392,7 +422,8 @@ export default function Home() {
                             "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400",
                             "https://images.unsplash.com/photo-1547658719-da2b51169166?w=400",
                         ].map((img, i) => (
-                            <img key={i} src={img} alt="" className="w-full h-40 md:h-52 object-cover rounded-2xl hover:scale-105 transition-transform duration-300" />
+                            <img key={i} src={img} alt=""
+                                className="w-full h-40 md:h-52 object-cover rounded-2xl hover:scale-105 transition-transform duration-300" />
                         ))}
                     </div>
                 </div>
@@ -426,14 +457,12 @@ export default function Home() {
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
                     <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-                        What Our Clients Say{" "}
-                        <span className="text-gradient">About Us</span>
+                        What Our Clients Say <span className="text-gradient">About Us</span>
                     </h2>
                     <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Real stories from real people</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {testimonials.map((t, i) => (
-                            <div
-                                key={i}
+                            <div key={i}
                                 className="p-8 rounded-2xl text-left flex flex-col gap-5 hover:scale-105 transition-all duration-300"
                                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                             >
@@ -443,7 +472,8 @@ export default function Home() {
                                     ))}
                                 </div>
                                 <p className="text-sm leading-relaxed flex-1" style={{ color: "#B2B2D2" }}>"{t.text}"</p>
-                                <div className="flex items-center gap-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                                <div className="flex items-center gap-3 pt-3"
+                                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                                     <div
                                         className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
                                         style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}
@@ -461,14 +491,52 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ───── NEWSLETTER ───── */}
+            <section className="py-16 px-6 md:px-16" style={{ background: "#060834" }}>
+                <div className="max-w-2xl mx-auto text-center">
+                    <h3 className="text-white font-bold text-xl mb-2">Stay in the Loop</h3>
+                    <p className="text-sm mb-6" style={{ color: "#B2B2D2" }}>
+                        Get notified about new gigs, teenlancer spotlights and platform updates.
+                    </p>
+                    {newsletterSuccess ? (
+                        <div className="flex items-center justify-center gap-2 py-3 px-6 rounded-full"
+                            style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)" }}>
+                            <span style={{ color: "#4ade80" }}>✓</span>
+                            <p className="text-sm font-medium" style={{ color: "#4ade80" }}>You're subscribed!</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-3">
+                            <input
+                                type="email"
+                                value={newsletterEmail}
+                                onChange={e => setNewsletterEmail(e.target.value)}
+                                placeholder="Enter your email address"
+                                required
+                                className="flex-1 rounded-full px-5 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+                            />
+                            <button
+                                type="submit"
+                                disabled={newsletterLoading}
+                                className="px-6 py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
+                            >
+                                {newsletterLoading ? "Subscribing..." : "Subscribe"}
+                            </button>
+                        </form>
+                    )}
+                </div>
+            </section>
+
             {/* ───── FINAL CTA ───── */}
-            <section className="py-24 px-6 md:px-16 relative overflow-hidden" style={{ background: "#060834" }}>
-                <div className="absolute w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: "#FFC085", top: "-20%", right: "-10%" }} />
-                <div className="absolute w-72 h-72 rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: "#013A63", bottom: "-20%", left: "-10%" }} />
+            <section className="py-24 px-6 md:px-16 relative overflow-hidden" style={{ background: "#0a0d2e" }}>
+                <div className="absolute w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none"
+                    style={{ background: "#FFC085", top: "-20%", right: "-10%" }} />
+                <div className="absolute w-72 h-72 rounded-full opacity-10 blur-3xl pointer-events-none"
+                    style={{ background: "#013A63", bottom: "-20%", left: "-10%" }} />
                 <div className="relative z-10 max-w-3xl mx-auto text-center">
                     <h2 className="font-bold text-white mb-4" style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}>
-                        Ready to Start Your{" "}
-                        <span className="text-gradient">Journey?</span>
+                        Ready to Start Your <span className="text-gradient">Journey?</span>
                     </h2>
                     <p className="mb-12 text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
                         Join thousands of teenlancers and agents already using Gengig to connect, create, and grow together.

@@ -27,85 +27,9 @@ export default function Notifications() {
     const fetchNotifications = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with real API call: GET /notifications
-        // const response = await api.get("/notifications");
-        // setNotifications(response.data);
+        const response = await api.get("/notifications");
+        setNotifications(response.data);
 
-        // Mock data until backend is ready
-        setNotifications([
-          {
-            id: 1,
-            type: "application",
-            title: "New Application Received",
-            message: "Salma Tamer applied to your Brand Identity Design gig.",
-            time: "2 minutes ago",
-            read: false,
-            link: "/agent/applications",
-          },
-          {
-            id: 2,
-            type: "gig",
-            title: "Gig Match Found",
-            message: "A new gig matching your skills in Graphic Design was just posted.",
-            time: "15 minutes ago",
-            read: false,
-            link: "/Exploreagig",
-          },
-          {
-            id: 3,
-            type: "payment",
-            title: "Payment Received",
-            message: "You received a payment of $130 for Brand Identity Design.",
-            time: "1 hour ago",
-            read: false,
-            link: "/teenlancer/payment",
-          },
-          {
-            id: 4,
-            type: "application",
-            title: "Application Accepted",
-            message: "Your application for Social Media Campaign was accepted by Khaled Ramzy.",
-            time: "3 hours ago",
-            read: true,
-            link: "/teenlancer/dashboard",
-          },
-          {
-            id: 5,
-            type: "system",
-            title: "Profile Incomplete",
-            message: "Complete your profile to increase your chances of getting hired.",
-            time: "1 day ago",
-            read: true,
-            link: "/teenlancer/profile",
-          },
-          {
-            id: 6,
-            type: "application",
-            title: "Application Rejected",
-            message: "Your application for Logo Redesign was not accepted this time.",
-            time: "2 days ago",
-            read: true,
-            link: "/teenlancer/dashboard",
-          },
-          {
-            id: 7,
-            type: "gig",
-            title: "Gig Completed",
-            message: "Congratulations! Your gig Video Editing has been marked as completed.",
-            time: "3 days ago",
-            read: true,
-            link: "/teenlancer/dashboard",
-          },
-          {
-            id: 8,
-            type: "system",
-            title: "Welcome to Gengig",
-            message: "Your account has been created successfully. Start exploring gigs now!",
-            time: "1 week ago",
-            read: true,
-            link: "/Exploreagig",
-          },
-        ]);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       } finally {
@@ -117,9 +41,7 @@ export default function Notifications() {
 
   const markAllRead = async () => {
     try {
-      // TODO: Replace with API call: PUT /notifications/read-all
-      // await api.put("/notifications/read-all");
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      await api.put("/notifications/read-all");
     } catch (err) {
       console.error("Failed to mark all read:", err);
     }
@@ -127,11 +49,8 @@ export default function Notifications() {
 
   const markRead = async (id) => {
     try {
-      // TODO: Replace with API call: PUT /notifications/:id/read
-      // await api.put(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
+      await api.put(`/notifications/${id}/read`);
+
     } catch (err) {
       console.error("Failed to mark read:", err);
     }
@@ -139,9 +58,7 @@ export default function Notifications() {
 
   const deleteNotification = async (id) => {
     try {
-      // TODO: Replace with API call: DELETE /notifications/:id
-      // await api.delete(`/notifications/${id}`);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      await api.delete(`/notifications/${id}`);
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }

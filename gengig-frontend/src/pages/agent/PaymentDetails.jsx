@@ -15,7 +15,6 @@ export default function AgentPayment() {
     const [pendingPayments, setPendingPayments] = useState("$0");
     const [historyLoading, setHistoryLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
-
     const [showCardForm, setShowCardForm] = useState(false);
     const [cardData, setCardData] = useState({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
     const [cardSaved, setCardSaved] = useState(false);
@@ -23,19 +22,24 @@ export default function AgentPayment() {
 
     useEffect(() => {
         const fetchPaymentData = async () => {
-            const stored = localStorage.getItem("savedCard");
-            if (stored) setSavedCard(JSON.parse(stored));
+            // Load card — API first, localStorage fallback
+            try {
+                const cardRes = await api.get("/payments/cards");
+                if (cardRes.data) {
+                    setSavedCard(cardRes.data);
+                    localStorage.setItem("savedCard", JSON.stringify(cardRes.data));
+                }
+            } catch {
+                const stored = localStorage.getItem("savedCard");
+                if (stored) setSavedCard(JSON.parse(stored));
+            }
 
             // Fetch stats
             setStatsLoading(true);
             try {
-                // TODO: Replace with API call: GET /agent/stats
-                // const statsRes = await api.get("/agent/stats");
-                // setTotalSpent(statsRes.data.totalSpent);
-                // setPendingPayments(statsRes.data.pendingPayments);
-
-                setTotalSpent(localStorage.getItem("totalSpent") || "$0");
-                setPendingPayments(localStorage.getItem("agentPendingPayments") || "$0");
+                const statsRes = await api.get("/agent/stats");
+                setTotalSpent(statsRes.data.totalSpent || "$0");
+                setPendingPayments(statsRes.data.pendingPayments || "$0");
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
             } finally {
@@ -45,12 +49,8 @@ export default function AgentPayment() {
             // Fetch payment history
             setHistoryLoading(true);
             try {
-                // TODO: Replace with API call: GET /payments/transactions
-                // const historyRes = await api.get("/payments/transactions");
-                // setPaymentHistory(historyRes.data);
-
-                const stored = JSON.parse(localStorage.getItem("agentPaymentHistory") || "[]");
-                setPaymentHistory(stored);
+                const historyRes = await api.get("/payments/transactions");
+                setPaymentHistory(historyRes.data);
             } catch (err) {
                 console.error("Failed to fetch payment history:", err);
             } finally {
@@ -65,6 +65,7 @@ export default function AgentPayment() {
         setCardError("");
     };
 
+    // ✅ handleSaveCard is its own standalone function
     const handleSaveCard = async () => {
         if (!cardData.name.trim()) { setCardError("Please enter the name on card."); return; }
         if (cardData.number.replace(/\s/g, "").length < 12) { setCardError("Please enter a valid card number."); return; }
@@ -80,8 +81,7 @@ export default function AgentPayment() {
         };
 
         try {
-            // TODO: Replace with API call: POST /payments/save-card
-            // await api.post("/payments/save-card", card);
+            await api.post("/payments/save-card", card);
             localStorage.setItem("savedCard", JSON.stringify(card));
             setSavedCard(card);
             setShowCardForm(false);
@@ -91,12 +91,12 @@ export default function AgentPayment() {
         } catch (err) {
             setCardError("Failed to save card. Please try again.");
         }
-    };
+    }; // ✅ handleSaveCard ends here
 
+    // ✅ handleRemoveCard is its own standalone function — NOT inside handleSaveCard
     const handleRemoveCard = async () => {
         try {
-            // TODO: Replace with API call: DELETE /payments/cards
-            // await api.delete("/payments/cards");
+            await api.delete("/payments/cards");
             localStorage.removeItem("savedCard");
             setSavedCard(null);
         } catch (err) {
@@ -107,7 +107,8 @@ export default function AgentPayment() {
     return (
         <AgentLayout>
             {cardSaved && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
+                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                     ✓ Card saved successfully!
                 </div>
             )}
@@ -122,15 +123,18 @@ export default function AgentPayment() {
                     { label: "Total Spent", value: statsLoading ? "..." : totalSpent, desc: "On completed gigs" },
                     { label: "Pending Payments", value: statsLoading ? "..." : pendingPayments, desc: "Awaiting completion" },
                 ].map((stat) => (
-                    <div key={stat.label} className="p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div key={stat.label} className="p-4 rounded-2xl"
+                        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
-                        <p className="font-bold text-lg" style={{ color: stat.value === "$0" || stat.value === "..." ? "#B2B2D2" : "#FFC085" }}>
+                        <p className="font-bold text-lg"
+                            style={{ color: stat.value === "$0" || stat.value === "..." ? "#B2B2D2" : "#FFC085" }}>
                             {stat.value}
                         </p>
                         <p className="text-xs mt-1" style={{ color: "#B2B2D2" }}>{stat.desc}</p>
                     </div>
                 ))}
-                <div className="p-4 rounded-2xl flex items-center justify-between" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="p-4 rounded-2xl flex items-center justify-between"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                     <div>
                         <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>Payment Method</p>
                         {savedCard ? (
@@ -139,7 +143,8 @@ export default function AgentPayment() {
                             <p className="text-sm italic" style={{ color: "rgba(178,178,210,0.4)" }}>No card added</p>
                         )}
                     </div>
-                    <button onClick={() => setShowCardForm(!showCardForm)} className="hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
+                    <button onClick={() => setShowCardForm(!showCardForm)}
+                        className="hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
                         ✎
                     </button>
                 </div>
@@ -147,8 +152,10 @@ export default function AgentPayment() {
 
             {/* Saved Card Display */}
             {savedCard && !showCardForm && (
-                <div className="p-5 rounded-2xl mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div className="relative w-64 h-36 rounded-2xl overflow-hidden p-4 flex flex-col justify-between flex-shrink-0" style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <div className="p-5 rounded-2xl mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-5"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="relative w-64 h-36 rounded-2xl overflow-hidden p-4 flex flex-col justify-between flex-shrink-0"
+                        style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
                         <div className="flex justify-between items-start">
                             <div className="w-8 h-6 rounded-md" style={{ background: "rgba(255,192,133,0.4)" }} />
                             <span className="text-white font-bold text-xs">{savedCard.cardType}</span>
@@ -159,13 +166,19 @@ export default function AgentPayment() {
                         </div>
                     </div>
                     <div className="flex-1">
-                        <p className="text-white font-semibold mb-1">{savedCard.cardType} ending in {savedCard.number.replace(/\s/g, "").slice(-4)}</p>
+                        <p className="text-white font-semibold mb-1">
+                            {savedCard.cardType} ending in {savedCard.number?.replace(/\s/g, "").slice(-4)}
+                        </p>
                         <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>Expires {savedCard.expiry}</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setShowCardForm(true)} className="px-4 py-2 rounded-full text-xs font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                            <button onClick={() => setShowCardForm(true)}
+                                className="px-4 py-2 rounded-full text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 Edit Card
                             </button>
-                            <button onClick={handleRemoveCard} className="px-4 py-2 rounded-full text-xs font-semibold transition-colors hover:bg-white/10" style={{ border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
+                            <button onClick={handleRemoveCard}
+                                className="px-4 py-2 rounded-full text-xs font-semibold transition-colors hover:bg-white/10"
+                                style={{ border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
                                 Remove Card
                             </button>
                         </div>
@@ -175,28 +188,39 @@ export default function AgentPayment() {
 
             {/* Card Form */}
             {(showCardForm || !savedCard) && (
-                <div className="p-6 rounded-2xl mb-8" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="p-6 rounded-2xl mb-8"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-white font-semibold">{savedCard ? "Edit Card" : "Add Payment Card"}</h2>
                         {savedCard && (
-                            <button onClick={() => setShowCardForm(false)} className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>Cancel</button>
+                            <button onClick={() => setShowCardForm(false)}
+                                className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
+                                Cancel
+                            </button>
                         )}
                     </div>
                     <div className="flex flex-col lg:flex-row gap-8">
                         <div className="flex-1 flex flex-col gap-4">
                             <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>Card Type</label>
-                                <select name="cardType" value={cardData.cardType} onChange={handleCardChange} className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                                    {["Mastercard", "Visa", "Amex"].map((t) => <option key={t} style={{ background: "#060834" }}>{t}</option>)}
+                                <select name="cardType" value={cardData.cardType} onChange={handleCardChange}
+                                    className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                                    {["Mastercard", "Visa", "Amex"].map((t) => (
+                                        <option key={t} style={{ background: "#060834" }}>{t}</option>
+                                    ))}
                                 </select>
                             </div>
                             {[
-                                { label: "Name on Card", name: "name", type: "text", placeholder: "Your full name" },
+                                { label: "Name on Card", name: "name", type: "text", placeholder: "Your full name", maxLength: undefined },
                                 { label: "Card Number", name: "number", type: "text", placeholder: "1234 5678 9012 3456", maxLength: 19 },
                             ].map((f) => (
                                 <div key={f.name} className="flex flex-col gap-1">
                                     <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{f.label}</label>
-                                    <input type={f.type} name={f.name} value={cardData[f.name]} onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength} className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                                    <input type={f.type} name={f.name} value={cardData[f.name]}
+                                        onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength}
+                                        className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                                 </div>
                             ))}
                             <div className="flex gap-4">
@@ -206,24 +230,33 @@ export default function AgentPayment() {
                                 ].map((f) => (
                                     <div key={f.name} className="flex flex-col gap-1 flex-1">
                                         <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{f.label}</label>
-                                        <input type={f.type} name={f.name} value={cardData[f.name]} onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength} className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                                        <input type={f.type} name={f.name} value={cardData[f.name]}
+                                            onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength}
+                                            className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                                     </div>
                                 ))}
                             </div>
                             {cardError && <p className="text-xs" style={{ color: "#f87171" }}>{cardError}</p>}
-                            <button onClick={handleSaveCard} className="w-full py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                            <button onClick={handleSaveCard}
+                                className="w-full py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 Save Card
                             </button>
                         </div>
+
                         {/* Card Preview */}
                         <div className="w-full lg:w-64 flex-shrink-0">
-                            <div className="relative w-full h-40 rounded-2xl overflow-hidden p-5 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                            <div className="relative w-full h-40 rounded-2xl overflow-hidden p-5 flex flex-col justify-between"
+                                style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
                                 <div className="flex justify-between items-start">
                                     <div className="w-10 h-7 rounded-md" style={{ background: "rgba(255,192,133,0.4)" }} />
                                     <span className="text-white font-bold text-xs">{cardData.cardType}</span>
                                 </div>
                                 <div>
-                                    <p className="text-white text-xs tracking-widest mb-2">{cardData.number || "•••• •••• •••• ••••"}</p>
+                                    <p className="text-white text-xs tracking-widest mb-2">
+                                        {cardData.number || "•••• •••• •••• ••••"}
+                                    </p>
                                     <div className="flex justify-between items-center">
                                         <p className="text-white text-xs font-medium">{cardData.name || "YOUR NAME"}</p>
                                         <div className="flex">
@@ -240,21 +273,23 @@ export default function AgentPayment() {
             )}
 
             {/* Payment History */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <div className="p-6 pb-3">
                     <h2 className="text-white font-semibold text-lg">Payment History</h2>
                 </div>
-
                 {historyLoading ? (
                     <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                        <div className="w-8 h-8 rounded-full border-2 animate-spin"
+                            style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                     </div>
                 ) : paymentHistory.length > 0 ? (
                     <table className="w-full text-sm">
                         <thead>
                             <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                                 {["Order ID", "Date", "Amount", "Status"].map((h) => (
-                                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold" style={{ color: "#B2B2D2" }}>{h}</th>
+                                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold"
+                                        style={{ color: "#B2B2D2" }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -264,18 +299,24 @@ export default function AgentPayment() {
                                     <td className="px-6 py-3 text-white">{row.id}</td>
                                     <td className="px-6 py-3" style={{ color: "#B2B2D2" }}>{row.date}</td>
                                     <td className="px-6 py-3 text-white">{row.amount}</td>
-                                    <td className="px-6 py-3 font-medium" style={{ color: statusColor[row.status] || "#B2B2D2" }}>{row.status}</td>
+                                    <td className="px-6 py-3 font-medium"
+                                        style={{ color: statusColor[row.status] || "#B2B2D2" }}>{row.status}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-12" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                    <div className="flex flex-col items-center justify-center py-12"
+                        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-3" fill="none"
+                            viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
                         </svg>
                         <p className="text-sm font-medium text-white mb-1">No payment history yet</p>
-                        <p className="text-xs" style={{ color: "rgba(178,178,210,0.4)" }}>Payments will appear here once gigs are completed.</p>
+                        <p className="text-xs" style={{ color: "rgba(178,178,210,0.4)" }}>
+                            Payments will appear here once gigs are completed.
+                        </p>
                     </div>
                 )}
             </div>

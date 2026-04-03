@@ -49,20 +49,10 @@ export default function TeenlancersByCategory() {
         const fetchTeenlancers = async () => {
             setLoading(true);
             try {
-                // TODO: Replace with API call: GET /users/teenlancers?skill=:category&sort=:sort
-                // const res = await api.get(`/users/teenlancers?skill=${encodeURIComponent(decodedCategory)}&sort=${sort}`);
-                // setTeenlancers(res.data);
+                const res = await api.get(`/users/teenlancers?skill=${encodeURIComponent(decodedCategory)}&sort=${sort}`);
+                setTeenlancers(res.data);
 
-                // Mock data until backend ready
-                await new Promise((r) => setTimeout(r, 600));
-                setTeenlancers([
-                    { id: 1, name: "Salma Tamer", bio: "Passionate graphic designer with 2 years of experience creating brand identities and marketing materials.", skills: ["Figma", "Illustrator", "Photoshop"], hourlyRate: 20, availability: "Part-time", completedGigs: 14, rating: 4.9, reviews: 11 },
-                    { id: 2, name: "Omar Hassan", bio: "Creative visual designer specializing in logo design and brand identity for startups.", skills: ["Illustrator", "InDesign", "Branding"], hourlyRate: 25, availability: "Full-time", completedGigs: 8, rating: 4.7, reviews: 6 },
-                    { id: 3, name: "Nour El-Din", bio: "Detail-oriented designer with a passion for clean and minimal aesthetics.", skills: ["Figma", "Canva", "Sketch"], hourlyRate: 15, availability: "Weekends only", completedGigs: 5, rating: 5.0, reviews: 4 },
-                    { id: 4, name: "Hana Mahmoud", bio: "Multi-disciplinary designer who loves creating visual stories through design.", skills: ["Photoshop", "After Effects", "Illustrator"], hourlyRate: 30, availability: "Flexible", completedGigs: 22, rating: 4.8, reviews: 18 },
-                    { id: 5, name: "Karim Sayed", bio: "Young designer focused on UI/UX and graphic design for digital products.", skills: ["Figma", "Illustrator", "XD"], hourlyRate: 18, availability: "Part-time", completedGigs: 3, rating: 4.6, reviews: 2 },
-                    { id: 6, name: "Yasmin Adel", bio: "Creative designer specializing in social media graphics and visual branding.", skills: ["Canva", "Photoshop", "Capcut"], hourlyRate: 12, availability: "Full-time", completedGigs: 9, rating: 4.9, reviews: 7 },
-                ]);
+
             } catch (err) {
                 console.error("Failed to fetch teenlancers:", err);
                 setTeenlancers([]);

@@ -40,13 +40,9 @@ export default function MyGigs() {
     const fetchGigs = useCallback(async () => {
         setLoading(true);
         try {
-            // TODO: Replace with API call: GET /agent/gigs
-            // const res = await api.get("/agent/gigs");
-            // setGigs(res.data);
+            const res = await api.get("/agent/gigs");
+            setGigs(res.data);
 
-            // Mock until backend ready — empty so it shows empty state per user
-            await new Promise(r => setTimeout(r, 600));
-            setGigs([]);
         } catch (err) {
             console.error("Failed to fetch gigs:", err);
             setGigs([]);
@@ -65,23 +61,11 @@ export default function MyGigs() {
         setConfirmClose(false);
         setGigDetail(null);
         try {
-            // TODO: Replace with API call: GET /agent/gigs/:id
-            // const [gigRes, appsRes] = await Promise.all([
-            //   api.get(`/agent/gigs/${gig.id}`),
-            //   api.get(`/agent/gigs/${gig.id}/applications`),
-            // ]);
-            // setGigDetail({ ...gigRes.data, applications: appsRes.data });
-
-            await new Promise(r => setTimeout(r, 500));
-            // Mock — in production this comes entirely from the backend
-            setGigDetail({
-                ...gig,
-                applications: gig.applications_data || [],
-                timeline: gig.timeline || [
-                    { date: gig.postedDate || "—", event: "Gig posted", icon: "🚀" },
-                    { date: "—", event: "Awaiting applications", icon: "⏳" },
-                ],
-            });
+            const [gigRes, appsRes] = await Promise.all([
+                api.get(`/agent/gigs/${gig.id}`),
+                api.get(`/agent/gigs/${gig.id}/applications`),
+            ]);
+            setGigDetail({ ...gigRes.data, applications: appsRes.data });
         } catch (err) {
             console.error("Failed to fetch gig detail:", err);
         } finally {
@@ -98,18 +82,10 @@ export default function MyGigs() {
     const handleAction = async (appId, action) => {
         setActionLoading(prev => ({ ...prev, [appId]: action }));
         try {
-            // TODO: Replace with API calls:
-            // if (action === "accept") await api.put(`/applications/${appId}/accept`);
-            // if (action === "reject") await api.put(`/applications/${appId}/reject`);
-            // if (action === "reset")  await api.put(`/applications/${appId}/reset`);
-            await new Promise(r => setTimeout(r, 600));
-            const newStatus = action === "accept" ? "accepted" : action === "reject" ? "rejected" : "pending";
-            setGigDetail(prev => ({
-                ...prev,
-                applications: prev.applications.map(a =>
-                    a.id === appId ? { ...a, status: newStatus } : a
-                ),
-            }));
+            if (action === "accept") await api.put(`/applications/${appId}/accept`);
+            if (action === "reject") await api.put(`/applications/${appId}/reject`);
+            if (action === "reset") await api.put(`/applications/${appId}/reset`);
+
         } catch (err) {
             console.error("Application action failed:", err);
         } finally {
@@ -122,15 +98,8 @@ export default function MyGigs() {
         const newStatus = selectedGig.status === "active" ? "closed" : "active";
         setStatusUpdating(true);
         try {
-            // TODO: Replace with API call: PUT /agent/gigs/:id/status
-            // await api.put(`/agent/gigs/${selectedGig.id}/status`, { status: newStatus });
-            await new Promise(r => setTimeout(r, 600));
-            setGigs(prev => prev.map(g =>
-                g.id === selectedGig.id ? { ...g, status: newStatus } : g
-            ));
-            setSelectedGig(prev => ({ ...prev, status: newStatus }));
-            setGigDetail(prev => ({ ...prev, status: newStatus }));
-            setConfirmClose(false);
+            await api.put(`/agent/gigs/${selectedGig.id}/status`, { status: newStatus });
+
         } catch (err) {
             console.error("Failed to update gig status:", err);
         } finally {
@@ -560,8 +529,8 @@ export default function MyGigs() {
                                                         style={{
                                                             background: "rgba(255,255,255,0.04)",
                                                             border: `1px solid ${app.status === "accepted" ? "rgba(74,222,128,0.25)"
-                                                                    : app.status === "rejected" ? "rgba(248,113,113,0.15)"
-                                                                        : "rgba(255,255,255,0.08)"
+                                                                : app.status === "rejected" ? "rgba(248,113,113,0.15)"
+                                                                    : "rgba(255,255,255,0.08)"
                                                                 }`,
                                                         }}>
 
