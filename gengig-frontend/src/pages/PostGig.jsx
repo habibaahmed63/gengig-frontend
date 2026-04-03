@@ -134,9 +134,7 @@ export default function PostGig() {
                 skills: form.skills,
                 requirements: form.requirements.filter(r => r.trim()),
             };
-            // TODO: Replace with API call: POST /gigs
-            // await api.post("/gigs", payload);
-            await new Promise(r => setTimeout(r, 1500));
+            await api.post("/gigs", payload);
             setSubmitted(true);
         } catch (err) {
             console.error("Failed to post gig:", err);
@@ -165,7 +163,6 @@ export default function PostGig() {
                     <p className="text-sm mb-10" style={{ color: "#B2B2D2" }}>
                         Teenlancers can now browse and apply. You'll get notified when applications come in.
                     </p>
-                    // In PostGig.jsx — replace the buttons in the success screen with these:
                     <div className="flex flex-col sm:flex-row gap-3 w-full">
                         <button
                             onClick={() => navigate("/agent/my-gigs")}
