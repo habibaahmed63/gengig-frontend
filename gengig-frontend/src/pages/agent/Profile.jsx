@@ -25,6 +25,7 @@ export default function AgentProfile() {
     const [editMode, setEditMode] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
+    const [profileLoading, setProfileLoading] = useState(true);
 
     const [profile, setProfile] = useState({
         name: localStorage.getItem("name") || "",
@@ -36,7 +37,6 @@ export default function AgentProfile() {
     });
     const [editData, setEditData] = useState({ ...profile });
 
-    // Dynamic data
     const [postedGigs, setPostedGigs] = useState([]);
     const [reviews, setReviews] = useState([]);
     const [stats, setStats] = useState(null);
@@ -46,57 +46,82 @@ export default function AgentProfile() {
 
     useEffect(() => {
         const fetchProfileData = async () => {
-            // Fetch gigs
+            // ── Fetch full profile from backend ──
+            setProfileLoading(true);
+            try {
+                const profileRes = await api.get("/users/profile");
+                const d = profileRes.data;
+                const updatedProfile = {
+                    name: d.name || localStorage.getItem("name") || "",
+                    photo: d.photo || localStorage.getItem("photo") || null,
+                    bio: d.bio || localStorage.getItem("bio") || "",
+                    location: d.location || localStorage.getItem("location") || "",
+                    company: d.company || localStorage.getItem("company") || "",
+                    industry: d.industry || localStorage.getItem("industry") || "",
+                };
+                setProfile(updatedProfile);
+                setEditData({ ...updatedProfile });
+                localStorage.setItem("name", updatedProfile.name);
+                localStorage.setItem("bio", updatedProfile.bio);
+                localStorage.setItem("location", updatedProfile.location);
+                localStorage.setItem("company", updatedProfile.company);
+                localStorage.setItem("industry", updatedProfile.industry);
+                if (updatedProfile.photo) localStorage.setItem("photo", updatedProfile.photo);
+            } catch (err) {
+                console.error("Failed to fetch profile:", err);
+            } finally {
+                setProfileLoading(false);
+            }
+
+            // ── Fetch gigs ──
             setGigsLoading(true);
             try {
                 const gigsRes = await api.get("/agent/gigs");
                 setPostedGigs(gigsRes.data);
             } catch (err) {
                 console.error("Failed to fetch gigs:", err);
+                setPostedGigs([]);
             } finally {
                 setGigsLoading(false);
             }
 
-            // Fetch reviews
+            // ── Fetch reviews — real API, no mock ──
             setReviewsLoading(true);
             try {
-                // TODO: Replace with API call: GET /agent/reviews
-                // const reviewsRes = await api.get("/agent/reviews");
-                // setReviews(reviewsRes.data);
-
-                // Mock until backend ready
-                setReviews([
-                    { id: 1, name: "Salma Tamer", role: "Graphic Designer", stars: 5, text: "Working with this agent was a great experience. Very clear instructions and prompt feedback!", img: "https://i.pravatar.cc/40?img=1" },
-                    { id: 2, name: "Ahmed Karim", role: "Video Editor", stars: 4, text: "Professional and easy to work with. Always available and responsive.", img: "https://i.pravatar.cc/40?img=2" },
-                ]);
+                const reviewsRes = await api.get("/agent/reviews");
+                setReviews(reviewsRes.data);
             } catch (err) {
                 console.error("Failed to fetch reviews:", err);
+                setReviews([]);
             } finally {
                 setReviewsLoading(false);
             }
 
-            // Fetch stats
+            // ── Fetch stats ──
             setStatsLoading(true);
             try {
                 const statsRes = await api.get("/agent/stats");
                 setStats(statsRes.data);
-
-
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
             } finally {
                 setStatsLoading(false);
             }
         };
-
         fetchProfileData();
     }, []);
 
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
+        if (!file) return;
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            const res = await api.post("/uploads/image", formData);
+            setEditData(prev => ({ ...prev, photo: res.data.url }));
+        } catch {
             const base64 = await convertToBase64(file);
-            setEditData((prev) => ({ ...prev, photo: base64 }));
+            setEditData(prev => ({ ...prev, photo: base64 }));
         }
     };
 
@@ -111,22 +136,17 @@ export default function AgentProfile() {
                 industry: editData.industry,
                 photo: editData.photo,
             });
-
-            // Use backend response if available, fall back to editData
-            const saved = res.data || editData;
-            localStorage.setItem("name", saved.name || editData.name);
-            localStorage.setItem("bio", saved.bio || editData.bio);
-            localStorage.setItem("location", saved.location || editData.location);
-            localStorage.setItem("company", saved.company || editData.company);
-            localStorage.setItem("industry", saved.industry || editData.industry);
-            if (editData.photo) localStorage.setItem("photo", saved.photo || editData.photo);
-
-            // Update local state — only on success
+            const savedData = res.data || editData;
+            localStorage.setItem("name", savedData.name || editData.name);
+            localStorage.setItem("bio", savedData.bio || editData.bio);
+            localStorage.setItem("location", savedData.location || editData.location);
+            localStorage.setItem("company", savedData.company || editData.company);
+            localStorage.setItem("industry", savedData.industry || editData.industry);
+            if (editData.photo) localStorage.setItem("photo", savedData.photo || editData.photo);
             setProfile({ ...editData });
             setEditMode(false);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
-
         } catch (err) {
             console.error("Failed to save profile:", err);
             alert("Failed to save profile. Please try again.");
@@ -135,14 +155,22 @@ export default function AgentProfile() {
         }
     };
 
-    const handleCancel = () => {
-        setEditData({ ...profile });
-        setEditMode(false);
-    };
+    const handleCancel = () => { setEditData({ ...profile }); setEditMode(false); };
 
     const averageRating = reviews.length > 0
         ? (reviews.reduce((sum, r) => sum + r.stars, 0) / reviews.length).toFixed(1)
         : null;
+
+    if (profileLoading) {
+        return (
+            <AgentLayout>
+                <div className="flex items-center justify-center py-20">
+                    <div className="w-10 h-10 rounded-full border-2 animate-spin"
+                        style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                </div>
+            </AgentLayout>
+        );
+    }
 
     return (
         <AgentLayout>
@@ -150,27 +178,20 @@ export default function AgentProfile() {
                 Home › Account › <span style={{ color: "#FFC085" }}>Profile</span>
             </p>
 
-            {/* Saved toast */}
             {saved && (
-                <div
-                    className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                >
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
+                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                     ✓ Profile saved successfully!
                 </div>
             )}
 
             {/* Profile Header */}
-            <div
-                className="p-6 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-                {/* Avatar */}
+            <div className="p-6 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
                 <div className="relative flex-shrink-0">
-                    <div
-                        className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
-                        style={{ border: "3px solid #FFC085", background: "rgba(255,192,133,0.1)" }}
-                    >
+                    <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
+                        style={{ border: "3px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
                         {(editMode ? editData.photo : profile.photo) ? (
                             <img src={editMode ? editData.photo : profile.photo} alt="profile" className="w-full h-full object-cover" />
                         ) : (
@@ -180,23 +201,18 @@ export default function AgentProfile() {
                         )}
                     </div>
                     {editMode && (
-                        <label
-                            className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center text-xs cursor-pointer hover:opacity-80 transition-opacity"
-                            style={{ background: "#FFC085", color: "#060834" }}
-                        >
+                        <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center text-xs cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ background: "#FFC085", color: "#060834" }}>
                             ✎
                             <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
                         </label>
                     )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1">
                     {editMode ? (
-                        <input
-                            type="text"
-                            value={editData.name}
-                            onChange={(e) => setEditData((prev) => ({ ...prev, name: e.target.value }))}
+                        <input type="text" value={editData.name}
+                            onChange={e => setEditData(prev => ({ ...prev, name: e.target.value }))}
                             placeholder="Your full name"
                             className="w-full rounded-xl px-4 py-2 text-white font-bold text-xl outline-none focus:ring-1 focus:ring-[#FFC085] mb-2"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
@@ -206,57 +222,45 @@ export default function AgentProfile() {
                             {profile.name || <span style={{ color: "#B2B2D2", fontWeight: 400, fontSize: "1rem" }}>No name set</span>}
                         </h1>
                     )}
-
                     <p className="text-sm mb-2" style={{ color: "#FFC085" }}>
                         Agent{profile.company ? " · " + profile.company : ""}{profile.industry ? " · " + profile.industry : ""}
                     </p>
-
                     <div className="flex flex-wrap gap-4 text-xs" style={{ color: "#B2B2D2" }}>
                         {editMode ? (
-                            <input
-                                type="text"
-                                value={editData.location}
-                                onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
+                            <input type="text" value={editData.location}
+                                onChange={e => setEditData(prev => ({ ...prev, location: e.target.value }))}
                                 placeholder="📍 Your location"
                                 className="rounded-xl px-4 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-[#FFC085]"
                                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                             />
                         ) : (
                             <>
-                                {profile.location && <span>{"📍 " + profile.location}</span>}
-                                {averageRating && <span>{"⭐ " + averageRating + " rating"}</span>}
-                                {reviews.length > 0 && <span>{"💬 " + reviews.length + " reviews"}</span>}
+                                {profile.location && <span>📍 {profile.location}</span>}
+                                {averageRating && <span>⭐ {averageRating} rating</span>}
+                                {reviews.length > 0 && <span>💬 {reviews.length} reviews</span>}
                             </>
                         )}
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3 flex-shrink-0">
                     {editMode ? (
                         <>
-                            <button
-                                onClick={handleCancel}
+                            <button onClick={handleCancel}
                                 className="px-5 py-2 rounded-full text-sm font-semibold transition-colors hover:bg-white/10"
-                                style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#B2B2D2" }}
-                            >
+                                style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#B2B2D2" }}>
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={saveLoading}
+                            <button onClick={handleSave} disabled={saveLoading}
                                 className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                            >
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 {saveLoading ? "Saving..." : "Save Changes"}
                             </button>
                         </>
                     ) : (
-                        <button
-                            onClick={() => setEditMode(true)}
+                        <button onClick={() => setEditMode(true)}
                             className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                             Edit Profile
                         </button>
                     )}
@@ -272,9 +276,8 @@ export default function AgentProfile() {
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <h2 className="text-white font-semibold mb-3">About Me</h2>
                         {editMode ? (
-                            <textarea
-                                value={editData.bio}
-                                onChange={(e) => setEditData((prev) => ({ ...prev, bio: e.target.value }))}
+                            <textarea value={editData.bio}
+                                onChange={e => setEditData(prev => ({ ...prev, bio: e.target.value }))}
                                 placeholder="Tell teenlancers about yourself and your company..."
                                 rows={4}
                                 className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
@@ -287,17 +290,15 @@ export default function AgentProfile() {
                         )}
                     </div>
 
-                    {/* Company & Industry - edit mode only */}
+                    {/* Company Info — edit only */}
                     {editMode && (
                         <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <h2 className="text-white font-semibold mb-4">Company Info</h2>
                             <div className="flex flex-col gap-3">
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs" style={{ color: "#B2B2D2" }}>Company / Business Name</label>
-                                    <input
-                                        type="text"
-                                        value={editData.company}
-                                        onChange={(e) => setEditData((prev) => ({ ...prev, company: e.target.value }))}
+                                    <input type="text" value={editData.company}
+                                        onChange={e => setEditData(prev => ({ ...prev, company: e.target.value }))}
                                         placeholder="e.g. Creative Studio Co."
                                         className="w-full rounded-xl px-4 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                         style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
@@ -305,14 +306,12 @@ export default function AgentProfile() {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs" style={{ color: "#B2B2D2" }}>Industry</label>
-                                    <select
-                                        value={editData.industry}
-                                        onChange={(e) => setEditData((prev) => ({ ...prev, industry: e.target.value }))}
+                                    <select value={editData.industry}
+                                        onChange={e => setEditData(prev => ({ ...prev, industry: e.target.value }))}
                                         className="w-full rounded-xl px-4 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                                    >
+                                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
                                         <option value="" style={{ background: "#060834" }}>Select industry</option>
-                                        {industryOptions.map((opt) => (
+                                        {industryOptions.map(opt => (
                                             <option key={opt} style={{ background: "#060834" }}>{opt}</option>
                                         ))}
                                     </select>
@@ -326,7 +325,8 @@ export default function AgentProfile() {
                         <h2 className="text-white font-semibold mb-4">Stats</h2>
                         {statsLoading ? (
                             <div className="flex justify-center py-4">
-                                <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                                <div className="w-6 h-6 rounded-full border-2 animate-spin"
+                                    style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                             </div>
                         ) : stats ? (
                             <div className="flex flex-col gap-3">
@@ -335,7 +335,7 @@ export default function AgentProfile() {
                                     { label: "Teenlancers Hired", value: stats.teenlancersHired ?? "—" },
                                     { label: "Total Spent", value: stats.totalSpent ?? "—" },
                                     { label: "Completion Rate", value: stats.completionRate ?? "—" },
-                                ].map((stat) => (
+                                ].map(stat => (
                                     <div key={stat.label} className="flex items-center justify-between">
                                         <span className="text-xs" style={{ color: "#B2B2D2" }}>{stat.label}</span>
                                         <span className="text-sm font-semibold" style={{ color: "#FFC085" }}>{stat.value}</span>
@@ -357,38 +357,35 @@ export default function AgentProfile() {
                             <h2 className="text-white font-semibold">
                                 Posted Gigs
                                 {!gigsLoading && postedGigs.length > 0 && (
-                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}>
+                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full"
+                                        style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}>
                                         {postedGigs.length}
                                     </span>
                                 )}
                             </h2>
-                            <button
-                                onClick={() => navigate("/post")}
+                            <button onClick={() => navigate("/post")}
                                 className="text-xs px-3 py-1 rounded-full hover:opacity-80 hover:scale-105 transition-all duration-200"
-                                style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}
-                            >
+                                style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}>
                                 + Post New Gig
                             </button>
                         </div>
-
                         {gigsLoading ? (
                             <div className="flex justify-center py-8">
-                                <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                                <div className="w-8 h-8 rounded-full border-2 animate-spin"
+                                    style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                             </div>
                         ) : postedGigs.length > 0 ? (
                             <div className="flex flex-col gap-2">
-                                {postedGigs.map((gig) => (
-                                    <div
-                                        key={gig.id}
+                                {postedGigs.map(gig => (
+                                    <div key={gig.id}
                                         className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
                                         style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                                        onClick={() => gig.id && navigate("/gig/" + gig.id)}
-                                    >
+                                        onClick={() => navigate("/agent/my-gigs")}>
                                         <div>
                                             <p className="text-white text-sm font-medium">{gig.title}</p>
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 {gig.category && <p className="text-xs" style={{ color: "#B2B2D2" }}>{gig.category}</p>}
-                                                {gig.applications !== undefined && (
+                                                {gig.applications != null && (
                                                     <span className="text-xs" style={{ color: "#B2B2D2" }}>
                                                         · {gig.applications} applicant{gig.applications !== 1 ? "s" : ""}
                                                     </span>
@@ -396,14 +393,10 @@ export default function AgentProfile() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 flex-shrink-0">
-                                            {gig.budget && (
-                                                <span className="text-sm font-semibold" style={{ color: "#FFC085" }}>{gig.budget}</span>
-                                            )}
+                                            {gig.budget && <span className="text-sm font-semibold" style={{ color: "#FFC085" }}>{gig.budget}</span>}
                                             {gig.status && (
-                                                <span
-                                                    className="text-xs px-3 py-1 rounded-full font-medium"
-                                                    style={{ background: "rgba(255,255,255,0.08)", color: statusColor[gig.status] || "#B2B2D2" }}
-                                                >
+                                                <span className="text-xs px-3 py-1 rounded-full font-medium"
+                                                    style={{ background: "rgba(255,255,255,0.08)", color: statusColor[gig.status] || "#B2B2D2" }}>
                                                     {gig.status}
                                                 </span>
                                             )}
@@ -412,20 +405,16 @@ export default function AgentProfile() {
                                 ))}
                             </div>
                         ) : (
-                            <div
-                                className="flex flex-col items-center justify-center py-10 rounded-xl"
-                                style={{ border: "1px dashed rgba(255,255,255,0.1)" }}
-                            >
+                            <div className="flex flex-col items-center justify-center py-10 rounded-xl"
+                                style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                                 <p className="text-sm font-medium text-white mb-1">No gigs posted yet</p>
                                 <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>Post your first gig and start finding teenlancers!</p>
-                                <button
-                                    onClick={() => navigate("/post")}
+                                <button onClick={() => navigate("/post")}
                                     className="text-xs px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity text-white"
-                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                                >
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                     Post Your First Gig
                                 </button>
                             </div>
@@ -438,37 +427,31 @@ export default function AgentProfile() {
                             <h2 className="text-white font-semibold">
                                 Reviews & Ratings
                                 {!reviewsLoading && reviews.length > 0 && (
-                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}>
-                                        {"⭐ " + averageRating}
+                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full"
+                                        style={{ background: "rgba(255,192,133,0.15)", color: "#FFC085" }}>
+                                        ⭐ {averageRating}
                                     </span>
                                 )}
                             </h2>
                         </div>
-
                         {reviewsLoading ? (
                             <div className="flex justify-center py-8">
-                                <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                                <div className="w-8 h-8 rounded-full border-2 animate-spin"
+                                    style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                             </div>
                         ) : reviews.length > 0 ? (
                             <div className="flex flex-col gap-4">
-                                {reviews.map((r) => (
-                                    <div
-                                        key={r.id}
-                                        className="p-4 rounded-xl"
-                                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                                    >
+                                {reviews.map(r => (
+                                    <div key={r.id} className="p-4 rounded-xl"
+                                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-                                                    style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}
-                                                >
+                                                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+                                                    style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}>
                                                     {r.img ? (
                                                         <img src={r.img} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <span className="text-xs font-bold" style={{ color: "#FFC085" }}>
-                                                            {r.name.charAt(0)}
-                                                        </span>
+                                                        <span className="text-xs font-bold" style={{ color: "#FFC085" }}>{r.name?.charAt(0)}</span>
                                                     )}
                                                 </div>
                                                 <div>
@@ -487,10 +470,8 @@ export default function AgentProfile() {
                                 ))}
                             </div>
                         ) : (
-                            <div
-                                className="flex flex-col items-center justify-center py-10 rounded-xl"
-                                style={{ border: "1px dashed rgba(255,255,255,0.1)" }}
-                            >
+                            <div className="flex flex-col items-center justify-center py-10 rounded-xl"
+                                style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                                 </svg>
