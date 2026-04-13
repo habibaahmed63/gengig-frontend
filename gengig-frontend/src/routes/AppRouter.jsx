@@ -40,6 +40,7 @@ import AgentApplications from "../pages/agent/Applications";
 import MyGigs from "../pages/agent/MyGigs";
 
 
+
 // Category pages — NEW
 import GigsByCategory from "../pages/GigsByCategory";
 import TeenlancersByCategory from "../pages/TeenlancersByCategory";
