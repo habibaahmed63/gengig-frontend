@@ -528,38 +528,6 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── FINAL CTA ───── */}
-            <section className="py-24 px-6 md:px-16 relative overflow-hidden" style={{ background: "#0a0d2e" }}>
-                <div className="absolute w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none"
-                    style={{ background: "#FFC085", top: "-20%", right: "-10%" }} />
-                <div className="absolute w-72 h-72 rounded-full opacity-10 blur-3xl pointer-events-none"
-                    style={{ background: "#013A63", bottom: "-20%", left: "-10%" }} />
-                <div className="relative z-10 max-w-3xl mx-auto text-center">
-                    <h2 className="font-bold text-white mb-4" style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}>
-                        Ready to Start Your <span className="text-gradient">Journey?</span>
-                    </h2>
-                    <p className="mb-12 text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
-                        Join thousands of teenlancers and agents already using Gengig to connect, create, and grow together.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            to="/signup"
-                            className="px-8 py-4 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200 text-lg"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
-                            Join as Teenlancer
-                        </Link>
-                        <Link
-                            to="/signup"
-                            className="px-8 py-4 rounded-full font-semibold text-white hover:bg-white/20 hover:scale-105 transition-all duration-200 text-lg"
-                            style={{ border: "1px solid rgba(255,255,255,0.3)" }}
-                        >
-                            Hire a Teenlancer
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             <Footer />
         </div>
     );
