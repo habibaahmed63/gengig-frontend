@@ -184,23 +184,27 @@ export default function TeenlancerProfile() {
                 bio: editData.bio,
                 location: editData.location,
                 skills: editData.skills,
-                portfolio: editData.portfolio, // ✅ portfolio is sent to backend
+                portfolio: editData.portfolio,
                 hourlyRate: editData.hourlyRate,
                 availability: editData.availability,
                 photo: editData.photo,
             });
 
-            const saved = res.data || editData;
+            const savedData = res.data || editData;
 
-            // Sync localStorage
-            localStorage.setItem("name", saved.name || editData.name);
-            localStorage.setItem("bio", saved.bio || editData.bio);
-            localStorage.setItem("location", saved.location || editData.location);
-            localStorage.setItem("skills", JSON.stringify(saved.skills || editData.skills));
-            localStorage.setItem("portfolio", JSON.stringify(saved.portfolio || editData.portfolio));
-            localStorage.setItem("hourlyRate", saved.hourlyRate || editData.hourlyRate);
-            localStorage.setItem("availability", saved.availability || editData.availability);
-            if (editData.photo) localStorage.setItem("photo", saved.photo || editData.photo);
+            localStorage.setItem("name", savedData.name || editData.name);
+            localStorage.setItem("bio", savedData.bio || editData.bio);
+            localStorage.setItem("location", savedData.location || editData.location);
+            localStorage.setItem("skills", JSON.stringify(savedData.skills || editData.skills));
+            localStorage.setItem("portfolio", JSON.stringify(savedData.portfolio || editData.portfolio));
+            localStorage.setItem("hourlyRate", savedData.hourlyRate || editData.hourlyRate);
+            localStorage.setItem("availability", savedData.availability || editData.availability);
+
+            // ✅ Update photo + notify navbar and sidebar instantly
+            if (editData.photo) {
+                localStorage.setItem("photo", savedData.photo || editData.photo);
+                window.dispatchEvent(new Event("storage"));
+            }
 
             setProfile({ ...editData });
             setEditMode(false);

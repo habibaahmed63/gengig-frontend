@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GengigChatbot from "../components/GengigChatbot";
@@ -9,8 +9,19 @@ export default function TeenlancerLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
 
-    const name = localStorage.getItem("name") || "My Profile";
-    const photo = localStorage.getItem("photo") || null;
+    // ✅ useState instead of direct localStorage read — so it re-renders on update
+    const [name, setName] = useState(localStorage.getItem("name") || "My Profile");
+    const [photo, setPhoto] = useState(localStorage.getItem("photo") || null);
+
+    // ✅ Listen for storage event fired from Profile.jsx after save
+    useEffect(() => {
+        const handleStorageUpdate = () => {
+            setPhoto(localStorage.getItem("photo") || null);
+            setName(localStorage.getItem("name") || "My Profile");
+        };
+        window.addEventListener("storage", handleStorageUpdate);
+        return () => window.removeEventListener("storage", handleStorageUpdate);
+    }, []);
 
     const navItems = [
         {
@@ -63,37 +74,28 @@ export default function TeenlancerLayout({ children }) {
 
     const SidebarContent = ({ isCollapsed = false }) => (
         <>
-            {/* Collapse Toggle Button */}
+            {/* Collapse Toggle */}
             <button
                 onClick={() => setCollapsed(!isCollapsed)}
                 className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full mb-6 self-end hover:opacity-80 transition-opacity flex-shrink-0"
                 style={{ background: "rgba(255,192,133,0.15)", border: "1px solid rgba(255,192,133,0.3)" }}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="#FFC085"
-                    strokeWidth={2}
-                    style={{ transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="#FFC085" strokeWidth={2}
+                    style={{ transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
 
-            {/* Profile */}
+            {/* Profile — uses reactive photo/name state */}
             <Link
                 to="/teenlancer/profile"
                 className="flex items-center gap-3 mb-8 group flex-shrink-0"
                 onClick={() => setSidebarOpen(false)}
                 title="My Profile"
             >
-                <div
-                    className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
-                    style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.15)" }}
-                >
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+                    style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.15)" }}>
                     {photo ? (
                         <img src={photo} alt="profile" className="w-full h-full object-cover" />
                     ) : (
@@ -141,7 +143,7 @@ export default function TeenlancerLayout({ children }) {
             <Navbar />
             <div className="flex relative">
 
-                {/* Mobile Sidebar Toggle Button */}
+                {/* Mobile Toggle */}
                 <button
                     className="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
@@ -152,41 +154,25 @@ export default function TeenlancerLayout({ children }) {
                     </svg>
                 </button>
 
-                {/* Mobile Sidebar Overlay */}
+                {/* Mobile Overlay */}
                 {sidebarOpen && (
-                    <div
-                        className="lg:hidden fixed inset-0 z-40"
-                        style={{ background: "rgba(0,0,0,0.5)" }}
-                        onClick={() => setSidebarOpen(false)}
-                    />
+                    <div className="lg:hidden fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.5)" }}
+                        onClick={() => setSidebarOpen(false)} />
                 )}
 
-                {/* Mobile Sidebar Drawer */}
+                {/* Mobile Drawer */}
                 <div
                     className="lg:hidden fixed top-0 left-0 h-full z-50 w-64 py-8 px-4 flex flex-col transition-transform duration-300"
-                    style={{
-                        background: "#060834",
-                        transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
-                    }}
+                    style={{ background: "#060834", transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
                 >
-                    <button
-                        className="self-end mb-6 text-white hover:text-[#FFC085]"
-                        onClick={() => setSidebarOpen(false)}
-                    >
-                        ✕
-                    </button>
+                    <button className="self-end mb-6 text-white hover:text-[#FFC085]" onClick={() => setSidebarOpen(false)}>✕</button>
                     <SidebarContent isCollapsed={false} />
                 </div>
 
                 {/* Desktop Sidebar */}
                 <aside
                     className="hidden lg:flex flex-col py-8 px-4 flex-shrink-0 min-h-screen transition-all duration-300"
-                    style={{
-                        width: collapsed ? "64px" : "208px",
-                        background: "#060834",
-                        borderRight: "1px solid rgba(255,255,255,0.06)",
-                        overflow: "hidden",
-                    }}
+                    style={{ width: collapsed ? "64px" : "208px", background: "#060834", borderRight: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}
                 >
                     <SidebarContent isCollapsed={collapsed} />
                 </aside>
@@ -196,7 +182,6 @@ export default function TeenlancerLayout({ children }) {
                     {children}
                 </main>
                 <GengigChatbot />
-
             </div>
         </div>
     );
