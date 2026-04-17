@@ -19,8 +19,13 @@ export default function GigDetails() {
             setLoading(true);
             try {
                 const response = await api.get(`/gigs/${id}`);
-                setGig(response.data.gig);
-                setRelatedGigs(response.data.relatedGigs);
+                if (response.data.gig) {
+                    setGig(response.data.gig);
+                    setRelatedGigs(response.data.relatedGigs || []);
+                } else {
+                    setGig(response.data);
+                    setRelatedGigs(response.data.relatedGigs || []);
+                }
             } catch (err) {
                 console.error("Failed to fetch gig:", err);
             } finally {
@@ -39,11 +44,15 @@ export default function GigDetails() {
     };
 
     const handleSave = async () => {
-        setSaved(!saved);
-        await api.post(`/gigs/${id}/save`);
+        setSaved(prev => !prev); // optimistic
+        try {
+            await api.post(`/gigs/${id}/save`);
+        } catch (err) {
+            console.error("Failed to save gig:", err);
+            setSaved(prev => !prev); // revert on failure
+        }
     };
 
-    // Loading State
     if (loading) {
         return (
             <div style={{ background: "#060834" }}>

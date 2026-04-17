@@ -10,7 +10,7 @@ export default function AgentSettings() {
         name: localStorage.getItem("name") || "",
         email: localStorage.getItem("email") || "",
         language: localStorage.getItem("language") || "English",
-        notifications: { email: true, push: false, sms: true },
+        notifications: JSON.parse(localStorage.getItem("notificationPrefs") || '{"email":true,"push":false,"sms":true}'),
     });
     const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -27,14 +27,16 @@ export default function AgentSettings() {
             setSettingsLoading(true);
             try {
                 const response = await api.get("/users/settings");
+                // ✅ Every field has a fallback — never sets undefined into formData
                 setFormData({
-                    name: response.data.name,
-                    email: response.data.email,
-                    language: response.data.language,
-                    notifications: response.data.notifications,
+                    name: response.data.name || localStorage.getItem("name") || "",
+                    email: response.data.email || localStorage.getItem("email") || "",
+                    language: response.data.language || localStorage.getItem("language") || "English",
+                    notifications: response.data.notifications || JSON.parse(localStorage.getItem("notificationPrefs") || '{"email":true,"push":false,"sms":true}'),
                 });
             } catch (err) {
                 console.error("Failed to fetch settings:", err);
+                // ✅ On error, keep the localStorage values — don't crash
             } finally {
                 setSettingsLoading(false);
             }
@@ -49,19 +51,29 @@ export default function AgentSettings() {
         const updated = { ...formData.notifications, [key]: !formData.notifications[key] };
         setFormData({ ...formData, notifications: updated });
         localStorage.setItem("notificationPrefs", JSON.stringify(updated));
-        await api.put("/users/notifications", updated);
+        try {
+            await api.put("/users/notifications", updated);
+        } catch (err) {
+            console.error("Failed to update notifications:", err);
+        }
     };
 
     const handleSaveInfo = async () => {
         setSaveLoading(true);
         try {
-            await api.put("/users/settings", { name: formData.name, email: formData.email, language: formData.language });
+            await api.put("/users/settings", {
+                name: formData.name,
+                email: formData.email,
+                language: formData.language,
+            });
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
             localStorage.setItem("language", formData.language);
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch {
+        } catch (err) {
+            console.error("Failed to save settings:", err);
+            alert("Failed to save settings. Please try again.");
         } finally {
             setSaveLoading(false);
         }
@@ -74,11 +86,15 @@ export default function AgentSettings() {
         if (passwords.newPass !== passwords.confirm) { setPasswordError("Passwords do not match."); return; }
         setPasswordLoading(true);
         try {
-            await api.put("/auth/change-password", { currentPassword: passwords.current, newPassword: passwords.newPass });
+            await api.put("/auth/change-password", {
+                currentPassword: passwords.current,
+                newPassword: passwords.newPass,
+            });
             setPasswords({ current: "", newPass: "", confirm: "" });
             setPasswordSuccess(true);
             setTimeout(() => setPasswordSuccess(false), 3000);
-        } catch {
+        } catch (err) {
+            console.error("Failed to change password:", err);
             setPasswordError("Current password is incorrect.");
         } finally {
             setPasswordLoading(false);
@@ -111,7 +127,8 @@ export default function AgentSettings() {
         return (
             <AgentLayout>
                 <div className="flex items-center justify-center py-20">
-                    <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+                    <div className="w-10 h-10 rounded-full border-2 animate-spin"
+                        style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
                 </div>
             </AgentLayout>
         );
@@ -120,12 +137,14 @@ export default function AgentSettings() {
     return (
         <AgentLayout>
             {saveSuccess && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
+                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                     ✓ Settings saved!
                 </div>
             )}
             {passwordSuccess && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg" style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }}>
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
+                    style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }}>
                     ✓ Password updated!
                 </div>
             )}
@@ -147,7 +166,11 @@ export default function AgentSettings() {
                         ].map((field) => (
                             <div key={field.name} className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{field.label}</label>
-                                <input type={field.type} name={field.name} value={formData[field.name]} onChange={handleChange}
+                                <input
+                                    type={field.type}
+                                    name={field.name}
+                                    value={formData[field.name] || ""}
+                                    onChange={handleChange}
                                     className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                                 />
@@ -155,7 +178,7 @@ export default function AgentSettings() {
                         ))}
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>Language</label>
-                            <select name="language" value={formData.language} onChange={handleChange}
+                            <select name="language" value={formData.language || "English"} onChange={handleChange}
                                 className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
                                 {["English", "Arabic", "French"].map((lang) => (
@@ -182,7 +205,9 @@ export default function AgentSettings() {
                         ].map((field) => (
                             <div key={field.name} className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{field.label}</label>
-                                <input type="password" name={field.name} value={passwords[field.name]} onChange={handlePasswordChange}
+                                <input type="password" name={field.name}
+                                    value={passwords[field.name]}
+                                    onChange={handlePasswordChange}
                                     className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                                 />
@@ -213,9 +238,9 @@ export default function AgentSettings() {
                                 </div>
                                 <button onClick={() => handleNotification(item.key)}
                                     className="w-11 h-6 rounded-full transition-colors relative flex-shrink-0"
-                                    style={{ background: formData.notifications[item.key] ? "#FFC085" : "rgba(255,255,255,0.15)" }}>
+                                    style={{ background: formData.notifications?.[item.key] ? "#FFC085" : "rgba(255,255,255,0.15)" }}>
                                     <span className="absolute top-0.5 w-5 h-5 rounded-full transition-all"
-                                        style={{ background: "white", left: formData.notifications[item.key] ? "22px" : "2px" }} />
+                                        style={{ background: "white", left: formData.notifications?.[item.key] ? "22px" : "2px" }} />
                                 </button>
                             </div>
                         ))}

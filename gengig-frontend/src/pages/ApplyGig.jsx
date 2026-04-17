@@ -26,8 +26,7 @@ export default function ApplyGig() {
             setLoading(true);
             try {
                 const response = await api.get(`/gigs/${id}`);
-                setGig(response.data);
-
+                setGig(response.data.gig || response.data);
             } catch (err) {
                 console.error("Failed to fetch gig:", err);
             } finally {
@@ -65,14 +64,14 @@ export default function ApplyGig() {
             form.append("portfolioLink", formData.portfolioLink);
             if (formData.file) form.append("file", formData.file);
             await api.post(`/gigs/${id}/apply`, form);
-
+            setSubmitted(true);
         } catch (err) {
+            console.error("Failed to submit application:", err);
             setError("Failed to submit application. Please try again.");
         } finally {
             setSubmitting(false);
         }
     };
-
     // Loading state
     if (loading) {
         return (

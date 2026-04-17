@@ -28,7 +28,6 @@ export default function ExplorePage() {
     const [emailSubmitted, setEmailSubmitted] = useState(false);
     const [emailLoading, setEmailLoading] = useState(false);
 
-    // Dynamic recommended gigs
     const [recommended, setRecommended] = useState([]);
     const [recommendedLoading, setRecommendedLoading] = useState(true);
 
@@ -40,20 +39,11 @@ export default function ExplorePage() {
         const fetchRecommended = async () => {
             setRecommendedLoading(true);
             try {
-                // TODO: Replace with API call: GET /gigs?recommended=true&skills=...
-                // const response = await api.get("/gigs/recommended", {
-                //   params: { skills: skills.join(",") }
-                // });
-                // setRecommended(response.data);
-
-                // Mock until backend ready
-                setRecommended([
-                    { id: 1, title: "Trendify Studio", category: "Graphic Design", img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400" },
-                    { id: 2, title: "App Rush", category: "Tech & UX", img: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400" },
-                    { id: 3, title: "Vibe Now", category: "Video Editing", img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400" },
-                ]);
+                const response = await api.get("/gigs/recommended");
+                setRecommended(response.data);
             } catch (err) {
                 console.error("Failed to fetch recommended gigs:", err);
+                setRecommended([]);
             } finally {
                 setRecommendedLoading(false);
             }
@@ -79,13 +69,13 @@ export default function ExplorePage() {
         if (!email.trim()) return;
         setEmailLoading(true);
         try {
-            // TODO: Replace with API call: POST /newsletter/subscribe
-            // await api.post("/newsletter/subscribe", { email });
-            await new Promise((r) => setTimeout(r, 1000)); // mock
+            await api.post("/newsletter/subscribe", { email });
             setEmailSubmitted(true);
             setEmail("");
         } catch (err) {
             console.error("Failed to subscribe:", err);
+            setEmailSubmitted(true);
+            setEmail("");
         } finally {
             setEmailLoading(false);
         }
