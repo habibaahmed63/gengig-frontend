@@ -46,7 +46,6 @@ export default function AgentProfile() {
 
     useEffect(() => {
         const fetchProfileData = async () => {
-            // ── Fetch full profile from backend ──
             setProfileLoading(true);
             try {
                 const profileRes = await api.get("/users/profile");
@@ -73,7 +72,6 @@ export default function AgentProfile() {
                 setProfileLoading(false);
             }
 
-            // ── Fetch gigs ──
             setGigsLoading(true);
             try {
                 const gigsRes = await api.get("/agent/gigs");
@@ -85,7 +83,6 @@ export default function AgentProfile() {
                 setGigsLoading(false);
             }
 
-            // ── Fetch reviews — real API, no mock ──
             setReviewsLoading(true);
             try {
                 const reviewsRes = await api.get("/agent/reviews");
@@ -97,7 +94,6 @@ export default function AgentProfile() {
                 setReviewsLoading(false);
             }
 
-            // ── Fetch stats ──
             setStatsLoading(true);
             try {
                 const statsRes = await api.get("/agent/stats");
@@ -111,17 +107,43 @@ export default function AgentProfile() {
         fetchProfileData();
     }, []);
 
+    const compressImage = (file, maxSize = 400, quality = 0.7) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    let w = img.width, h = img.height;
+                    if (w > maxSize || h > maxSize) {
+                        if (w > h) { h = Math.round((h * maxSize) / w); w = maxSize; }
+                        else { w = Math.round((w * maxSize) / h); h = maxSize; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL("image/jpeg", quality));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Image is too large. Please choose an image under 2MB.");
+            return;
+        }
         try {
             const formData = new FormData();
             formData.append("image", file);
             const res = await api.post("/uploads/image", formData);
             setEditData(prev => ({ ...prev, photo: res.data.url }));
         } catch {
-            const base64 = await convertToBase64(file);
-            setEditData(prev => ({ ...prev, photo: base64 }));
+            const compressed = await compressImage(file, 400, 0.7);
+            setEditData(prev => ({ ...prev, photo: compressed }));
         }
     };
 
@@ -142,7 +164,12 @@ export default function AgentProfile() {
             localStorage.setItem("location", savedData.location || editData.location);
             localStorage.setItem("company", savedData.company || editData.company);
             localStorage.setItem("industry", savedData.industry || editData.industry);
-            if (editData.photo) localStorage.setItem("photo", savedData.photo || editData.photo);
+
+            if (editData.photo) {
+                localStorage.setItem("photo", savedData.photo || editData.photo);
+                window.dispatchEvent(new Event("storage"));
+            }
+
             setProfile({ ...editData });
             setEditMode(false);
             setSaved(true);
@@ -154,7 +181,6 @@ export default function AgentProfile() {
             setSaveLoading(false);
         }
     };
-
     const handleCancel = () => { setEditData({ ...profile }); setEditMode(false); };
 
     const averageRating = reviews.length > 0

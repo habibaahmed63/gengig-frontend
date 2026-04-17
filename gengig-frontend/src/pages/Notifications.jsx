@@ -40,6 +40,7 @@ export default function Notifications() {
   }, []);
 
   const markAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     try {
       await api.put("/notifications/read-all");
     } catch (err) {
@@ -48,19 +49,22 @@ export default function Notifications() {
   };
 
   const markRead = async (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     try {
       await api.put(`/notifications/${id}/read`);
-
     } catch (err) {
       console.error("Failed to mark read:", err);
     }
   };
 
   const deleteNotification = async (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
     try {
       await api.delete(`/notifications/${id}`);
     } catch (err) {
       console.error("Failed to delete notification:", err);
+      const response = await api.get("/notifications");
+      setNotifications(response.data);
     }
   };
 
