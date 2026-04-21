@@ -8,21 +8,22 @@ const allTags = ["All", "Tips", "Design", "Branding", "VideoEditing", "Portfolio
 export default function Community() {
     const navigate = useNavigate();
 
-    const userName = localStorage.getItem("name") || "You";
+    const userName  = localStorage.getItem("name")  || "You";
     const userPhoto = localStorage.getItem("photo") || null;
-    const userRole = localStorage.getItem("role") || "Teenlancer";
+    const userRole  = localStorage.getItem("role")  || "Teenlancer";
+    const currentUserId = localStorage.getItem("userId") || localStorage.getItem("id") || "";
 
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts]               = useState([]);
     const [postsLoading, setPostsLoading] = useState(true);
     const [activeMembers, setActiveMembers] = useState([]);
-    const [trendingTags, setTrendingTags] = useState([]);
-    const [activeTag, setActiveTag] = useState("All");
-    const [newPost, setNewPost] = useState({ content: "", image: null, imagePreview: null });
-    const [newTags, setNewTags] = useState("");
+    const [trendingTags, setTrendingTags]   = useState([]);
+    const [activeTag, setActiveTag]         = useState("All");
+    const [newPost, setNewPost]             = useState({ content: "", image: null, imagePreview: null });
+    const [newTags, setNewTags]             = useState("");
     const [commentInputs, setCommentInputs] = useState({});
     const [expandedComments, setExpandedComments] = useState({});
     const [showCommentInput, setShowCommentInput] = useState({});
-    const [postLoading, setPostLoading] = useState(false);
+    const [postLoading, setPostLoading]     = useState(false);
 
     useEffect(() => {
         const fetchCommunityData = async () => {
@@ -48,24 +49,51 @@ export default function Community() {
         fetchCommunityData();
     }, []);
 
-    // ── Navigate to Chat with this user pre-selected ──────────────
     const startConversation = (user) => {
         navigate("/teenlancer/chat", { state: { openContact: user } });
     };
 
-    const handleLike = async (id) => {
-        // Optimistic update
-        setPosts(prev => prev.map(p =>
-            p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p
-        ));
+    const handleLike = async (postId) => {
+        setPosts(prev => prev.map(p => {
+            const pId = p._id || p.id;
+            if (pId !== postId) return p;
+
+            if (Array.isArray(p.likes)) {
+                const alreadyLiked = p.likes.includes(currentUserId);
+                return {
+                    ...p,
+                    liked: !alreadyLiked,
+                    likes: alreadyLiked
+                        ? p.likes.filter(id => id !== currentUserId)
+                        : [...p.likes, currentUserId],
+                };
+            }
+            return {
+                ...p,
+                liked: !p.liked,
+                likes: p.liked ? (p.likes || 1) - 1 : (p.likes || 0) + 1,
+            };
+        }));
+
         try {
-            await api.post(`/community/posts/${id}/like`);
+            await api.post(`/community/posts/${postId}/like`);
         } catch (err) {
             console.error("Failed to like post:", err);
-            // Revert on failure
-            setPosts(prev => prev.map(p =>
-                p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p
-            ));
+            setPosts(prev => prev.map(p => {
+                const pId = p._id || p.id;
+                if (pId !== postId) return p;
+                if (Array.isArray(p.likes)) {
+                    const alreadyLiked = p.likes.includes(currentUserId);
+                    return {
+                        ...p,
+                        liked: !p.liked,
+                        likes: alreadyLiked
+                            ? p.likes.filter(id => id !== currentUserId)
+                            : [...p.likes, currentUserId],
+                    };
+                }
+                return { ...p, liked: !p.liked, likes: p.liked ? (p.likes || 1) - 1 : (p.likes || 0) + 1 };
+            }));
         }
     };
 
@@ -77,10 +105,10 @@ export default function Community() {
             user: { name: userName, img: userPhoto || null },
             text,
         };
-        // Optimistic update
-        setPosts(prev => prev.map(p =>
-            p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p
-        ));
+        setPosts(prev => prev.map(p => {
+            const pId = p._id || p.id;
+            return pId === postId ? { ...p, comments: [...(p.comments || []), newComment] } : p;
+        }));
         setCommentInputs(prev => ({ ...prev, [postId]: "" }));
         setExpandedComments(prev => ({ ...prev, [postId]: true }));
         try {
@@ -130,6 +158,8 @@ export default function Community() {
             setPostLoading(false);
         }
     };
+
+    const getPostId = (post) => post._id || post.id;
 
     const filtered = activeTag === "All"
         ? posts
@@ -249,165 +279,167 @@ export default function Community() {
                             </p>
                         </div>
                     ) : (
-                        filtered.map(post => (
-                            <div key={post.id} className="rounded-2xl overflow-hidden"
-                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                                <div className="p-5">
-                                    {/* Post header — clicking name/avatar opens Message option */}
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center cursor-pointer"
-                                            onClick={() => startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}
-                                            style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.1)" }}
-                                            title={`Message ${post.user.name}`}>
-                                            {post.user.img ? (
-                                                <img src={post.user.img} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
-                                                    {post.user.name.charAt(0)}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}
-                                                    className="text-white text-sm font-semibold hover:text-[#FFC085] transition-colors"
-                                                    title={`Message ${post.user.name}`}>
-                                                    {post.user.name}
-                                                </button>
-                                                {/* ── Message button on post ── */}
-                                                {post.user.id !== localStorage.getItem("userId") && post.user.id !== localStorage.getItem("id") && (
-                                                    <button
-                                                        onClick={() => startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}
-                                                        className="text-xs px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity flex items-center gap-1"
-                                                        style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
-                                                        💬 Message
-                                                    </button>
+                        filtered.map(post => {
+                            const postId = getPostId(post);
+                            const likesCount = Array.isArray(post.likes) ? post.likes.length : (post.likes || 0);
+                            const isLiked = Array.isArray(post.likes)
+                                ? post.likes.includes(currentUserId)
+                                : post.liked;
+
+                            return (
+                                <div key={postId} className="rounded-2xl overflow-hidden"
+                                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                    <div className="p-5">
+                                        {/* Post header */}
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center cursor-pointer"
+                                                onClick={() => post.user?.id && startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}
+                                                style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
+                                                {post.user?.img ? (
+                                                    <img src={post.user.img} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
+                                                        {post.user?.name?.charAt(0) || "?"}
+                                                    </span>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {post.user.role && <p className="text-xs" style={{ color: "#FFC085" }}>{post.user.role}</p>}
-                                                <span style={{ color: "#B2B2D2" }}>·</span>
-                                                <p className="text-xs" style={{ color: "#B2B2D2" }}>{post.time}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-sm leading-relaxed mb-4" style={{ color: "#B2B2D2" }}>{post.content}</p>
-
-                                    {post.image && (
-                                        <img src={post.image} alt="" className="w-full h-52 object-cover rounded-xl mb-4" />
-                                    )}
-
-                                    {post.tags?.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {post.tags.map(tag => (
-                                                <button key={tag} onClick={() => setActiveTag(tag)}
-                                                    className="text-xs px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity"
-                                                    style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
-                                                    #{tag}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-5"
-                                        style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}>
-                                        <button onClick={() => handleLike(post.id)}
-                                            className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80"
-                                            style={{ color: post.liked ? "#FFC085" : "#B2B2D2" }}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4"
-                                                fill={post.liked ? "#FFC085" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                            </svg>
-                                            {post.likes}
-                                        </button>
-                                        <button
-                                            onClick={() => setShowCommentInput(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                                            className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80"
-                                            style={{ color: "#B2B2D2" }}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            {post.comments?.length || 0}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Comments */}
-                                {(showCommentInput[post.id] || post.comments?.length > 0) && (
-                                    <div className="px-5 pb-5 flex flex-col gap-3"
-                                        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                                        {post.comments?.length > 0 && (
-                                            <div className="pt-3 flex flex-col gap-3">
-                                                {(expandedComments[post.id] ? post.comments : post.comments.slice(0, 2)).map(c => (
-                                                    <div key={c.id} className="flex items-start gap-2">
-                                                        <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center"
-                                                            style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}>
-                                                            {c.user.img ? (
-                                                                <img src={c.user.img} alt="" className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <span className="text-xs font-bold" style={{ color: "#FFC085" }}>
-                                                                    {c.user.name.charAt(0)}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1 px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.05)" }}>
-                                                            <p className="text-xs font-semibold text-white mb-0.5">{c.user.name}</p>
-                                                            <p className="text-xs" style={{ color: "#B2B2D2" }}>{c.text}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {post.comments.length > 2 && !expandedComments[post.id] && (
-                                                    <button
-                                                        onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: true }))}
-                                                        className="text-xs ml-9 text-left hover:opacity-80 transition-opacity"
-                                                        style={{ color: "#FFC085" }}>
-                                                        View {post.comments.length - 2} more comments
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {showCommentInput[post.id] && (
-                                            <div className="flex items-center gap-2 pt-1">
-                                                <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center"
-                                                    style={{ border: "1px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
-                                                    {userPhoto ? (
-                                                        <img src={userPhoto} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <span className="text-xs font-bold" style={{ color: "#FFC085" }}>{userName.charAt(0)}</span>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <p className="text-white text-sm font-semibold">{post.user?.name}</p>
+                                                    {/* ✅ Only show Message button if it's not the current user's post */}
+                                                    {post.user?.id && post.user.id !== currentUserId && (
+                                                        <button
+                                                            onClick={() => startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}
+                                                            className="text-xs px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity flex items-center gap-1"
+                                                            style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
+                                                            💬 Message
+                                                        </button>
                                                     )}
                                                 </div>
-                                                <input type="text"
-                                                    value={commentInputs[post.id] || ""}
-                                                    onChange={e => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                                    onKeyDown={e => { if (e.key === "Enter") handleComment(post.id); }}
-                                                    placeholder="Write a comment..."
-                                                    className="flex-1 rounded-full px-4 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                                                />
-                                                <button onClick={() => handleComment(post.id)}
-                                                    className="p-2 rounded-full hover:opacity-80 transition-opacity"
-                                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                                    </svg>
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    {post.user?.role && <p className="text-xs" style={{ color: "#FFC085" }}>{post.user.role}</p>}
+                                                    <span style={{ color: "#B2B2D2" }}>·</span>
+                                                    <p className="text-xs" style={{ color: "#B2B2D2" }}>{post.time}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-sm leading-relaxed mb-4" style={{ color: "#B2B2D2" }}>{post.content}</p>
+
+                                        {post.image && (
+                                            <img src={post.image} alt="" className="w-full h-52 object-cover rounded-xl mb-4" />
+                                        )}
+
+                                        {post.tags?.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {post.tags.map(tag => (
+                                                    <button key={tag} onClick={() => setActiveTag(tag)}
+                                                        className="text-xs px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity"
+                                                        style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
+                                                        #{tag}
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-5"
+                                            style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}>
+                                            <button onClick={() => handleLike(postId)}
+                                                className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80"
+                                                style={{ color: isLiked ? "#FFC085" : "#B2B2D2" }}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4"
+                                                    fill={isLiked ? "#FFC085" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                                {likesCount}
+                                            </button>
+                                            <button
+                                                onClick={() => setShowCommentInput(prev => ({ ...prev, [postId]: !prev[postId] }))}
+                                                className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80"
+                                                style={{ color: "#B2B2D2" }}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                {post.comments?.length || 0}
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))
+
+                                    {/* Comments */}
+                                    {(showCommentInput[postId] || post.comments?.length > 0) && (
+                                        <div className="px-5 pb-5 flex flex-col gap-3"
+                                            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                                            {post.comments?.length > 0 && (
+                                                <div className="pt-3 flex flex-col gap-3">
+                                                    {(expandedComments[postId] ? post.comments : post.comments.slice(0, 2)).map(c => (
+                                                        <div key={c.id || c._id} className="flex items-start gap-2">
+                                                            <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center"
+                                                                style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}>
+                                                                {c.user?.img ? (
+                                                                    <img src={c.user.img} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="text-xs font-bold" style={{ color: "#FFC085" }}>
+                                                                        {c.user?.name?.charAt(0) || "?"}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.05)" }}>
+                                                                <p className="text-xs font-semibold text-white mb-0.5">{c.user?.name}</p>
+                                                                <p className="text-xs" style={{ color: "#B2B2D2" }}>{c.text}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {post.comments.length > 2 && !expandedComments[postId] && (
+                                                        <button
+                                                            onClick={() => setExpandedComments(prev => ({ ...prev, [postId]: true }))}
+                                                            className="text-xs ml-9 text-left hover:opacity-80 transition-opacity"
+                                                            style={{ color: "#FFC085" }}>
+                                                            View {post.comments.length - 2} more comments
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {showCommentInput[postId] && (
+                                                <div className="flex items-center gap-2 pt-1">
+                                                    <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center"
+                                                        style={{ border: "1px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
+                                                        {userPhoto ? (
+                                                            <img src={userPhoto} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="text-xs font-bold" style={{ color: "#FFC085" }}>{userName.charAt(0)}</span>
+                                                        )}
+                                                    </div>
+                                                    <input type="text"
+                                                        value={commentInputs[postId] || ""}
+                                                        onChange={e => setCommentInputs(prev => ({ ...prev, [postId]: e.target.value }))}
+                                                        onKeyDown={e => { if (e.key === "Enter") handleComment(postId); }}
+                                                        placeholder="Write a comment..."
+                                                        className="flex-1 rounded-full px-4 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-[#FFC085]"
+                                                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+                                                    />
+                                                    <button onClick={() => handleComment(postId)}
+                                                        className="p-2 rounded-full hover:opacity-80 transition-opacity"
+                                                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
                     )}
                 </div>
 
                 {/* ── Right Sidebar ── */}
                 <div className="w-full lg:w-64 flex-shrink-0 flex flex-col gap-5">
 
-                    {/* Active Members — with Message button ── */}
+                    {/* Active Members */}
                     <div className="p-5 rounded-2xl"
                         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <h3 className="text-white font-semibold mb-4 text-sm">Active Members</h3>
@@ -416,7 +448,7 @@ export default function Community() {
                         ) : (
                             <div className="flex flex-col gap-3">
                                 {activeMembers.map(member => (
-                                    <div key={member.id || member.name} className="flex items-center gap-3">
+                                    <div key={member._id || member.id || member.name} className="flex items-center gap-3">
                                         <div className="relative flex-shrink-0">
                                             <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
                                                 style={{ background: "rgba(255,192,133,0.1)" }}>
@@ -424,7 +456,7 @@ export default function Community() {
                                                     <img src={member.img} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <span className="text-xs font-bold" style={{ color: "#FFC085" }}>
-                                                        {member.name.charAt(0)}
+                                                        {member.name?.charAt(0)}
                                                     </span>
                                                 )}
                                             </div>
@@ -435,10 +467,9 @@ export default function Community() {
                                             <p className="text-white text-xs font-medium truncate">{member.name}</p>
                                             {member.role && <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>{member.role}</p>}
                                         </div>
-                                        {/* ── Message button next to each member ── */}
-                                        {member.id && member.id !== (localStorage.getItem("userId") || localStorage.getItem("id")) && (
+                                        {(member._id || member.id) && (member._id || member.id) !== currentUserId && (
                                             <button
-                                                onClick={() => startConversation({ id: member.id, name: member.name, photo: member.img })}
+                                                onClick={() => startConversation({ id: member._id || member.id, name: member.name, photo: member.img })}
                                                 className="text-xs px-2 py-1 rounded-full hover:opacity-80 transition-opacity flex-shrink-0"
                                                 style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.15)" }}
                                                 title={`Message ${member.name}`}>

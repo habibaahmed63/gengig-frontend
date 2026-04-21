@@ -18,6 +18,8 @@ import SignUp from "../pages/SignUp";
 import LogIn from "../pages/LogIn";
 import VerifyEmail from "../pages/VerifyEmail";
 import ForgotPassword from "../pages/ForgotPassword";
+import GoogleSuccess from "../pages/auth/GoogleSuccess";
+
 
 // Onboarding
 import TeenlancerOnboarding from "../pages/onboarding/TeenlancerOnboarding";
@@ -69,6 +71,8 @@ export default function AppRouter() {
         <Route path="/signin" element={<LogIn />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/google/success" element={<GoogleSuccess />} />
+
 
         {/* ── Onboarding ── */}
         <Route path="/onboarding/teenlancer" element={<TeenlancerOnboarding />} />
