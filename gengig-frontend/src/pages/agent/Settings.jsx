@@ -3,6 +3,24 @@ import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
 
+// ✅ Toast component
+function Toast({ toast }) {
+    if (!toast) return null;
+    return (
+        <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg flex items-center gap-2"
+            style={{
+                background: toast.type === "error"
+                    ? "rgba(248,113,113,0.95)"
+                    : toast.type === "green"
+                        ? "linear-gradient(90deg, #4ade80, #22c55e)"
+                        : "linear-gradient(90deg, #FFC085, #e8a060)",
+            }}>
+            <span>{toast.type === "error" ? "✕" : "✓"}</span>
+            {toast.message}
+        </div>
+    );
+}
+
 export default function AgentSettings() {
     const navigate = useNavigate();
 
@@ -17,17 +35,21 @@ export default function AgentSettings() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
-    const [passwordSuccess, setPasswordSuccess] = useState(false);
     const [passwordError, setPasswordError] = useState("");
     const [settingsLoading, setSettingsLoading] = useState(true);
+
+    // ✅ Single toast replaces saveSuccess + passwordSuccess + alert()
+    const [toast, setToast] = useState(null);
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    };
 
     useEffect(() => {
         const fetchSettings = async () => {
             setSettingsLoading(true);
             try {
                 const response = await api.get("/users/settings");
-                // ✅ Every field has a fallback — never sets undefined into formData
                 setFormData({
                     name: response.data.name || localStorage.getItem("name") || "",
                     email: response.data.email || localStorage.getItem("email") || "",
@@ -36,7 +58,6 @@ export default function AgentSettings() {
                 });
             } catch (err) {
                 console.error("Failed to fetch settings:", err);
-                // ✅ On error, keep the localStorage values — don't crash
             } finally {
                 setSettingsLoading(false);
             }
@@ -69,11 +90,12 @@ export default function AgentSettings() {
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
             localStorage.setItem("language", formData.language);
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
+            // ✅ Toast instead of setSaveSuccess
+            showToast("Settings saved!");
         } catch (err) {
             console.error("Failed to save settings:", err);
-            alert("Failed to save settings. Please try again.");
+            // ✅ Toast instead of alert()
+            showToast("Failed to save settings. Please try again.", "error");
         } finally {
             setSaveLoading(false);
         }
@@ -91,8 +113,8 @@ export default function AgentSettings() {
                 newPassword: passwords.newPass,
             });
             setPasswords({ current: "", newPass: "", confirm: "" });
-            setPasswordSuccess(true);
-            setTimeout(() => setPasswordSuccess(false), 3000);
+            // ✅ Toast instead of setPasswordSuccess
+            showToast("Password updated!", "green");
         } catch (err) {
             console.error("Failed to change password:", err);
             setPasswordError("Current password is incorrect.");
@@ -136,18 +158,8 @@ export default function AgentSettings() {
 
     return (
         <AgentLayout>
-            {saveSuccess && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                    ✓ Settings saved!
-                </div>
-            )}
-            {passwordSuccess && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }}>
-                    ✓ Password updated!
-                </div>
-            )}
+            {/* ✅ Single unified Toast */}
+            <Toast toast={toast} />
 
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 Home › Account › <span style={{ color: "#FFC085" }}>Settings</span>
@@ -155,7 +167,6 @@ export default function AgentSettings() {
             <h1 className="text-white font-bold text-2xl mb-8">Settings</h1>
 
             <div className="flex flex-col gap-6 max-w-2xl">
-
                 {/* Personal Info */}
                 <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                     <h2 className="text-white font-semibold mb-5">Personal Information</h2>
@@ -166,9 +177,7 @@ export default function AgentSettings() {
                         ].map((field) => (
                             <div key={field.name} className="flex flex-col gap-1">
                                 <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{field.label}</label>
-                                <input
-                                    type={field.type}
-                                    name={field.name}
+                                <input type={field.type} name={field.name}
                                     value={formData[field.name] || ""}
                                     onChange={handleChange}
                                     className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"

@@ -17,11 +17,33 @@ const convertToBase64 = (file) => {
     });
 };
 
+// ✅ Reusable Toast component — inline so no extra import needed
+function Toast({ toast }) {
+    if (!toast) return null;
+    return (
+        <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg flex items-center gap-2"
+            style={{
+                background: toast.type === "error"
+                    ? "rgba(248,113,113,0.95)"
+                    : "linear-gradient(90deg, #FFC085, #e8a060)",
+            }}>
+            <span>{toast.type === "error" ? "✕" : "✓"}</span>
+            {toast.message}
+        </div>
+    );
+}
+
 export default function TeenlancerProfile() {
     const [editMode, setEditMode] = useState(false);
-    const [savedToast, setSavedToast] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
+
+    // ✅ Single unified toast state — replaces savedToast + alert()
+    const [toast, setToast] = useState(null);
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    };
 
     const [profile, setProfile] = useState({
         name: localStorage.getItem("name") || "",
@@ -49,7 +71,6 @@ export default function TeenlancerProfile() {
             try {
                 const profileRes = await api.get("/users/profile");
                 const d = profileRes.data;
-
                 const updatedProfile = {
                     name: d.name || localStorage.getItem("name") || "",
                     photo: d.photo || localStorage.getItem("photo") || null,
@@ -60,11 +81,8 @@ export default function TeenlancerProfile() {
                     hourlyRate: d.hourlyRate || localStorage.getItem("hourlyRate") || "",
                     availability: d.availability || localStorage.getItem("availability") || "",
                 };
-
                 setProfile(updatedProfile);
                 setEditData({ ...updatedProfile });
-
-                // Keep localStorage in sync with backend
                 localStorage.setItem("name", updatedProfile.name);
                 localStorage.setItem("bio", updatedProfile.bio);
                 localStorage.setItem("location", updatedProfile.location);
@@ -73,7 +91,6 @@ export default function TeenlancerProfile() {
                 localStorage.setItem("skills", JSON.stringify(updatedProfile.skills));
                 localStorage.setItem("portfolio", JSON.stringify(updatedProfile.portfolio));
                 if (updatedProfile.photo) localStorage.setItem("photo", updatedProfile.photo);
-
             } catch (err) {
                 console.error("Failed to fetch profile:", err);
             } finally {
@@ -133,8 +150,9 @@ export default function TeenlancerProfile() {
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
-            alert("Image is too large. Please choose an image under 2MB.");
+            showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
         }
         try {
@@ -160,8 +178,9 @@ export default function TeenlancerProfile() {
     const handlePortfolioImage = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
-            alert("Image is too large. Please choose an image under 2MB.");
+            showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
         }
         setNewPortfolioItem(prev => ({ ...prev, uploading: true }));
@@ -181,7 +200,7 @@ export default function TeenlancerProfile() {
         const item = {
             title: newPortfolioItem.title,
             category: newPortfolioItem.category,
-            img: newPortfolioItem.imgPreview, // URL from backend or base64 fallback
+            img: newPortfolioItem.imgPreview,
         };
         setEditData(prev => ({ ...prev, portfolio: [...prev.portfolio, item] }));
         setNewPortfolioItem({ title: "", category: "", img: null, imgPreview: null, uploading: false });
@@ -208,9 +227,7 @@ export default function TeenlancerProfile() {
                 availability: editData.availability,
                 photo: editData.photo,
             });
-
             const savedData = res.data || editData;
-
             localStorage.setItem("name", savedData.name || editData.name);
             localStorage.setItem("bio", savedData.bio || editData.bio);
             localStorage.setItem("location", savedData.location || editData.location);
@@ -218,21 +235,18 @@ export default function TeenlancerProfile() {
             localStorage.setItem("portfolio", JSON.stringify(savedData.portfolio || editData.portfolio));
             localStorage.setItem("hourlyRate", savedData.hourlyRate || editData.hourlyRate);
             localStorage.setItem("availability", savedData.availability || editData.availability);
-
-            // ✅ Update photo + notify navbar and sidebar instantly
             if (editData.photo) {
                 localStorage.setItem("photo", savedData.photo || editData.photo);
                 window.dispatchEvent(new Event("storage"));
             }
-
             setProfile({ ...editData });
             setEditMode(false);
-            setSavedToast(true);
-            setTimeout(() => setSavedToast(false), 3000);
-
+            // ✅ Toast instead of setSavedToast
+            showToast("Profile saved successfully!");
         } catch (err) {
             console.error("Failed to save profile:", err);
-            alert("Failed to save profile. Please try again.");
+            // ✅ Toast instead of alert()
+            showToast("Failed to save profile. Please try again.", "error");
         } finally {
             setSaveLoading(false);
         }
@@ -257,22 +271,16 @@ export default function TeenlancerProfile() {
 
     return (
         <TeenlancerLayout>
+            {/* ✅ Single unified Toast */}
+            <Toast toast={toast} />
+
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 Home › Account › <span style={{ color: "#FFC085" }}>Profile</span>
             </p>
 
-            {savedToast && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                    ✓ Profile saved successfully!
-                </div>
-            )}
-
             {/* Profile Header */}
             <div className="p-6 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-
-                {/* Avatar */}
                 <div className="relative flex-shrink-0">
                     <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
                         style={{ border: "3px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
@@ -293,7 +301,6 @@ export default function TeenlancerProfile() {
                     )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1">
                     {editMode ? (
                         <input type="text" value={editData.name}
@@ -330,7 +337,6 @@ export default function TeenlancerProfile() {
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3 flex-shrink-0">
                     {editMode ? (
                         <>
@@ -356,10 +362,8 @@ export default function TeenlancerProfile() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
                 {/* Left Column */}
                 <div className="flex flex-col gap-6">
-
                     {/* Bio */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <h2 className="text-white font-semibold mb-3">About Me</h2>
@@ -474,7 +478,6 @@ export default function TeenlancerProfile() {
 
                 {/* Right Column */}
                 <div className="lg:col-span-2 flex flex-col gap-6">
-
                     {/* Portfolio */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <div className="flex items-center justify-between mb-4">
@@ -496,7 +499,6 @@ export default function TeenlancerProfile() {
                             )}
                         </div>
 
-                        {/* Add form */}
                         {editMode && showAddPortfolio && (
                             <div className="p-4 rounded-xl mb-4 flex flex-col gap-3"
                                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,192,133,0.2)" }}>
@@ -521,8 +523,7 @@ export default function TeenlancerProfile() {
                                         {newPortfolioItem.uploading ? "Uploading..." : newPortfolioItem.imgPreview ? "Image ready ✓" : "Upload project image"}
                                     </span>
                                     <input type="file" accept="image/*" className="hidden"
-                                        onChange={handlePortfolioImage}
-                                        disabled={newPortfolioItem.uploading} />
+                                        onChange={handlePortfolioImage} disabled={newPortfolioItem.uploading} />
                                 </label>
                                 {newPortfolioItem.imgPreview && !newPortfolioItem.uploading && (
                                     <img src={newPortfolioItem.imgPreview} alt="preview" className="w-full h-28 object-cover rounded-xl" />
@@ -543,7 +544,6 @@ export default function TeenlancerProfile() {
                             </div>
                         )}
 
-                        {/* Grid */}
                         {(editMode ? editData.portfolio : profile.portfolio).length > 0 ? (
                             <div className="grid grid-cols-2 gap-3">
                                 {(editMode ? editData.portfolio : profile.portfolio).map((item, i) => (
@@ -614,12 +614,8 @@ export default function TeenlancerProfile() {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
                                                     style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}>
-                                                    {r.img ? (
-                                                        <img src={r.img} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <span className="text-xs font-bold" style={{ color: "#FFC085" }}>
-                                                            {r.name?.charAt(0) || "?"}
-                                                        </span>
+                                                    {r.img ? <img src={r.img} alt="" className="w-full h-full object-cover" /> : (
+                                                        <span className="text-xs font-bold" style={{ color: "#FFC085" }}>{r.name?.charAt(0) || "?"}</span>
                                                     )}
                                                 </div>
                                                 <div>
@@ -640,9 +636,6 @@ export default function TeenlancerProfile() {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-10 rounded-xl"
                                 style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                </svg>
                                 <p className="text-sm font-medium text-white mb-1">No reviews yet</p>
                                 <p className="text-xs" style={{ color: "#B2B2D2" }}>Complete gigs to start receiving reviews.</p>
                             </div>

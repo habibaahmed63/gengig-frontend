@@ -38,55 +38,65 @@ export default function SignIn() {
                     "savedCard", "paymentHistory", "agentPaymentHistory",
                     "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
                     "pendingPayments", "totalSpent", "agentPendingPayments",
+                    "slug", // ✅ wipe slug when different user logs in
                 ].forEach((key) => localStorage.removeItem(key));
             }
 
             // ── Always save auth ──
             localStorage.setItem("token", d.token);
-            localStorage.setItem("role",  d.role);
+            localStorage.setItem("role", d.role);
+
+            // ✅ Save slug from backend response
+            if (d.slug) localStorage.setItem("slug", d.slug);
 
             // ── Save profile fields ──
-            localStorage.setItem("name",         d.name         || localStorage.getItem("name")         || "");
-            localStorage.setItem("email",        d.email        || formData.email);
-            localStorage.setItem("photo",        d.photo        || localStorage.getItem("photo")        || "");
-            localStorage.setItem("bio",          d.bio          || localStorage.getItem("bio")          || "");
-            localStorage.setItem("location",     d.location     || localStorage.getItem("location")     || "");
-            localStorage.setItem("hourlyRate",   d.hourlyRate   || localStorage.getItem("hourlyRate")   || "");
+            localStorage.setItem("name", d.name || localStorage.getItem("name") || "");
+            localStorage.setItem("email", d.email || formData.email);
+            localStorage.setItem("photo", d.photo || localStorage.getItem("photo") || "");
+            localStorage.setItem("bio", d.bio || localStorage.getItem("bio") || "");
+            localStorage.setItem("location", d.location || localStorage.getItem("location") || "");
+            localStorage.setItem("hourlyRate", d.hourlyRate || localStorage.getItem("hourlyRate") || "");
             localStorage.setItem("availability", d.availability || localStorage.getItem("availability") || "");
-            localStorage.setItem("education",    d.education    || localStorage.getItem("education")    || "");
-            localStorage.setItem("joinDate",     d.joinDate     || localStorage.getItem("joinDate")     || "");
-            localStorage.setItem("language",     d.language     || localStorage.getItem("language")     || "English");
-            localStorage.setItem("company",      d.company      || localStorage.getItem("company")      || "");
-            localStorage.setItem("industry",     d.industry     || localStorage.getItem("industry")     || "");
+            localStorage.setItem("education", d.education || localStorage.getItem("education") || "");
+            localStorage.setItem("joinDate", d.joinDate || localStorage.getItem("joinDate") || "");
+            localStorage.setItem("language", d.language || localStorage.getItem("language") || "English");
+            localStorage.setItem("company", d.company || localStorage.getItem("company") || "");
+            localStorage.setItem("industry", d.industry || localStorage.getItem("industry") || "");
 
             // ── Arrays ──
-            const existingSkills    = JSON.parse(localStorage.getItem("skills")            || "[]");
-            const existingPortfolio = JSON.parse(localStorage.getItem("portfolio")         || "[]");
-            const existingWorkTypes = JSON.parse(localStorage.getItem("workTypes")         || "[]");
-            const existingNotifs    = JSON.parse(localStorage.getItem("notificationPrefs") || "null");
+            const existingSkills = JSON.parse(localStorage.getItem("skills") || "[]");
+            const existingPortfolio = JSON.parse(localStorage.getItem("portfolio") || "[]");
+            const existingWorkTypes = JSON.parse(localStorage.getItem("workTypes") || "[]");
+            const existingNotifs = JSON.parse(localStorage.getItem("notificationPrefs") || "null");
 
-            localStorage.setItem("skills",            JSON.stringify(d.skills       || existingSkills));
-            localStorage.setItem("portfolio",         JSON.stringify(d.portfolio    || existingPortfolio));
-            localStorage.setItem("workTypes",         JSON.stringify(d.workTypes    || existingWorkTypes));
+            localStorage.setItem("skills", JSON.stringify(d.skills || existingSkills));
+            localStorage.setItem("portfolio", JSON.stringify(d.portfolio || existingPortfolio));
+            localStorage.setItem("workTypes", JSON.stringify(d.workTypes || existingWorkTypes));
             localStorage.setItem("notificationPrefs", JSON.stringify(d.notificationPrefs || existingNotifs || { email: true, push: true, sms: false }));
 
             // ── Stats ──
             if (d.stats) {
-                if (d.stats.completedGigs  != null) localStorage.setItem("completedGigs",  d.stats.completedGigs);
-                if (d.stats.totalEarnings  != null) localStorage.setItem("totalEarnings",  d.stats.totalEarnings);
-                if (d.stats.responseRate   != null) localStorage.setItem("responseRate",   d.stats.responseRate);
+                if (d.stats.completedGigs != null) localStorage.setItem("completedGigs", d.stats.completedGigs);
+                if (d.stats.totalEarnings != null) localStorage.setItem("totalEarnings", d.stats.totalEarnings);
+                if (d.stats.responseRate != null) localStorage.setItem("responseRate", d.stats.responseRate);
                 if (d.stats.onTimeDelivery != null) localStorage.setItem("onTimeDelivery", d.stats.onTimeDelivery);
-                if (d.stats.totalSpent     != null) localStorage.setItem("totalSpent",     d.stats.totalSpent);
+                if (d.stats.totalSpent != null) localStorage.setItem("totalSpent", d.stats.totalSpent);
             }
 
             // ── Navigate by role ──
-            if (d.role === "teenlancer")      navigate("/teenlancer/dashboard");
-            else if (d.role === "agent")      navigate("/agent/dashboard");
-            else                              navigate("/home");
+            if (d.role === "teenlancer") navigate("/teenlancer/dashboard");
+            else if (d.role === "agent") navigate("/agent/dashboard");
+            else navigate("/home");
 
         } catch (err) {
             console.error("Login error:", err);
-            setError(err.response?.data?.message || "Something went wrong. Please try again.");
+
+            // ✅ Handle 429 — Too Many Requests (rate limiter)
+            if (err.response?.status === 429) {
+                setError("Too many login attempts. Please wait a moment before trying again.");
+            } else {
+                setError(err.response?.data?.message || "Something went wrong. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -116,8 +126,7 @@ export default function SignIn() {
 
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Email Address</label>
-                        <input
-                            type="email" name="email" value={formData.email} onChange={handleChange}
+                        <input type="email" name="email" value={formData.email} onChange={handleChange}
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                         />
@@ -126,8 +135,7 @@ export default function SignIn() {
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Password</label>
                         <div className="relative">
-                            <input
-                                type={showPassword ? "text" : "password"} name="password"
+                            <input type={showPassword ? "text" : "password"} name="password"
                                 value={formData.password} onChange={handleChange}
                                 className="w-full rounded-md px-3 py-2 pr-10 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
@@ -150,7 +158,8 @@ export default function SignIn() {
 
                     <div className="flex items-center justify-between">
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} className="w-3.5 h-3.5 accent-[#FFC085]" />
+                            <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange}
+                                className="w-3.5 h-3.5 accent-[#FFC085]" />
                             <span className="text-[#B2B2D2] text-xs">Remember me</span>
                         </label>
                         <Link to="/forgot-password" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
@@ -158,7 +167,19 @@ export default function SignIn() {
                         </Link>
                     </div>
 
-                    {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+                    {/* ✅ Error message — styled differently for rate limit vs normal errors */}
+                    {error && (
+                        <div className="flex items-start gap-2 px-4 py-3 rounded-xl"
+                            style={{
+                                background: error.includes("Too many") ? "rgba(248,113,113,0.1)" : "rgba(248,113,113,0.08)",
+                                border: `1px solid ${error.includes("Too many") ? "rgba(248,113,113,0.4)" : "rgba(248,113,113,0.2)"}`,
+                            }}>
+                            <span className="text-sm flex-shrink-0" style={{ color: "#f87171" }}>
+                                {error.includes("Too many") ? "🔒" : "⚠️"}
+                            </span>
+                            <p className="text-xs leading-relaxed" style={{ color: "#f87171" }}>{error}</p>
+                        </div>
+                    )}
 
                     <button type="submit" disabled={loading}
                         className="w-full py-2.5 rounded-full font-semibold text-white mt-1 transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -172,12 +193,9 @@ export default function SignIn() {
                         <div className="flex-1 h-px bg-white/20" />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={handleGoogleLogin}
+                    <button type="button" onClick={handleGoogleLogin}
                         className="w-full flex items-center justify-center gap-3 py-2.5 rounded-full font-medium text-sm hover:opacity-90 transition-opacity"
-                        style={{ background: "white", color: "#333" }}
-                    >
+                        style={{ background: "white", color: "#333" }}>
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

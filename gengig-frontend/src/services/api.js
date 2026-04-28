@@ -7,10 +7,9 @@ const api = axios.create({
     },
 });
 
-// ── Attach token to EVERY request automatically ──
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token"); // read fresh every time
+        const token = localStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -19,12 +18,10 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// ── Handle 401 globally — auto logout if token expires ──
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Token expired or invalid — clear and redirect to login
             localStorage.removeItem("token");
             localStorage.removeItem("role");
             window.location.href = "/signin";
