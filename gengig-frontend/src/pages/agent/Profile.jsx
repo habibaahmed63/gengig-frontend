@@ -3,15 +3,6 @@ import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
 
-const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-};
-
 const statusColor = { Active: "#4ade80", Completed: "#FFC085", Pending: "#63b3ed" };
 
 const industryOptions = [
@@ -20,12 +11,56 @@ const industryOptions = [
     "Fashion & Lifestyle", "Other"
 ];
 
+// ✅ Reusable Toast component
+function Toast({ toast }) {
+    if (!toast) return null;
+    return (
+        <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg flex items-center gap-2"
+            style={{
+                background: toast.type === "error"
+                    ? "rgba(248,113,113,0.95)"
+                    : "linear-gradient(90deg, #FFC085, #e8a060)",
+            }}>
+            <span>{toast.type === "error" ? "✕" : "✓"}</span>
+            {toast.message}
+        </div>
+    );
+}
+
+const compressImage = (file, maxSize = 400, quality = 0.7) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                if (w > maxSize || h > maxSize) {
+                    if (w > h) { h = Math.round((h * maxSize) / w); w = maxSize; }
+                    else { w = Math.round((w * maxSize) / h); h = maxSize; }
+                }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+};
+
 export default function AgentProfile() {
     const navigate = useNavigate();
     const [editMode, setEditMode] = useState(false);
-    const [saved, setSaved] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
+
+    // ✅ Single unified toast state
+    const [toast, setToast] = useState(null);
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    };
 
     const [profile, setProfile] = useState({
         name: localStorage.getItem("name") || "",
@@ -107,33 +142,12 @@ export default function AgentProfile() {
         fetchProfileData();
     }, []);
 
-    const compressImage = (file, maxSize = 400, quality = 0.7) => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    let w = img.width, h = img.height;
-                    if (w > maxSize || h > maxSize) {
-                        if (w > h) { h = Math.round((h * maxSize) / w); w = maxSize; }
-                        else { w = Math.round((w * maxSize) / h); h = maxSize; }
-                    }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL("image/jpeg", quality));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
-            alert("Image is too large. Please choose an image under 2MB.");
+            showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
         }
         try {
@@ -164,23 +178,23 @@ export default function AgentProfile() {
             localStorage.setItem("location", savedData.location || editData.location);
             localStorage.setItem("company", savedData.company || editData.company);
             localStorage.setItem("industry", savedData.industry || editData.industry);
-
             if (editData.photo) {
                 localStorage.setItem("photo", savedData.photo || editData.photo);
                 window.dispatchEvent(new Event("storage"));
             }
-
             setProfile({ ...editData });
             setEditMode(false);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
+            // ✅ Toast instead of setSaved
+            showToast("Profile saved successfully!");
         } catch (err) {
             console.error("Failed to save profile:", err);
-            alert("Failed to save profile. Please try again.");
+            // ✅ Toast instead of alert()
+            showToast("Failed to save profile. Please try again.", "error");
         } finally {
             setSaveLoading(false);
         }
     };
+
     const handleCancel = () => { setEditData({ ...profile }); setEditMode(false); };
 
     const averageRating = reviews.length > 0
@@ -200,21 +214,16 @@ export default function AgentProfile() {
 
     return (
         <AgentLayout>
+            {/* ✅ Single unified Toast */}
+            <Toast toast={toast} />
+
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 Home › Account › <span style={{ color: "#FFC085" }}>Profile</span>
             </p>
 
-            {saved && (
-                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                    ✓ Profile saved successfully!
-                </div>
-            )}
-
             {/* Profile Header */}
             <div className="p-6 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-
                 <div className="relative flex-shrink-0">
                     <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
                         style={{ border: "3px solid #FFC085", background: "rgba(255,192,133,0.1)" }}>
@@ -294,10 +303,8 @@ export default function AgentProfile() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
                 {/* Left Column */}
                 <div className="flex flex-col gap-6">
-
                     {/* Bio */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <h2 className="text-white font-semibold mb-3">About Me</h2>
@@ -376,7 +383,6 @@ export default function AgentProfile() {
 
                 {/* Right Column */}
                 <div className="lg:col-span-2 flex flex-col gap-6">
-
                     {/* Posted Gigs */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <div className="flex items-center justify-between mb-4">
@@ -433,9 +439,6 @@ export default function AgentProfile() {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-10 rounded-xl"
                                 style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
                                 <p className="text-sm font-medium text-white mb-1">No gigs posted yet</p>
                                 <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>Post your first gig and start finding teenlancers!</p>
                                 <button onClick={() => navigate("/post")}
@@ -474,9 +477,7 @@ export default function AgentProfile() {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
                                                     style={{ background: "rgba(255,192,133,0.1)", border: "1px solid rgba(255,192,133,0.2)" }}>
-                                                    {r.img ? (
-                                                        <img src={r.img} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
+                                                    {r.img ? <img src={r.img} alt="" className="w-full h-full object-cover" /> : (
                                                         <span className="text-xs font-bold" style={{ color: "#FFC085" }}>{r.name?.charAt(0)}</span>
                                                     )}
                                                 </div>
@@ -498,9 +499,6 @@ export default function AgentProfile() {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-10 rounded-xl"
                                 style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                </svg>
                                 <p className="text-sm font-medium text-white mb-1">No reviews yet</p>
                                 <p className="text-xs" style={{ color: "#B2B2D2" }}>Reviews will appear here after completing gigs.</p>
                             </div>

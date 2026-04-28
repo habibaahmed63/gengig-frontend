@@ -6,13 +6,13 @@ import { Link, useNavigate } from "react-router-dom";
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function SignUp() {
-    const [showPassword, setShowPassword]   = useState(false);
-    const [showConfirm, setShowConfirm]     = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [formData, setFormData] = useState({
         name: "", email: "", password: "", confirmPassword: "", role: "",
     });
     const navigate = useNavigate();
-    const [error, setError]     = useState(null);
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -25,15 +25,34 @@ export default function SignUp() {
         setError(null);
         try {
             const response = await api.post("/auth/register", {
-                name:     formData.name,
-                email:    formData.email,
+                name: formData.name,
+                email: formData.email,
                 password: formData.password,
-                role:     formData.role,
+                role: formData.role,
             });
+
+            const d = response.data;
             console.log("Success:", response.data);
+
+            // ✅ Save everything from the registration response
             localStorage.setItem("role", formData.role);
             localStorage.setItem("name", formData.name);
-            navigate("/verify-email", { state: { email: formData.email } });
+            localStorage.setItem("email", formData.email);
+
+            if (d.token) {
+                localStorage.setItem("token", d.token);
+            }
+
+            if (d.token) {
+                if (formData.role === "teenlancer") {
+                    navigate("/teenlancer/profile");
+                } else if (formData.role === "agent") {
+                    navigate("/agent/profile");
+                }
+            } else {
+                navigate("/verify-email", { state: { email: formData.email } });
+            }
+
         } catch (error) {
             console.error("Signup error:", error);
             setError(error.response?.data?.message || "Something went wrong. Please try again.");
@@ -93,7 +112,7 @@ export default function SignUp() {
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] appearance-none cursor-pointer"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
                             <option value="" disabled style={{ background: "#060834" }}>Select account type</option>
-                            <option value="agent"      style={{ background: "#060834" }}>Agent</option>
+                            <option value="agent" style={{ background: "#060834" }}>Agent</option>
                             <option value="teenlancer" style={{ background: "#060834" }}>Teenlancer</option>
                         </select>
                     </div>
