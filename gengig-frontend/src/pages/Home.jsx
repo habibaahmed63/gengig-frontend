@@ -365,6 +365,11 @@ export default function Home() {
                         <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
                             GenGig was born from a simple idea — that young people should not have to wait to gain real-world experience. We built a platform where teen creators can showcase their skills, connect with real clients, and start building their professional journey today.
                         </p>
+                        <button onClick={() => navigate("/about")}
+                            className="mt-4 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
+                            style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
+                            Learn More About Us →
+                        </button>
                     </div>
                 </div>
             </section>

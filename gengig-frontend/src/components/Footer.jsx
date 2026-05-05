@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/Gengig LOGO.png";
 
 const socials = [
@@ -24,6 +24,21 @@ const socials = [
   },
 ];
 
+// ✅ Reusable styled link — gold on hover
+function FooterLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      className="text-sm transition-colors duration-200"
+      style={{ color: "#B2B2D2" }}
+      onMouseEnter={e => e.currentTarget.style.color = "#FFC085"}
+      onMouseLeave={e => e.currentTarget.style.color = "#B2B2D2"}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function Footer() {
   return (
     <footer
@@ -32,13 +47,18 @@ export default function Footer() {
     >
       <div className="flex flex-col md:flex-row flex-wrap justify-between gap-8">
 
-        {/* Left - Logo + tagline */}
+        {/* Left — Logo + tagline */}
         <div className="flex flex-col gap-4 max-w-xs">
-          <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
-          <p className="text-sm" style={{ color: "#B2B2D2" }}>
-            Empowering the next generation of talent. Connecting young creators with opportunities to grow, earn, and shine.
+          <Link to="/">
+            <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
+          </Link>
+          <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
+            Empowering the next generation of talent. Connecting young creators
+            with opportunities to grow, earn, and shine.
           </p>
-          <p className="text-sm" style={{ color: "#B2B2D2" }}>@gengigcopyrights2025</p>
+          <p className="text-xs" style={{ color: "rgba(178,178,210,0.5)" }}>
+            @gengigcopyrights2025
+          </p>
         </div>
 
         {/* Links */}
@@ -46,62 +66,35 @@ export default function Footer() {
 
           {/* For Agents */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-white font-bold text-sm tracking-wide">FOR AGENTS</h4>
-            {[
-              { label: "Post a Gig", path: "/post" },
-              { label: "Discover Teenlancers", path: "/Exploreagig" },
-              { label: "Manage Projects", path: "/agent/Dashboard" },
-              { label: "View Applications", path: "/agent/Applications" },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                className="text-sm hover:text-white transition-colors"
-                style={{ color: "#B2B2D2" }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
+              For Agents
+            </h4>
+            <FooterLink to="/post">Post a Gig</FooterLink>
+            <FooterLink to="/Exploreagig">Discover Teenlancers</FooterLink>
+            <FooterLink to="/agent/dashboard">Manage Projects</FooterLink>
+            <FooterLink to="/agent/applications">View Applications</FooterLink>
           </div>
 
           {/* For Teenlancers */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-white font-bold text-sm tracking-wide">FOR TEENLANCERS</h4>
-            {[
-              { label: "Explore Gigs", path: "/Exploreagig" },
-              { label: "Build Your Profile", path: "/teenlancer/Profile" },
-              { label: "Community Hub", path: "/teenlancer/Community" },
-              { label: "Dashboard", path: "/teenlancer/Dashboard" },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                className="text-sm hover:text-white transition-colors"
-                style={{ color: "#B2B2D2" }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
+              For Teenlancers
+            </h4>
+            <FooterLink to="/Exploreagig">Explore Gigs</FooterLink>
+            <FooterLink to="/teenlancer/profile">Build Your Profile</FooterLink>
+            <FooterLink to="/teenlancer/community">Community Hub</FooterLink>
+            <FooterLink to="/teenlancer/dashboard">Dashboard</FooterLink>
           </div>
 
-          {/* Support */}
+          {/* Company */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-white font-bold text-sm tracking-wide">SUPPORT</h4>
-            {[
-              { label: "FAQs", path: "/Faqs" },
-              { label: "Contact Us", path: "/Support" },
-              { label: "Terms & Conditions", path: "/Terms" },
-              { label: "Notifications", path: "/Notifications" },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                className="text-sm hover:text-white transition-colors"
-                style={{ color: "#B2B2D2" }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
+              Company
+            </h4>
+            <FooterLink to="/about">About Us</FooterLink>
+            <FooterLink to="/Support">Contact Us</FooterLink>
+            <FooterLink to="/Terms">Terms & Conditions</FooterLink>
+            <FooterLink to="/notifications">Notifications</FooterLink>
           </div>
         </div>
 
@@ -110,7 +103,7 @@ export default function Footer() {
           {socials.map((social, i) => (
             <button
               key={i}
-              onClick={() => { window.open(social.href); }}
+              onClick={() => window.open(social.href, "_blank")}
               className="w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 hover:scale-110 transition-all duration-200"
               style={{ background: social.bg }}
             >
@@ -120,7 +113,6 @@ export default function Footer() {
             </button>
           ))}
         </div>
-
       </div>
 
       {/* Bottom bar */}
@@ -128,14 +120,13 @@ export default function Footer() {
         className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-10 pt-6 text-xs"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)", color: "#B2B2D2" }}
       >
-        <p>© 2025 Gengig. All rights reserved.</p>
+        <p>© 2026 Gengig. All rights reserved.</p>
         <div className="flex gap-4">
-          <Link to="/Terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
-          <Link to="/Faqs" className="hover:text-white transition-colors">FAQs</Link>
-          <Link to="/Support" className="hover:text-white transition-colors">Support</Link>
+          <FooterLink to="/Terms">Terms & Conditions</FooterLink>
+          <FooterLink to="/Support">Support</FooterLink>
+          <FooterLink to="/about">About Us</FooterLink>
         </div>
       </div>
-
     </footer>
   );
 }

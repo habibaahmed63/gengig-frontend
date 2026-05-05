@@ -28,51 +28,42 @@ export default function SignIn() {
             const d = response.data;
             console.log("Login response:", d);
 
-            // ── Only wipe profile data if a DIFFERENT user is logging in ──
-            const previousEmail = localStorage.getItem("email");
-            if (previousEmail && previousEmail !== formData.email) {
-                [
-                    "name", "photo", "bio", "skills", "education", "availability",
-                    "hourlyRate", "company", "industry", "workTypes", "location",
-                    "joinDate", "language", "notificationPrefs", "portfolio",
-                    "savedCard", "paymentHistory", "agentPaymentHistory",
-                    "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
-                    "pendingPayments", "totalSpent", "agentPendingPayments",
-                    "slug", // ✅ wipe slug when different user logs in
-                ].forEach((key) => localStorage.removeItem(key));
-            }
+            // ✅ Always wipe all previous profile data on every login
+            [
+                "photo", "bio", "skills", "education", "availability",
+                "hourlyRate", "company", "industry", "workTypes", "location",
+                "joinDate", "language", "notificationPrefs", "portfolio",
+                "savedCard", "paymentHistory", "agentPaymentHistory",
+                "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
+                "pendingPayments", "totalSpent", "agentPendingPayments", "slug",
+            ].forEach((key) => localStorage.removeItem(key));
 
-            // ── Always save auth ──
+            // ── Save auth ──
             localStorage.setItem("token", d.token);
             localStorage.setItem("role", d.role);
 
-            // ✅ Save slug from backend response
+            // ── Save slug ──
             if (d.slug) localStorage.setItem("slug", d.slug);
 
             // ── Save profile fields ──
-            localStorage.setItem("name", d.name || localStorage.getItem("name") || "");
+            localStorage.setItem("name", d.name || "");
             localStorage.setItem("email", d.email || formData.email);
-            localStorage.setItem("photo", d.photo || localStorage.getItem("photo") || "");
-            localStorage.setItem("bio", d.bio || localStorage.getItem("bio") || "");
-            localStorage.setItem("location", d.location || localStorage.getItem("location") || "");
-            localStorage.setItem("hourlyRate", d.hourlyRate || localStorage.getItem("hourlyRate") || "");
-            localStorage.setItem("availability", d.availability || localStorage.getItem("availability") || "");
-            localStorage.setItem("education", d.education || localStorage.getItem("education") || "");
-            localStorage.setItem("joinDate", d.joinDate || localStorage.getItem("joinDate") || "");
-            localStorage.setItem("language", d.language || localStorage.getItem("language") || "English");
-            localStorage.setItem("company", d.company || localStorage.getItem("company") || "");
-            localStorage.setItem("industry", d.industry || localStorage.getItem("industry") || "");
+            localStorage.setItem("photo", d.photo || "");
+            localStorage.setItem("bio", d.bio || "");
+            localStorage.setItem("location", d.location || "");
+            localStorage.setItem("hourlyRate", d.hourlyRate || "");
+            localStorage.setItem("availability", d.availability || "");
+            localStorage.setItem("education", d.education || "");
+            localStorage.setItem("joinDate", d.joinDate || "");
+            localStorage.setItem("language", d.language || "English");
+            localStorage.setItem("company", d.company || "");
+            localStorage.setItem("industry", d.industry || "");
 
             // ── Arrays ──
-            const existingSkills = JSON.parse(localStorage.getItem("skills") || "[]");
-            const existingPortfolio = JSON.parse(localStorage.getItem("portfolio") || "[]");
-            const existingWorkTypes = JSON.parse(localStorage.getItem("workTypes") || "[]");
-            const existingNotifs = JSON.parse(localStorage.getItem("notificationPrefs") || "null");
-
-            localStorage.setItem("skills", JSON.stringify(d.skills || existingSkills));
-            localStorage.setItem("portfolio", JSON.stringify(d.portfolio || existingPortfolio));
-            localStorage.setItem("workTypes", JSON.stringify(d.workTypes || existingWorkTypes));
-            localStorage.setItem("notificationPrefs", JSON.stringify(d.notificationPrefs || existingNotifs || { email: true, push: true, sms: false }));
+            localStorage.setItem("skills", JSON.stringify(d.skills || []));
+            localStorage.setItem("portfolio", JSON.stringify(d.portfolio || []));
+            localStorage.setItem("workTypes", JSON.stringify(d.workTypes || []));
+            localStorage.setItem("notificationPrefs", JSON.stringify(d.notificationPrefs || { email: true, push: true, sms: false }));
 
             // ── Stats ──
             if (d.stats) {
@@ -84,14 +75,12 @@ export default function SignIn() {
             }
 
             // ── Navigate by role ──
-            if (d.role === "teenlancer") navigate("/teenlancer/dashboard");
-            else if (d.role === "agent") navigate("/agent/dashboard");
-            else navigate("/home");
+            if (d.role === "teenlancer") navigate("/teenlancer/dashboard", { replace: true });
+            else if (d.role === "agent") navigate("/agent/dashboard", { replace: true });
+            else navigate("/home", { replace: true });
 
         } catch (err) {
             console.error("Login error:", err);
-
-            // ✅ Handle 429 — Too Many Requests (rate limiter)
             if (err.response?.status === 429) {
                 setError("Too many login attempts. Please wait a moment before trying again.");
             } else {
@@ -107,14 +96,16 @@ export default function SignIn() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden" style={{ background: "#060834" }}>
+        <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden"
+            style={{ background: "#060834" }}>
 
             <div className="absolute top-4 left-4 z-20">
                 <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
             </div>
 
             <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-10">
-                <h1 className="font-bold leading-tight text-center whitespace-nowrap" style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)" }}>
+                <h1 className="font-bold leading-tight text-center whitespace-nowrap"
+                    style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)" }}>
                     <span className="text-gradient">Welcome Back</span>
                 </h1>
             </div>
@@ -126,7 +117,8 @@ export default function SignIn() {
 
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Email Address</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleChange}
+                        <input type="email" name="email" value={formData.email}
+                            onChange={handleChange}
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
                         />
@@ -158,16 +150,18 @@ export default function SignIn() {
 
                     <div className="flex items-center justify-between">
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange}
+                            <input type="checkbox" name="rememberMe"
+                                checked={formData.rememberMe} onChange={handleChange}
                                 className="w-3.5 h-3.5 accent-[#FFC085]" />
                             <span className="text-[#B2B2D2] text-xs">Remember me</span>
                         </label>
-                        <Link to="/forgot-password" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
+                        <Link to="/forgot-password"
+                            className="text-xs hover:opacity-80 transition-opacity"
+                            style={{ color: "#FFC085" }}>
                             Forgot password?
                         </Link>
                     </div>
 
-                    {/* ✅ Error message — styled differently for rate limit vs normal errors */}
                     {error && (
                         <div className="flex items-start gap-2 px-4 py-3 rounded-xl"
                             style={{
@@ -207,7 +201,9 @@ export default function SignIn() {
 
                     <p className="text-center text-sm mt-1" style={{ color: "#B2B2D2" }}>
                         No Account Yet?{" "}
-                        <Link to="/signup" className="text-[#FFC085] font-medium hover:underline">Sign Up</Link>
+                        <Link to="/signup" className="text-[#FFC085] font-medium hover:underline">
+                            Sign Up
+                        </Link>
                     </p>
                 </form>
             </div>

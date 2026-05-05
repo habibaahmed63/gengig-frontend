@@ -9,12 +9,10 @@ export default function Navbar() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // ✅ useState so photo re-renders when storage event fires
   const [photo, setPhoto] = useState(localStorage.getItem("photo") || null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // ✅ Listen for photo update from Profile.jsx after save
   useEffect(() => {
     const handleStorageUpdate = () => {
       setPhoto(localStorage.getItem("photo") || null);
@@ -75,7 +73,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Fixed Navbar */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[100%] max-w-6xl">
         <nav
           className="w-full px-6 py-2 flex items-center justify-between rounded-full"
@@ -87,12 +84,10 @@ export default function Navbar() {
             boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
           }}
         >
-          {/* Logo */}
           <Link to="/home">
             <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
           </Link>
 
-          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -112,11 +107,9 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-3">
             {token ? (
               <>
-                {/* Bell */}
                 <Link to="/notifications" className="relative text-[#B2B2D2] hover:text-white transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -129,7 +122,6 @@ export default function Navbar() {
                   )}
                 </Link>
 
-                {/* ✅ Avatar — uses reactive photo state, updates instantly after save */}
                 <button onClick={handleProfile}
                   className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
                   style={{ border: "2px solid #FFC085", background: "rgba(255,192,133,0.15)" }}>
@@ -165,7 +157,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Hamburger */}
           <button className="md:hidden flex flex-col gap-1.5 p-2" onClick={() => setMenuOpen(!menuOpen)}>
             <span className="w-6 h-0.5 rounded-full transition-all" style={{ background: "white", transform: menuOpen ? "rotate(45deg) translate(4px, 4px)" : "none" }} />
             <span className="w-6 h-0.5 rounded-full transition-all" style={{ background: "white", opacity: menuOpen ? 0 : 1 }} />
@@ -173,7 +164,6 @@ export default function Navbar() {
           </button>
         </nav>
 
-        {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden mt-2 rounded-2xl flex flex-col px-6 py-4 gap-4"
             style={{ background: "rgba(10, 15, 61, 0.95)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -222,7 +212,6 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Spacer */}
       <div className="h-24" />
     </>
   );

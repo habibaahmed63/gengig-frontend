@@ -34,22 +34,32 @@ export default function SignUp() {
             const d = response.data;
             console.log("Success:", response.data);
 
-            // ✅ Save everything from the registration response
+            // ✅ Always wipe all previous user's profile data on new registration
+            [
+                "photo", "bio", "skills", "education", "availability",
+                "hourlyRate", "company", "industry", "workTypes", "location",
+                "joinDate", "language", "notificationPrefs", "portfolio",
+                "savedCard", "paymentHistory", "agentPaymentHistory",
+                "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
+                "pendingPayments", "totalSpent", "agentPendingPayments", "slug",
+            ].forEach((key) => localStorage.removeItem(key));
+
+            // ✅ Save new user's basic info
             localStorage.setItem("role", formData.role);
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
 
+            // ✅ Save token and slug if backend returns them
             if (d.token) {
                 localStorage.setItem("token", d.token);
-            }
+                if (d.slug) localStorage.setItem("slug", d.slug);
 
-            if (d.token) {
-                if (formData.role === "teenlancer") {
-                    navigate("/teenlancer/profile");
-                } else if (formData.role === "agent") {
-                    navigate("/agent/profile");
-                }
+                // Go directly to profile — fresh and empty for new user
+                if (formData.role === "teenlancer") navigate("/teenlancer/profile", { replace: true });
+                else if (formData.role === "agent") navigate("/agent/profile", { replace: true });
+                else navigate("/home", { replace: true });
             } else {
+                // Needs email verification first
                 navigate("/verify-email", { state: { email: formData.email } });
             }
 
@@ -66,7 +76,8 @@ export default function SignUp() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden" style={{ background: "#060834" }}>
+        <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden"
+            style={{ background: "#060834" }}>
 
             {/* Logo */}
             <div className="absolute top-4 left-4 z-20">
@@ -75,15 +86,17 @@ export default function SignUp() {
 
             {/* Left side */}
             <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-10">
-                <h1 className="text-white font-bold leading-tight text-center" style={{ fontSize: "clamp(3rem, 5vw, 5rem)" }}>
+                <h1 className="text-white font-bold leading-tight text-center"
+                    style={{ fontSize: "clamp(3rem, 5vw, 5rem)" }}>
                     Create Your
                 </h1>
-                <h1 className="font-bold leading-tight text-center" style={{ fontSize: "clamp(2rem, 4vw, 4rem)" }}>
+                <h1 className="font-bold leading-tight text-center"
+                    style={{ fontSize: "clamp(2rem, 4vw, 4rem)" }}>
                     <span className="text-gradient">Account</span>
                 </h1>
             </div>
 
-            {/* Right side - Form */}
+            {/* Right side */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-20 lg:py-10">
                 <h2 className="text-white text-2xl font-semibold mb-6">Sign Up</h2>
 
@@ -92,7 +105,8 @@ export default function SignUp() {
                     {/* Name */}
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Name</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange}
+                        <input type="text" name="name" value={formData.name}
+                            onChange={handleChange}
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                     </div>
@@ -100,7 +114,8 @@ export default function SignUp() {
                     {/* Email */}
                     <div className="flex flex-col gap-1">
                         <label className="text-white text-sm">Email Address</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleChange}
+                        <input type="email" name="email" value={formData.email}
+                            onChange={handleChange}
                             className="w-full rounded-md px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                     </div>
@@ -163,7 +178,9 @@ export default function SignUp() {
                                 )}
                             </button>
                         </div>
-                        <p className="text-[#B2B2D2] text-xs mt-1">It must be a combination of minimum 6 letters and numbers.</p>
+                        <p className="text-[#B2B2D2] text-xs mt-1">
+                            It must be a combination of minimum 6 letters and numbers.
+                        </p>
                     </div>
 
                     {error && <p className="text-red-400 text-xs text-center">{error}</p>}
@@ -180,12 +197,9 @@ export default function SignUp() {
                         <div className="flex-1 h-px bg-white/20" />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={handleGoogleSignUp}
+                    <button type="button" onClick={handleGoogleSignUp}
                         className="w-full flex items-center justify-center gap-3 py-2.5 rounded-full font-medium text-sm hover:opacity-90 transition-opacity"
-                        style={{ background: "white", color: "#333" }}
-                    >
+                        style={{ background: "white", color: "#333" }}>
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -197,7 +211,9 @@ export default function SignUp() {
 
                     <p className="text-center text-sm mt-1" style={{ color: "#B2B2D2" }}>
                         Already have an account?{" "}
-                        <Link to="/signin" className="text-[#FFC085] font-medium hover:underline">Sign in</Link>
+                        <Link to="/signin" className="text-[#FFC085] font-medium hover:underline">
+                            Sign in
+                        </Link>
                     </p>
                 </form>
             </div>

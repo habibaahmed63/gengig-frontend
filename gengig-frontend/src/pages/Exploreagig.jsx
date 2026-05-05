@@ -85,11 +85,10 @@ export default function ExplorePage() {
         <div style={{ background: "#060834" }}>
             <Navbar />
 
-            {/* ───── BREADCRUMB ───── */}
             <div className="px-6 md:px-8 pt-4 pb-2">
-                <p className="text-xs" style={{ color: "#B2B2D2" }}>
-                    <Link to="/home" className="hover:text-white transition-colors">Home</Link>
-                    {" / "}
+                <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
+                    <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                    {" › "}
                     <span style={{ color: "#FFC085" }}>Explore a gig</span>
                 </p>
             </div>

@@ -44,12 +44,12 @@ export default function GigDetails() {
     };
 
     const handleSave = async () => {
-        setSaved(prev => !prev); // optimistic
+        setSaved(prev => !prev);
         try {
             await api.post(`/gigs/${id}/save`);
         } catch (err) {
             console.error("Failed to save gig:", err);
-            setSaved(prev => !prev); // revert on failure
+            setSaved(prev => !prev);
         }
     };
 
@@ -68,7 +68,6 @@ export default function GigDetails() {
         );
     }
 
-    // Not Found State
     if (!gig) {
         return (
             <div style={{ background: "#060834" }}>
@@ -96,15 +95,13 @@ export default function GigDetails() {
 
             <div className="max-w-6xl mx-auto px-6 md:px-8 py-8">
 
-                {/* Breadcrumb */}
                 <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                    <Link to="/home" className="hover:text-white transition-colors">Home</Link>
-                    {" / "}
-                    <Link to="/Exploreagig" className="hover:text-white transition-colors">Explore</Link>
-                    {" / "}
-                    <span style={{ color: "#FFC085" }}>{gig.title}</span>
+                    <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                    {" › "}
+                    <Link to="/exploreagig" className="hover:text-[#FFC085] transition-colors">Explore</Link>
+                    {" › "}
+                    <span style={{ color: "#FFC085" }}>Gig Details</span>
                 </p>
-
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     {/* Left - Main Content */}
