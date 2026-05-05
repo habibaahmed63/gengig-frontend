@@ -256,9 +256,7 @@ export default function TeenlancerChat() {
 
   return (
     <TeenlancerLayout>
-      <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>
-        Home › <span style={{ color: "#FFC085" }}>Chat</span>
-      </p>
+
 
       <div className="rounded-2xl overflow-hidden flex"
         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", height: "calc(100vh - 180px)", minHeight: "500px" }}>

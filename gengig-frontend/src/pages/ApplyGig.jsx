@@ -136,17 +136,15 @@ export default function ApplyGig() {
 
             <div className="max-w-4xl mx-auto px-6 md:px-8 py-8">
 
-                {/* Breadcrumb */}
                 <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                    <Link to="/home" className="hover:text-white">Home</Link>
-                    {" / "}
-                    <Link to="/Exploreagig" className="hover:text-white">Explore</Link>
-                    {" / "}
-                    <Link to={"/gig/" + id} className="hover:text-white">Gig Details</Link>
-                    {" / "}
+                    <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                    {" › "}
+                    <Link to="/exploreagig" className="hover:text-[#FFC085] transition-colors">Explore</Link>
+                    {" › "}
+                    <Link to="/gigdetails" className="hover:text-[#FFC085] transition-colors">Gig Details</Link>
+                    {" › "}
                     <span style={{ color: "#FFC085" }}>Apply</span>
                 </p>
-
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     {/* Left - Form */}
@@ -340,7 +338,7 @@ export default function ApplyGig() {
                                     className="mt-5 block text-center text-xs hover:text-white transition-colors"
                                     style={{ color: "#B2B2D2" }}
                                 >
-                                    ← Back to gig details
+                                    Back to gig details
                                 </Link>
                             </div>
                         )}

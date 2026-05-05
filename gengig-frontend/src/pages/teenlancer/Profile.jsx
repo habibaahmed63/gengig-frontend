@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const skillsList = [
     "UI/UX Design", "Logo Design", "Graphic Design", "Video Editing",
@@ -17,7 +18,6 @@ const convertToBase64 = (file) => {
     });
 };
 
-// ✅ Reusable Toast component — inline so no extra import needed
 function Toast({ toast }) {
     if (!toast) return null;
     return (
@@ -38,7 +38,6 @@ export default function TeenlancerProfile() {
     const [saveLoading, setSaveLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
 
-    // ✅ Single unified toast state — replaces savedToast + alert()
     const [toast, setToast] = useState(null);
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -150,7 +149,6 @@ export default function TeenlancerProfile() {
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
             showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
@@ -178,7 +176,6 @@ export default function TeenlancerProfile() {
     const handlePortfolioImage = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
             showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
@@ -241,11 +238,9 @@ export default function TeenlancerProfile() {
             }
             setProfile({ ...editData });
             setEditMode(false);
-            // ✅ Toast instead of setSavedToast
             showToast("Profile saved successfully!");
         } catch (err) {
             console.error("Failed to save profile:", err);
-            // ✅ Toast instead of alert()
             showToast("Failed to save profile. Please try again.", "error");
         } finally {
             setSaveLoading(false);
@@ -271,11 +266,13 @@ export default function TeenlancerProfile() {
 
     return (
         <TeenlancerLayout>
-            {/* ✅ Single unified Toast */}
             <Toast toast={toast} />
 
+
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › Account › <span style={{ color: "#FFC085" }}>Profile</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>Profile</span>
             </p>
 
             {/* Profile Header */}

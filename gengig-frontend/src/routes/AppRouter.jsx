@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import PublicProfile from "../pages/PublicProfile";
-
 
 // Public pages
 import Home from "../pages/Home";
@@ -12,9 +10,11 @@ import Notifications from "../pages/Notifications";
 import Support from "../pages/Support";
 import Terms from "../pages/Terms";
 import NotFound from "../pages/NotFound";
-import PostGig from "../pages/PostGig";
-<Route path="/profile/:slug" element={<PublicProfile />} />
-
+import Landing from "../pages/Landing";
+import AboutUs from "../pages/AboutUs";
+import PublicProfile from "../pages/PublicProfile";
+import PaymentSuccess from "../pages/PaymentSuccess";
+import PaymentFailed from "../pages/PaymentFailed";
 
 // Auth
 import SignUp from "../pages/SignUp";
@@ -42,106 +42,85 @@ import AgentPayment from "../pages/agent/PaymentDetails";
 import AgentSettings from "../pages/agent/Settings";
 import AgentApplications from "../pages/agent/Applications";
 import MyGigs from "../pages/agent/MyGigs";
+import PostGig from "../pages/PostGig";
 
 // Category pages
 import GigsByCategory from "../pages/GigsByCategory";
 import TeenlancersByCategory from "../pages/TeenlancersByCategory";
 
-// ─────────────────────────────────────────────────────────────
-// ✅ ROUTE GUARDS
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// SINGLE GUARD — only checks if user is logged in
+// ─────────────────────────────────────────────────────────
 
-// Requires a valid token — redirects to /signin if not logged in
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
   if (!token) return <Navigate to="/signin" replace />;
   return children;
 }
 
-// Requires a specific role — redirects to their own dashboard if wrong role
-function RoleRoute({ children, role }) {
-  const token = localStorage.getItem("token");
-  const currentRole = localStorage.getItem("role");
-
-  if (!token) return <Navigate to="/signin" replace />;
-
-  if (currentRole !== role) {
-    // Redirect to their correct dashboard instead of 404
-    if (currentRole === "teenlancer") return <Navigate to="/teenlancer/dashboard" replace />;
-    if (currentRole === "agent") return <Navigate to="/agent/dashboard" replace />;
-    return <Navigate to="/home" replace />;
-  }
-
-  return children;
-}
-
-// Redirects logged-in users away from auth pages
-function GuestRoute({ children }) {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
-
-  if (token) {
-    if (role === "teenlancer") return <Navigate to="/teenlancer/dashboard" replace />;
-    if (role === "agent") return <Navigate to="/agent/dashboard" replace />;
-    return <Navigate to="/home" replace />;
-  }
-
-  return children;
-}
-
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* ── Public — accessible by everyone ── */}
+        {/* ── Root ── */}
+        <Route path="/" element={(() => {
+          const token = localStorage.getItem("token");
+          const role = localStorage.getItem("role");
+          if (!token) return <Landing />;
+          if (role === "agent") return <Navigate to="/agent/dashboard" replace />;
+          return <Navigate to="/teenlancer/dashboard" replace />;
+        })()} />
+
+        {/* ── Fully public ── */}
         <Route path="/home" element={<Home />} />
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/Exploreagig" element={<ExplorePage />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/gig/:id" element={<GigDetails />} />
-        <Route path="/Support" element={<Support />} />
-        <Route path="/Terms" element={<Terms />} />
         <Route path="/gigs/category/:category" element={<GigsByCategory />} />
         <Route path="/teenlancers/category/:category" element={<TeenlancersByCategory />} />
+        <Route path="/profile/:slug" element={<PublicProfile />} />
+        <Route path="/Support" element={<Support />} />
+        <Route path="/Terms" element={<Terms />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failed" element={<PaymentFailed />} />
 
-        {/* ── Auth — guests only, logged-in users get redirected ── */}
-        <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
-        <Route path="/signin" element={<GuestRoute><LogIn /></GuestRoute>} />
-        <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+        {/* ── Auth ── */}
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<LogIn />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/google/success" element={<GoogleSuccess />} />
 
-        {/* ── Onboarding — requires login, any role ── */}
+        {/* ── Onboarding ── */}
         <Route path="/onboarding/teenlancer" element={<PrivateRoute><TeenlancerOnboarding /></PrivateRoute>} />
         <Route path="/onboarding/agent" element={<PrivateRoute><AgentOnboarding /></PrivateRoute>} />
 
-        {/* ── Protected — requires login ── */}
+        {/* ── Requires login only — no role check ── */}
         <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
         <Route path="/post" element={<PrivateRoute><PostGig /></PrivateRoute>} />
+        <Route path="/gig/:id/apply" element={<PrivateRoute><ApplyGig /></PrivateRoute>} />
 
-        {/* ── Teenlancer only ── */}
-        <Route path="/teenlancer/dashboard" element={<RoleRoute role="teenlancer"><TeenlancerDashboard /></RoleRoute>} />
-        <Route path="/teenlancer/profile" element={<RoleRoute role="teenlancer"><TeenlancerProfile /></RoleRoute>} />
-        <Route path="/teenlancer/payment" element={<RoleRoute role="teenlancer"><TeenlancerPayment /></RoleRoute>} />
-        <Route path="/teenlancer/settings" element={<RoleRoute role="teenlancer"><TeenlancerSettings /></RoleRoute>} />
-        <Route path="/teenlancer/community" element={<RoleRoute role="teenlancer"><TeenlancerCommunity /></RoleRoute>} />
-        <Route path="/teenlancer/chat" element={<RoleRoute role="teenlancer"><TeenlancerChat /></RoleRoute>} />
+        {/* ── Teenlancer pages — login required only ── */}
+        <Route path="/teenlancer/dashboard" element={<PrivateRoute><TeenlancerDashboard /></PrivateRoute>} />
+        <Route path="/teenlancer/profile" element={<PrivateRoute><TeenlancerProfile /></PrivateRoute>} />
+        <Route path="/teenlancer/payment" element={<PrivateRoute><TeenlancerPayment /></PrivateRoute>} />
+        <Route path="/teenlancer/settings" element={<PrivateRoute><TeenlancerSettings /></PrivateRoute>} />
+        <Route path="/teenlancer/community" element={<PrivateRoute><TeenlancerCommunity /></PrivateRoute>} />
+        <Route path="/teenlancer/chat" element={<PrivateRoute><TeenlancerChat /></PrivateRoute>} />
 
-        {/* ── Apply gig — teenlancers only ── */}
-        <Route path="/gig/:id/apply" element={<RoleRoute role="teenlancer"><ApplyGig /></RoleRoute>} />
+        {/* ── Agent pages — login required only ── */}
+        <Route path="/agent/dashboard" element={<PrivateRoute><AgentDashboard /></PrivateRoute>} />
+        <Route path="/agent/profile" element={<PrivateRoute><AgentProfile /></PrivateRoute>} />
+        <Route path="/agent/payment" element={<PrivateRoute><AgentPayment /></PrivateRoute>} />
+        <Route path="/agent/settings" element={<PrivateRoute><AgentSettings /></PrivateRoute>} />
+        <Route path="/agent/applications" element={<PrivateRoute><AgentApplications /></PrivateRoute>} />
+        <Route path="/agent/my-gigs" element={<PrivateRoute><MyGigs /></PrivateRoute>} />
 
-        {/* ── Agent only ── */}
-        <Route path="/agent/dashboard" element={<RoleRoute role="agent"><AgentDashboard /></RoleRoute>} />
-        <Route path="/agent/profile" element={<RoleRoute role="agent"><AgentProfile /></RoleRoute>} />
-        <Route path="/agent/payment" element={<RoleRoute role="agent"><AgentPayment /></RoleRoute>} />
-        <Route path="/agent/settings" element={<RoleRoute role="agent"><AgentSettings /></RoleRoute>} />
-        <Route path="/agent/applications" element={<RoleRoute role="agent"><AgentApplications /></RoleRoute>} />
-        <Route path="/agent/my-gigs" element={<RoleRoute role="agent"><MyGigs /></RoleRoute>} />
-
-        {/* ── Fallback ── */}
-        <Route path="/" element={<Navigate to="/signin" replace />} />
+        {/* ── 404 ── */}
         <Route path="*" element={<NotFound />} />
 
       </Routes>

@@ -82,7 +82,6 @@ export default function Notifications() {
 
       <div className="max-w-3xl mx-auto px-6 md:px-8 py-8">
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-white font-bold mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)" }}>

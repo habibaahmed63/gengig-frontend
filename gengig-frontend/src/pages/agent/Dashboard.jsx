@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
@@ -21,16 +22,16 @@ export default function AgentDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-         const [currentRes, previousRes, statsRes, appsRes] = await Promise.all([
-         api.get("/agent/gigs?status=active"),
+        const [currentRes, previousRes, statsRes, appsRes] = await Promise.all([
+          api.get("/agent/gigs?status=active"),
           api.get("/agent/gigs?status=completed"),
           api.get("/agent/stats"),
-           api.get("/agent/applications?limit=3"),
-         ]);
-         setCurrentGigs(currentRes.data);
-         setPreviousGigs(previousRes.data);
-         setStats(statsRes.data);
-         setRecentApplications(appsRes.data);
+          api.get("/agent/applications?limit=3"),
+        ]);
+        setCurrentGigs(currentRes.data);
+        setPreviousGigs(previousRes.data);
+        setStats(statsRes.data);
+        setRecentApplications(appsRes.data);
 
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
@@ -53,19 +54,20 @@ export default function AgentDashboard() {
   return (
     <AgentLayout>
       <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-        Home › <span style={{ color: "#FFC085" }}>Dashboard</span>
+        <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+        {" › "}
+        <Link to="/agent/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+        {" › "}
+        <span style={{ color: "#FFC085" }}>Dashboard</span>
       </p>
-
-      {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span> 
+            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>
 
-        {/* ── Header action buttons ── */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => navigate("/agent/my-gigs")}
@@ -84,7 +86,6 @@ export default function AgentDashboard() {
         </div>
       </div>
 
-      {/* Stat Cards */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[...Array(4)].map((_, i) => (
@@ -111,7 +112,6 @@ export default function AgentDashboard() {
         </div>
       )}
 
-      {/* Main content */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="w-10 h-10 rounded-full border-2 animate-spin"
@@ -120,7 +120,6 @@ export default function AgentDashboard() {
         </div>
       ) : !hasActivity ? (
 
-        /* ── Empty state ── */
         <div className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)" }}>
           <div className="relative mb-6">
@@ -143,7 +142,6 @@ export default function AgentDashboard() {
             Post Your First Gig →
           </button>
 
-          {/* Quick tips */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
               { icon: "✍️", title: "Post a gig", desc: "Describe what you need and set your budget", action: () => navigate("/post") },
@@ -162,10 +160,8 @@ export default function AgentDashboard() {
         </div>
 
       ) : (
-        /* ── Has activity ── */
         <div className="flex flex-col gap-8">
 
-          {/* ── My Gigs quick-access card ── */}
           <div
             className="p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-[rgba(255,192,133,0.3)] transition-all"
             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}

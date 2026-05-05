@@ -2,28 +2,29 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const allTags = ["All", "Tips", "Design", "Branding", "VideoEditing", "Portfolio", "Mindset", "Freelancing", "ClientWork", "Advice", "Creative"];
 
 export default function Community() {
     const navigate = useNavigate();
 
-    const userName  = localStorage.getItem("name")  || "You";
+    const userName = localStorage.getItem("name") || "You";
     const userPhoto = localStorage.getItem("photo") || null;
-    const userRole  = localStorage.getItem("role")  || "Teenlancer";
+    const userRole = localStorage.getItem("role") || "Teenlancer";
     const currentUserId = localStorage.getItem("userId") || localStorage.getItem("id") || "";
 
-    const [posts, setPosts]               = useState([]);
+    const [posts, setPosts] = useState([]);
     const [postsLoading, setPostsLoading] = useState(true);
     const [activeMembers, setActiveMembers] = useState([]);
-    const [trendingTags, setTrendingTags]   = useState([]);
-    const [activeTag, setActiveTag]         = useState("All");
-    const [newPost, setNewPost]             = useState({ content: "", image: null, imagePreview: null });
-    const [newTags, setNewTags]             = useState("");
+    const [trendingTags, setTrendingTags] = useState([]);
+    const [activeTag, setActiveTag] = useState("All");
+    const [newPost, setNewPost] = useState({ content: "", image: null, imagePreview: null });
+    const [newTags, setNewTags] = useState("");
     const [commentInputs, setCommentInputs] = useState({});
     const [expandedComments, setExpandedComments] = useState({});
     const [showCommentInput, setShowCommentInput] = useState({});
-    const [postLoading, setPostLoading]     = useState(false);
+    const [postLoading, setPostLoading] = useState(false);
 
     useEffect(() => {
         const fetchCommunityData = async () => {
@@ -167,8 +168,13 @@ export default function Community() {
 
     return (
         <TeenlancerLayout>
+
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › <span style={{ color: "#FFC085" }}>Community Hub</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <Link to="/teenlancer/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>Community</span>
             </p>
 
             <div className="flex flex-col lg:flex-row gap-6">

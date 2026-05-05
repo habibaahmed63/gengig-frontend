@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TeenlancerLayout from "../layouts/TeenlancerLayout";
 import api from "../services/api";
+import { Link } from "react-router-dom";
 
 const sortOptions = [
     { value: "newest", label: "Newest First" },
@@ -89,7 +90,11 @@ export default function GigsByCategory() {
     return (
         <TeenlancerLayout>
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › Explore › <span style={{ color: "#FFC085" }}>{decodedCategory}</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <Link to="/exploreagig" className="hover:text-[#FFC085] transition-colors">Explore</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>{decodedCategory}</span>
             </p>
 
             {/* Hero */}

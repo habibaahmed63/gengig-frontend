@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const statusColor = { Active: "#4ade80", Completed: "#FFC085", Pending: "#63b3ed" };
 
@@ -11,7 +12,6 @@ const industryOptions = [
     "Fashion & Lifestyle", "Other"
 ];
 
-// ✅ Reusable Toast component
 function Toast({ toast }) {
     if (!toast) return null;
     return (
@@ -55,7 +55,6 @@ export default function AgentProfile() {
     const [saveLoading, setSaveLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
 
-    // ✅ Single unified toast state
     const [toast, setToast] = useState(null);
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -145,7 +144,6 @@ export default function AgentProfile() {
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        // ✅ Toast instead of alert()
         if (file.size > 2 * 1024 * 1024) {
             showToast("Image is too large. Please choose an image under 2MB.", "error");
             return;
@@ -184,11 +182,9 @@ export default function AgentProfile() {
             }
             setProfile({ ...editData });
             setEditMode(false);
-            // ✅ Toast instead of setSaved
             showToast("Profile saved successfully!");
         } catch (err) {
             console.error("Failed to save profile:", err);
-            // ✅ Toast instead of alert()
             showToast("Failed to save profile. Please try again.", "error");
         } finally {
             setSaveLoading(false);
@@ -214,11 +210,12 @@ export default function AgentProfile() {
 
     return (
         <AgentLayout>
-            {/* ✅ Single unified Toast */}
             <Toast toast={toast} />
 
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › Account › <span style={{ color: "#FFC085" }}>Profile</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>Profile</span>
             </p>
 
             {/* Profile Header */}

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
-// ✅ Toast component
 function Toast({ toast }) {
     if (!toast) return null;
     return (
@@ -38,7 +39,6 @@ export default function AgentSettings() {
     const [passwordError, setPasswordError] = useState("");
     const [settingsLoading, setSettingsLoading] = useState(true);
 
-    // ✅ Single toast replaces saveSuccess + passwordSuccess + alert()
     const [toast, setToast] = useState(null);
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -90,11 +90,9 @@ export default function AgentSettings() {
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
             localStorage.setItem("language", formData.language);
-            // ✅ Toast instead of setSaveSuccess
             showToast("Settings saved!");
         } catch (err) {
             console.error("Failed to save settings:", err);
-            // ✅ Toast instead of alert()
             showToast("Failed to save settings. Please try again.", "error");
         } finally {
             setSaveLoading(false);
@@ -113,7 +111,6 @@ export default function AgentSettings() {
                 newPassword: passwords.newPass,
             });
             setPasswords({ current: "", newPass: "", confirm: "" });
-            // ✅ Toast instead of setPasswordSuccess
             showToast("Password updated!", "green");
         } catch (err) {
             console.error("Failed to change password:", err);
@@ -158,12 +155,16 @@ export default function AgentSettings() {
 
     return (
         <AgentLayout>
-            {/* ✅ Single unified Toast */}
             <Toast toast={toast} />
 
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › Account › <span style={{ color: "#FFC085" }}>Settings</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <Link to="/agent/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>Settings</span>
             </p>
+
             <h1 className="text-white font-bold text-2xl mb-8">Settings</h1>
 
             <div className="flex flex-col gap-6 max-w-2xl">

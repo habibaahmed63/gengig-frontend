@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const statusColor = {
   Success: "#4ade80",
@@ -8,7 +9,6 @@ const statusColor = {
   Pending: "#FFC085",
 };
 
-// ✅ Toast component
 function Toast({ toast }) {
   if (!toast) return null;
   return (
@@ -20,7 +20,6 @@ function Toast({ toast }) {
   );
 }
 
-// ✅ Custom amount input component
 function CustomAmountInput({ onPay, loading }) {
   const [customAmount, setCustomAmount] = useState("");
   const handleSubmit = () => {
@@ -69,7 +68,6 @@ export default function TeenlancerPayment() {
   const [cardError, setCardError] = useState("");
   const [payLoading, setPayLoading] = useState(false);
 
-  // ✅ Single unified toast — replaces cardSaved boolean + all alerts
   const [toast, setToast] = useState(null);
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -78,7 +76,6 @@ export default function TeenlancerPayment() {
 
   useEffect(() => {
     const fetchPaymentData = async () => {
-      // Load card — API first, localStorage fallback
       try {
         const cardRes = await api.get("/payments/cards");
         if (cardRes.data) {
@@ -89,8 +86,6 @@ export default function TeenlancerPayment() {
         const stored = localStorage.getItem("savedCard");
         if (stored) setSavedCard(JSON.parse(stored));
       }
-
-      // Fetch stats
       setStatsLoading(true);
       try {
         const statsRes = await api.get("/teenlancer/stats");
@@ -104,7 +99,6 @@ export default function TeenlancerPayment() {
         setStatsLoading(false);
       }
 
-      // Fetch payment history
       setHistoryLoading(true);
       try {
         const historyRes = await api.get("/payments/transactions");
@@ -144,7 +138,6 @@ export default function TeenlancerPayment() {
       setSavedCard(card);
       setShowCardForm(false);
       setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
-      // ✅ Toast instead of cardSaved boolean
       showToast("Card saved successfully!");
     } catch (err) {
       setCardError("Failed to save card. Please try again.");
@@ -163,7 +156,7 @@ export default function TeenlancerPayment() {
     }
   };
 
-  // ✅ Paymob payment handler
+  //  Paymob payment handler
   const handlePayment = async (amount) => {
     setPayLoading(true);
     try {
@@ -180,12 +173,17 @@ export default function TeenlancerPayment() {
 
   return (
     <TeenlancerLayout>
-      {/* ✅ Unified Toast */}
       <Toast toast={toast} />
 
+
       <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-        Home › Account › <span style={{ color: "#FFC085" }}>Payment Details</span>
+        <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+        {" › "}
+        <Link to="/teenlancer/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+        {" › "}
+        <span style={{ color: "#FFC085" }}>Payment Details</span>
       </p>
+
       <h1 className="text-white font-bold text-2xl tracking-tight mb-8">Payment Details</h1>
 
       {/* Summary Cards */}
@@ -248,22 +246,11 @@ export default function TeenlancerPayment() {
           ))}
         </div>
 
-        {/* Custom amount */}
         <CustomAmountInput onPay={handlePayment} loading={payLoading} />
       </div>
 
-      {/* Test card info */}
-      <div className="p-5 rounded-2xl mb-8"
-        style={{ background: "rgba(99,179,237,0.05)", border: "1px solid rgba(99,179,237,0.2)" }}>
-        <p className="text-xs font-semibold mb-3" style={{ color: "#63b3ed" }}>🧪 Test Card (Demo Only — Remove Before Production)</p>
-        <div className="flex flex-wrap gap-x-8 gap-y-1.5 font-mono text-xs" style={{ color: "#B2B2D2" }}>
-          <span>Card: <span style={{ color: "white" }}>4987 6543 2109 8769</span></span>
-          <span>Expiry: <span style={{ color: "white" }}>05/25</span></span>
-          <span>CVV: <span style={{ color: "white" }}>123</span></span>
-        </div>
-      </div>
 
-      {/* Saved Card Display */}
+
       {savedCard && !showCardForm && (
         <div className="p-5 rounded-2xl mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-5"
           style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>

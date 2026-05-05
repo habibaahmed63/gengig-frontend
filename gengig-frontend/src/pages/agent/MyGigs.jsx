@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const STATUS_COLORS = {
     active: { bg: "rgba(74,222,128,0.1)", border: "rgba(74,222,128,0.3)", text: "#4ade80", label: "Active" },
@@ -21,13 +22,11 @@ const FILTERS = ["All", "Active", "Closed", "Completed", "Draft"];
 export default function MyGigs() {
     const navigate = useNavigate();
 
-    // ── list state ────────────────────────────────────────────────
     const [gigs, setGigs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("All");
     const [search, setSearch] = useState("");
 
-    // ── detail drawer state ───────────────────────────────────────
     const [selectedGig, setSelectedGig] = useState(null);
     const [gigDetail, setGigDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
@@ -36,7 +35,6 @@ export default function MyGigs() {
     const [confirmClose, setConfirmClose] = useState(false);
     const [statusUpdating, setStatusUpdating] = useState(false);
 
-    // ── fetch all gigs for this agent ─────────────────────────────
     const fetchGigs = useCallback(async () => {
         setLoading(true);
         try {
@@ -53,7 +51,6 @@ export default function MyGigs() {
 
     useEffect(() => { fetchGigs(); }, [fetchGigs]);
 
-    // ── fetch single gig detail + applications ────────────────────
     const openGig = async (gig) => {
         setSelectedGig(gig);
         setActiveTab("overview");
@@ -78,7 +75,6 @@ export default function MyGigs() {
         setGigDetail(null);
     };
 
-    // ── accept / reject / undo application ───────────────────────
     const handleAction = async (appId, action) => {
         setActionLoading(prev => ({ ...prev, [appId]: action }));
         try {
@@ -93,7 +89,6 @@ export default function MyGigs() {
         }
     };
 
-    // ── close / reopen gig ────────────────────────────────────────
     const handleToggleGigStatus = async () => {
         const newStatus = selectedGig.status === "active" ? "closed" : "active";
         setStatusUpdating(true);
@@ -107,7 +102,6 @@ export default function MyGigs() {
         }
     };
 
-    // ── filtering & searching ─────────────────────────────────────
     const filtered = gigs.filter(g => {
         const matchesFilter = filter === "All" || g.status === filter.toLowerCase();
         const matchesSearch = !search.trim() ||
@@ -116,16 +110,20 @@ export default function MyGigs() {
         return matchesFilter && matchesSearch;
     });
 
-    // ── summary stats — all computed from real gigs array ─────────
     const totalApps = gigs.reduce((s, g) => s + (g.applications ?? 0), 0);
     const totalViews = gigs.reduce((s, g) => s + (g.views ?? 0), 0);
     const activeCount = gigs.filter(g => g.status === "active").length;
 
-    // ─────────────────────────────────────────────────────────────
     return (
         <AgentLayout>
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › <span style={{ color: "#FFC085" }}>My Gigs</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <Link to="/agent/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+                {" › "}
+                <Link to="/agent/dashboard" className="hover:text-[#FFC085] transition-colors">Dashboard</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>My Gigs</span>
             </p>
 
             {/* Header */}

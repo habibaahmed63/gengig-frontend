@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentLayout from "../layouts/AgentLayout";
 import api from "../services/api";
+import { Link } from "react-router-dom";
 
 const CATEGORIES = [
     { label: "Graphic Design", icon: "🎨" },
@@ -55,7 +56,6 @@ export default function PostGig() {
         attachments: [],
     });
 
-    // ── helpers ──────────────────────────────────────────────────
     const set = (key, val) => {
         setForm(prev => ({ ...prev, [key]: val }));
         setErrors(prev => ({ ...prev, [key]: "" }));
@@ -71,7 +71,6 @@ export default function PostGig() {
         return Math.round((filled / total) * 100);
     };
 
-    // ── skills chip logic ────────────────────────────────────────
     const handleSkillKeyDown = (e) => {
         if ((e.key === "Enter" || e.key === ",") && form.skillsInput.trim()) {
             e.preventDefault();
@@ -89,7 +88,6 @@ export default function PostGig() {
     const removeSkill = (skill) =>
         set("skills", form.skills.filter(s => s !== skill));
 
-    // ── requirements ─────────────────────────────────────────────
     const setReq = (i, val) => {
         const reqs = [...form.requirements];
         reqs[i] = val;
@@ -98,7 +96,6 @@ export default function PostGig() {
     const addReq = () => form.requirements.length < 8 && set("requirements", [...form.requirements, ""]);
     const removeReq = (i) => form.requirements.length > 1 && set("requirements", form.requirements.filter((_, idx) => idx !== i));
 
-    // ── validation per step ──────────────────────────────────────
     const validate = (s) => {
         const e = {};
         if (s === 0) {
@@ -121,7 +118,6 @@ export default function PostGig() {
     const nextStep = () => { if (validate(step)) setStep(s => s + 1); };
     const prevStep = () => setStep(s => s - 1);
 
-    // ── submit ───────────────────────────────────────────────────
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -143,7 +139,6 @@ export default function PostGig() {
         }
     };
 
-    // ── success screen ───────────────────────────────────────────
     if (submitted) {
         return (
             <AgentLayout>
@@ -198,7 +193,9 @@ export default function PostGig() {
     return (
         <AgentLayout>
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › <span style={{ color: "#FFC085" }}>Post a Gig</span>
+                <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+                {" › "}
+                <span style={{ color: "#FFC085" }}>Post a Gig</span>
             </p>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
