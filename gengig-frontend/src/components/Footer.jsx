@@ -24,7 +24,6 @@ const socials = [
   },
 ];
 
-// ✅ Reusable styled link — gold on hover
 function FooterLink({ to, children }) {
   return (
     <Link
@@ -47,7 +46,6 @@ export default function Footer() {
     >
       <div className="flex flex-col md:flex-row flex-wrap justify-between gap-8">
 
-        {/* Left — Logo + tagline */}
         <div className="flex flex-col gap-4 max-w-xs">
           <Link to="/">
             <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
@@ -61,10 +59,8 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Links */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
 
-          {/* For Agents */}
           <div className="flex flex-col gap-3">
             <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
               For Agents
@@ -75,7 +71,6 @@ export default function Footer() {
             <FooterLink to="/agent/applications">View Applications</FooterLink>
           </div>
 
-          {/* For Teenlancers */}
           <div className="flex flex-col gap-3">
             <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
               For Teenlancers
@@ -86,7 +81,6 @@ export default function Footer() {
             <FooterLink to="/teenlancer/dashboard">Dashboard</FooterLink>
           </div>
 
-          {/* Company */}
           <div className="flex flex-col gap-3">
             <h4 className="text-white font-bold text-xs tracking-widest uppercase mb-1">
               Company
@@ -98,7 +92,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Social Icons */}
         <div className="flex gap-3 items-start">
           {socials.map((social, i) => (
             <button
@@ -115,7 +108,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div
         className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-10 pt-6 text-xs"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)", color: "#B2B2D2" }}

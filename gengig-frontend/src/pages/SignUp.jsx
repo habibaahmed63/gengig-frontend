@@ -34,7 +34,6 @@ export default function SignUp() {
             const d = response.data;
             console.log("Success:", response.data);
 
-            // ✅ Always wipe all previous user's profile data on new registration
             [
                 "photo", "bio", "skills", "education", "availability",
                 "hourlyRate", "company", "industry", "workTypes", "location",
@@ -44,22 +43,18 @@ export default function SignUp() {
                 "pendingPayments", "totalSpent", "agentPendingPayments", "slug",
             ].forEach((key) => localStorage.removeItem(key));
 
-            // ✅ Save new user's basic info
             localStorage.setItem("role", formData.role);
             localStorage.setItem("name", formData.name);
             localStorage.setItem("email", formData.email);
 
-            // ✅ Save token and slug if backend returns them
             if (d.token) {
                 localStorage.setItem("token", d.token);
                 if (d.slug) localStorage.setItem("slug", d.slug);
 
-                // Go directly to profile — fresh and empty for new user
                 if (formData.role === "teenlancer") navigate("/teenlancer/profile", { replace: true });
                 else if (formData.role === "agent") navigate("/agent/profile", { replace: true });
                 else navigate("/home", { replace: true });
             } else {
-                // Needs email verification first
                 navigate("/verify-email", { state: { email: formData.email } });
             }
 
@@ -79,12 +74,10 @@ export default function SignUp() {
         <div className="min-h-screen flex flex-col lg:flex-row relative overflow-hidden"
             style={{ background: "#060834" }}>
 
-            {/* Logo */}
             <div className="absolute top-4 left-4 z-20">
                 <img src={logo} alt="Gengig Logo" className="w-16 h-16 object-contain" />
             </div>
 
-            {/* Left side */}
             <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-10">
                 <h1 className="text-white font-bold leading-tight text-center"
                     style={{ fontSize: "clamp(3rem, 5vw, 5rem)" }}>
@@ -96,7 +89,6 @@ export default function SignUp() {
                 </h1>
             </div>
 
-            {/* Right side */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-20 lg:py-10">
                 <h2 className="text-white text-2xl font-semibold mb-6">Sign Up</h2>
 

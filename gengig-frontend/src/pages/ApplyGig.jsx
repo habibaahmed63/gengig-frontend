@@ -72,7 +72,6 @@ export default function ApplyGig() {
             setSubmitting(false);
         }
     };
-    // Loading state
     if (loading) {
         return (
             <div style={{ background: "#060834" }}>
@@ -88,7 +87,7 @@ export default function ApplyGig() {
         );
     }
 
-    // Success screen
+    // Success screen//
     if (submitted) {
         return (
             <div style={{ background: "#060834" }}>
@@ -147,7 +146,6 @@ export default function ApplyGig() {
                 </p>
                 <div className="flex flex-col lg:flex-row gap-8">
 
-                    {/* Left - Form */}
                     <div className="flex-1">
                         <h1 className="text-white font-bold mb-2" style={{ fontSize: "clamp(1.3rem, 3vw, 2rem)" }}>
                             Apply for this <span className="text-gradient">Gig</span>
@@ -158,7 +156,6 @@ export default function ApplyGig() {
 
                         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-                            {/* Intro Message */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-white text-sm font-medium">
                                     Intro Message <span style={{ color: "#f87171" }}>*</span>
@@ -177,7 +174,6 @@ export default function ApplyGig() {
                                 />
                             </div>
 
-                            {/* Rate + Timeline */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="flex flex-col gap-2">
                                     <label className="text-white text-sm font-medium">
@@ -224,7 +220,6 @@ export default function ApplyGig() {
                                 </div>
                             </div>
 
-                            {/* Portfolio Link */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-white text-sm font-medium">
                                     Portfolio Link{" "}
@@ -241,7 +236,6 @@ export default function ApplyGig() {
                                 />
                             </div>
 
-                            {/* File Upload */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-white text-sm font-medium">
                                     Sample Work{" "}
@@ -289,7 +283,6 @@ export default function ApplyGig() {
                         </form>
                     </div>
 
-                    {/* Right - Gig Summary */}
                     <div className="w-full lg:w-64 flex-shrink-0">
                         {gig && (
                             <div className="p-5 rounded-2xl sticky top-28" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>

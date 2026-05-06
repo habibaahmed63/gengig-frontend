@@ -106,7 +106,7 @@ export default function TeenlancersByCategory() {
                 </p>
             </div>
 
-            {/* Search + Sort */}
+            {/* Search and Sort */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <div
                     className="flex items-center gap-2 flex-1 rounded-xl px-4 py-2.5"
@@ -138,7 +138,7 @@ export default function TeenlancersByCategory() {
                 </select>
             </div>
 
-            {/* Availability Filter Pills */}
+            {/* Availability*/}
             <div className="flex flex-wrap gap-2 mb-6">
                 {availabilityOptions.map((opt) => (
                     <button
@@ -156,7 +156,7 @@ export default function TeenlancersByCategory() {
                 ))}
             </div>
 
-            {/* Teenlancers Grid */}
+            {/* Teenlancers */}
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {[...Array(6)].map((_, i) => (
@@ -202,7 +202,7 @@ export default function TeenlancersByCategory() {
                             className="p-5 rounded-2xl flex flex-col gap-4 hover:border-[rgba(255,192,133,0.3)] transition-all"
                             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                         >
-                            {/* Profile Header */}
+                            {/* Profile */}
                             <div className="flex items-start gap-3">
                                 <div
                                     className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"

@@ -200,10 +200,8 @@ export default function PostGig() {
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
-                {/* ── LEFT PANEL ── */}
                 <div className="xl:col-span-1 flex flex-col gap-5">
 
-                    {/* Header card */}
                     <div
                         className="p-6 rounded-2xl"
                         style={{ background: "linear-gradient(135deg, rgba(255,192,133,0.15), rgba(255,192,133,0.05))", border: "1px solid rgba(255,192,133,0.25)" }}
@@ -214,7 +212,6 @@ export default function PostGig() {
                         </p>
                     </div>
 
-                    {/* Step tracker */}
                     <div
                         className="p-5 rounded-2xl"
                         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -245,7 +242,6 @@ export default function PostGig() {
                             ))}
                         </div>
 
-                        {/* Completion bar */}
                         <div className="mt-5">
                             <div className="flex justify-between text-xs mb-1.5" style={{ color: "#B2B2D2" }}>
                                 <span>Completion</span>
@@ -260,7 +256,6 @@ export default function PostGig() {
                         </div>
                     </div>
 
-                    {/* Live Preview card */}
                     <div
                         className="p-5 rounded-2xl"
                         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -293,7 +288,6 @@ export default function PostGig() {
                             </div>
                         </div>
 
-                        {/* Posted by */}
                         <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                             <div
                                 className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
@@ -308,7 +302,6 @@ export default function PostGig() {
                         </div>
                     </div>
 
-                    {/* Tips card */}
                     <div
                         className="p-5 rounded-2xl"
                         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
@@ -330,14 +323,12 @@ export default function PostGig() {
                     </div>
                 </div>
 
-                {/* ── RIGHT PANEL — Form ── */}
                 <div className="xl:col-span-2">
                     <div
                         className="p-6 sm:p-8 rounded-2xl"
                         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                     >
 
-                        {/* Step label */}
                         <div className="flex items-center gap-3 mb-8">
                             <div
                                 className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
@@ -353,11 +344,9 @@ export default function PostGig() {
                             </div>
                         </div>
 
-                        {/* ── STEP 0: Details ── */}
                         {step === 0 && (
                             <div className="flex flex-col gap-6">
 
-                                {/* Title */}
                                 <div className="flex flex-col gap-2">
                                     <div className="flex justify-between">
                                         <label className="text-sm font-medium text-white">
@@ -463,11 +452,10 @@ export default function PostGig() {
                             </div>
                         )}
 
-                        {/* ── STEP 1: Budget & Timeline ── */}
+                        {/* Budget & Timeline*/}
                         {step === 1 && (
                             <div className="flex flex-col gap-6">
 
-                                {/* Budget */}
                                 <div className="flex flex-col gap-2">
                                     <label className="text-sm font-medium text-white">
                                         Budget Range <span style={{ color: "#f87171" }}>*</span>
@@ -553,7 +541,7 @@ export default function PostGig() {
                             </div>
                         )}
 
-                        {/* ── STEP 2: Requirements ── */}
+                        {/* Requirements*/}
                         {step === 2 && (
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-3">
@@ -595,7 +583,6 @@ export default function PostGig() {
                                     )}
                                 </div>
 
-                                {/* Optional note */}
                                 <div className="flex flex-col gap-2">
                                     <label className="text-sm font-medium text-white">
                                         Additional Notes <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
@@ -612,14 +599,13 @@ export default function PostGig() {
                             </div>
                         )}
 
-                        {/* ── STEP 3: Review ── */}
+                        {/*Review*/}
                         {step === 3 && (
                             <div className="flex flex-col gap-5">
                                 <p className="text-sm" style={{ color: "#B2B2D2" }}>
                                     Review everything before posting. You can go back to edit any section.
                                 </p>
 
-                                {/* Review cards */}
                                 {[
                                     {
                                         title: "Gig Details",
@@ -697,7 +683,7 @@ export default function PostGig() {
                             </div>
                         )}
 
-                        {/* ── Navigation buttons ── */}
+                        {/*Navigation buttons*/}
                         <div className={`flex gap-3 mt-8 ${step > 0 ? "justify-between" : "justify-end"}`}>
                             {step > 0 && (
                                 <button

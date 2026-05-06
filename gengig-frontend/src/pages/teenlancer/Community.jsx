@@ -179,7 +179,7 @@ export default function Community() {
 
             <div className="flex flex-col lg:flex-row gap-6">
 
-                {/* ── Main Feed ── */}
+                {/* Main Feed */}
                 <div className="flex-1 flex flex-col gap-5">
 
                     <div className="flex items-center justify-between">
@@ -312,7 +312,6 @@ export default function Community() {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <p className="text-white text-sm font-semibold">{post.user?.name}</p>
-                                                    {/* ✅ Only show Message button if it's not the current user's post */}
                                                     {post.user?.id && post.user.id !== currentUserId && (
                                                         <button
                                                             onClick={() => startConversation({ id: post.user.id, name: post.user.name, photo: post.user.img })}

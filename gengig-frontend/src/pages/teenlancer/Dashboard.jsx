@@ -113,7 +113,6 @@ export default function TeenlancerDashboard() {
 
       ) : !hasActivity ? (
 
-        /* ── Empty State ── */
         <div className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)" }}>
           <div className="relative mb-6">
@@ -136,7 +135,6 @@ export default function TeenlancerDashboard() {
             Explore Gigs
           </button>
 
-          {/* Quick tips */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
               { icon: "👤", title: "Complete your profile", desc: "A full profile gets 3x more attention from agents", action: () => navigate("/teenlancer/profile") },
@@ -156,7 +154,6 @@ export default function TeenlancerDashboard() {
 
       ) : (
 
-        /* ── Has Activity ── */
         <div className="flex flex-col gap-6">
 
           {/* Active Gigs */}
@@ -199,7 +196,6 @@ export default function TeenlancerDashboard() {
             </div>
           )}
 
-          {/* ✅ My Applications — with status + chat button if accepted */}
           {myApplications.length > 0 && (
             <div className="p-6 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -230,7 +226,6 @@ export default function TeenlancerDashboard() {
                           {style.label}
                         </span>
 
-                        {/* ✅ Chat button — only unlocked when accepted */}
                         {app.status === "accepted" && (
                           <button
                             onClick={() => navigate("/teenlancer/chat", {
@@ -242,7 +237,6 @@ export default function TeenlancerDashboard() {
                           </button>
                         )}
 
-                        {/* Explore more if rejected */}
                         {app.status === "rejected" && (
                           <button onClick={() => navigate("/Exploreagig")}
                             className="text-xs px-3 py-1.5 rounded-full font-medium hover:opacity-80 transition-opacity"
@@ -294,7 +288,6 @@ export default function TeenlancerDashboard() {
             </div>
           )}
 
-          {/* Earnings Summary — only when real data exists */}
           {stats && stats.totalEarnings !== "$0" && (
             <div className="p-6 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>

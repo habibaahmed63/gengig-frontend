@@ -66,7 +66,6 @@ export default function GengigChatbot() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // ← REMOVED: const token = localStorage.getItem("token") from here
 
   useEffect(() => {
     if (isOpen) {
@@ -79,11 +78,9 @@ export default function GengigChatbot() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
-    // ← Read token and role fresh on every send so they're never stale
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
 
-    // ← Guard: if no token yet, show friendly message instead of hitting backend
     if (!token) {
       setMessages((prev) => [
         ...prev,
@@ -107,17 +104,16 @@ export default function GengigChatbot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + token, // ← token is always fresh now
+          "Authorization": "Bearer " + token,
         },
         body: JSON.stringify({
           message: userMessage.content,
           sessionId: "session-001",
-          userType: role || "teenlancer", // ← dynamic from localStorage, not hardcoded
+          userType: role || "teenlancer",
         }),
       });
 
       if (!response.ok) {
-        // ← Handle specific status codes with clear messages
         if (response.status === 401) {
           throw new Error("unauthorized");
         }
@@ -198,7 +194,6 @@ export default function GengigChatbot() {
         )}
       </button>
 
-      {/* Chat Window */}
       {isOpen && (
         <div
           className="fixed bottom-24 left-6 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
@@ -208,7 +203,6 @@ export default function GengigChatbot() {
             height: "480px",
           }}
         >
-          {/* Header */}
           <div
             className="flex items-center justify-between px-4 py-3 flex-shrink-0"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
@@ -236,7 +230,6 @@ export default function GengigChatbot() {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -264,7 +257,6 @@ export default function GengigChatbot() {
               </div>
             ))}
 
-            {/* Loading indicator */}
             {loading && (
               <div className="flex justify-start">
                 <div
@@ -291,7 +283,6 @@ export default function GengigChatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestions (only on first message) */}
           {messages.length === 1 && (
             <div className="px-4 pb-2 flex flex-wrap gap-2 flex-shrink-0">
               {suggestions.map((s) => (
@@ -307,7 +298,6 @@ export default function GengigChatbot() {
             </div>
           )}
 
-          {/* Input */}
           <div
             className="flex items-center gap-2 p-3 flex-shrink-0"
             style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}

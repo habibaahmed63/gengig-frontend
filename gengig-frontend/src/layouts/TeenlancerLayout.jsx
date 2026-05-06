@@ -9,11 +9,9 @@ export default function TeenlancerLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
 
-    // ✅ useState instead of direct localStorage read — so it re-renders on update
     const [name, setName] = useState(localStorage.getItem("name") || "My Profile");
     const [photo, setPhoto] = useState(localStorage.getItem("photo") || null);
 
-    // ✅ Listen for storage event fired from Profile.jsx after save
     useEffect(() => {
         const handleStorageUpdate = () => {
             setPhoto(localStorage.getItem("photo") || null);
@@ -74,7 +72,6 @@ export default function TeenlancerLayout({ children }) {
 
     const SidebarContent = ({ isCollapsed = false }) => (
         <>
-            {/* Collapse Toggle */}
             <button
                 onClick={() => setCollapsed(!isCollapsed)}
                 className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full mb-6 self-end hover:opacity-80 transition-opacity flex-shrink-0"
@@ -87,7 +84,6 @@ export default function TeenlancerLayout({ children }) {
                 </svg>
             </button>
 
-            {/* Profile — uses reactive photo/name state */}
             <Link
                 to="/teenlancer/profile"
                 className="flex items-center gap-3 mb-8 group flex-shrink-0"
@@ -111,7 +107,6 @@ export default function TeenlancerLayout({ children }) {
                 )}
             </Link>
 
-            {/* Nav Items */}
             <nav className="flex flex-col gap-1">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -143,7 +138,6 @@ export default function TeenlancerLayout({ children }) {
             <Navbar />
             <div className="flex relative">
 
-                {/* Mobile Toggle */}
                 <button
                     className="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
@@ -154,13 +148,11 @@ export default function TeenlancerLayout({ children }) {
                     </svg>
                 </button>
 
-                {/* Mobile Overlay */}
                 {sidebarOpen && (
                     <div className="lg:hidden fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.5)" }}
                         onClick={() => setSidebarOpen(false)} />
                 )}
 
-                {/* Mobile Drawer */}
                 <div
                     className="lg:hidden fixed top-0 left-0 h-full z-50 w-64 py-8 px-4 flex flex-col transition-transform duration-300"
                     style={{ background: "#060834", transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
@@ -169,7 +161,6 @@ export default function TeenlancerLayout({ children }) {
                     <SidebarContent isCollapsed={false} />
                 </div>
 
-                {/* Desktop Sidebar */}
                 <aside
                     className="hidden lg:flex flex-col py-8 px-4 flex-shrink-0 min-h-screen transition-all duration-300"
                     style={{ width: collapsed ? "64px" : "208px", background: "#060834", borderRight: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}
@@ -177,7 +168,6 @@ export default function TeenlancerLayout({ children }) {
                     <SidebarContent isCollapsed={collapsed} />
                 </aside>
 
-                {/* Main Content */}
                 <main className="flex-1 p-4 md:p-8">
                     {children}
                 </main>

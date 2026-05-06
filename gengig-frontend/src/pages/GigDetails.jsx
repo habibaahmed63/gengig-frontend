@@ -104,17 +104,14 @@ export default function GigDetails() {
                 </p>
                 <div className="flex flex-col lg:flex-row gap-8">
 
-                    {/* Left - Main Content */}
                     <div className="flex-1 flex flex-col gap-6">
 
-                        {/* Hero Image */}
                         {gig.img && (
                             <div className="w-full h-48 md:h-72 rounded-2xl overflow-hidden">
                                 <img src={gig.img} alt={gig.title} className="w-full h-full object-cover" />
                             </div>
                         )}
 
-                        {/* Title + Meta */}
                         <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                                 <div>
@@ -144,7 +141,6 @@ export default function GigDetails() {
                             </div>
                         </div>
 
-                        {/* Description */}
                         {gig.description && (
                             <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <h2 className="text-white font-semibold mb-4">About This Gig</h2>
@@ -154,7 +150,6 @@ export default function GigDetails() {
                             </div>
                         )}
 
-                        {/* Requirements */}
                         {gig.requirements && gig.requirements.length > 0 && (
                             <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <h2 className="text-white font-semibold mb-4">Requirements</h2>
@@ -169,7 +164,6 @@ export default function GigDetails() {
                             </div>
                         )}
 
-                        {/* Skills */}
                         {gig.skills && gig.skills.length > 0 && (
                             <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <h2 className="text-white font-semibold mb-4">Required Skills</h2>
@@ -184,10 +178,8 @@ export default function GigDetails() {
                         )}
                     </div>
 
-                    {/* Right - Sidebar */}
                     <div className="w-full lg:w-80 flex flex-col gap-6 flex-shrink-0">
 
-                        {/* Apply Card */}
                         <div className="p-6 rounded-2xl sticky top-28" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <div className="flex items-center justify-between mb-4">
                                 <div>
@@ -222,7 +214,6 @@ export default function GigDetails() {
                             </div>
                         </div>
 
-                        {/* Agent Info */}
                         {gig.agent && (
                             <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <h2 className="text-white font-semibold mb-4">About the Agent</h2>
@@ -261,7 +252,6 @@ export default function GigDetails() {
                     </div>
                 </div>
 
-                {/* Related Gigs */}
                 {relatedGigs.length > 0 && (
                     <div className="mt-12">
                         <h2 className="text-white font-bold mb-6" style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)" }}>

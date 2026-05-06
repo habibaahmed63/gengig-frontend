@@ -143,7 +143,7 @@ export default function MyGigs() {
                 </button>
             </div>
 
-            {/* Summary stats — dynamic from gigs array */}
+            {/*Summary stats*/}
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                     {[...Array(4)].map((_, i) => (
@@ -174,7 +174,7 @@ export default function MyGigs() {
                 </div>
             )}
 
-            {/* Search + Filter */}
+            {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <div className="flex items-center gap-2 flex-1 rounded-xl px-4 py-2.5"
                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -317,14 +317,13 @@ export default function MyGigs() {
                 </div>
             )}
 
-            {/* ── GIG DETAIL DRAWER ──────────────────────────────────── */}
+            {/*GIGS DETAILS*/}
             {selectedGig && (
                 <div className="fixed inset-0 z-50 flex">
                     <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={closeDetail} />
                     <div className="w-full max-w-2xl flex flex-col overflow-hidden"
                         style={{ background: "#090c28", borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
 
-                        {/* Drawer header */}
                         <div className="flex items-start justify-between p-6 flex-shrink-0"
                             style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                             <div className="flex-1 min-w-0 pr-4">
@@ -355,7 +354,6 @@ export default function MyGigs() {
                             </button>
                         </div>
 
-                        {/* Tabs */}
                         <div className="flex flex-shrink-0"
                             style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                             {["overview", "applications", "timeline"].map(tab => (
@@ -376,7 +374,6 @@ export default function MyGigs() {
                             ))}
                         </div>
 
-                        {/* Drawer body */}
                         <div className="flex-1 overflow-y-auto p-6">
                             {detailLoading ? (
                                 <div className="flex justify-center py-20">
@@ -385,10 +382,8 @@ export default function MyGigs() {
                                 </div>
                             ) : gigDetail ? (
                                 <>
-                                    {/* ── OVERVIEW TAB ── */}
                                     {activeTab === "overview" && (
                                         <div className="flex flex-col gap-5">
-                                            {/* Stats */}
                                             <div className="grid grid-cols-3 gap-3">
                                                 {[
                                                     { label: "Applications", value: gigDetail.applications?.length ?? 0, icon: "👥" },
@@ -404,7 +399,6 @@ export default function MyGigs() {
                                                 ))}
                                             </div>
 
-                                            {/* Application status breakdown — only if there are applications */}
                                             {(gigDetail.applications?.length ?? 0) > 0 && (
                                                 <div className="p-4 rounded-xl"
                                                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -429,7 +423,6 @@ export default function MyGigs() {
                                                 </div>
                                             )}
 
-                                            {/* Gig details */}
                                             <div className="p-4 rounded-xl"
                                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                                 <p className="text-sm font-semibold text-white mb-3">Gig Details</p>
@@ -468,7 +461,6 @@ export default function MyGigs() {
                                                 </div>
                                             </div>
 
-                                            {/* Gig actions */}
                                             <div className="flex gap-3">
                                                 <button
                                                     onClick={() => navigate(`/post?edit=${gigDetail.id}`)}
@@ -508,7 +500,7 @@ export default function MyGigs() {
                                         </div>
                                     )}
 
-                                    {/* ── APPLICATIONS TAB ── */}
+                                    {/*APPLICATIONS */}
                                     {activeTab === "applications" && (
                                         <div className="flex flex-col gap-4">
                                             {!gigDetail.applications || gigDetail.applications.length === 0 ? (
@@ -581,7 +573,6 @@ export default function MyGigs() {
                                                             </div>
                                                         )}
 
-                                                        {/* Footer */}
                                                         <div className="flex items-center justify-between pt-3"
                                                             style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                                                             <span className="text-xs" style={{ color: "#B2B2D2" }}>
@@ -623,7 +614,7 @@ export default function MyGigs() {
                                         </div>
                                     )}
 
-                                    {/* ── TIMELINE TAB ── */}
+                                    {/* ── TIMELINE ── */}
                                     {activeTab === "timeline" && (
                                         <div className="flex flex-col gap-0">
                                             {!gigDetail.timeline || gigDetail.timeline.length === 0 ? (

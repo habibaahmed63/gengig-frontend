@@ -15,7 +15,6 @@ export default function PublicProfile() {
         const fetchProfile = async () => {
             setLoading(true);
             try {
-                // ✅ Uses slug instead of ID — GET /users/:slug
                 const res = await api.get(`/users/${slug}`);
                 setProfile(res.data);
             } catch (err) {
@@ -103,7 +102,7 @@ export default function PublicProfile() {
                             {profile.reviews?.length > 0 && <span>💬 {profile.reviews.length} reviews</span>}
                         </div>
                     </div>
-                    {/* Message button — only show if logged in and not own profile */}
+                    {/* Message button*/}
                     {localStorage.getItem("token") && localStorage.getItem("slug") !== slug && (
                         <button
                             onClick={() => navigate("/teenlancer/chat", {
@@ -118,10 +117,8 @@ export default function PublicProfile() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {/* Left */}
                     <div className="flex flex-col gap-6">
 
-                        {/* Bio */}
                         {profile.bio && (
                             <div className="p-6 rounded-2xl"
                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -185,10 +182,9 @@ export default function PublicProfile() {
                         )}
                     </div>
 
-                    {/* Right */}
                     <div className="lg:col-span-2 flex flex-col gap-6">
 
-                        {/* Portfolio — teenlancers only */}
+                        {/* Portfolio*/}
                         {profile.role === "teenlancer" && profile.portfolio?.length > 0 && (
                             <div className="p-6 rounded-2xl"
                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>

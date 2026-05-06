@@ -28,7 +28,6 @@ export default function ForgotPassword() {
         return () => clearTimeout(t);
     }, [resendTimer, step]);
 
-    // ── Step 1: Send reset email ──
     const handleSendEmail = async (e) => {
         e.preventDefault();
         if (!email.trim()) { setError("Please enter your email."); return; }
@@ -45,7 +44,6 @@ export default function ForgotPassword() {
         }
     };
 
-    // ── Step 2: Code input handlers ──
     const handleCodeChange = (index, value) => {
         if (!/^\d*$/.test(value)) return;
         const newCode = [...code];
@@ -70,7 +68,6 @@ export default function ForgotPassword() {
         }
     };
 
-    // ── Step 2: Verify code ──
     const handleVerifyCode = async () => {
         const fullCode = code.join("");
         if (fullCode.length < 6) { setError("Please enter the full 6-digit code."); return; }
@@ -88,7 +85,6 @@ export default function ForgotPassword() {
         }
     };
 
-    // ── Step 2: Resend code ──
     const handleResend = async () => {
         setError("");
         try {
@@ -101,7 +97,6 @@ export default function ForgotPassword() {
         }
     };
 
-    // ── Step 3: Reset password ──
     const handleResetPassword = async (e) => {
         e.preventDefault();
         if (!passwords.newPassword || passwords.newPassword.length < 6) {
@@ -127,7 +122,6 @@ export default function ForgotPassword() {
         }
     };
 
-    // ── Success Screen ──
     if (done) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: "#060834" }}>
@@ -158,7 +152,6 @@ export default function ForgotPassword() {
                 <div className="w-full max-w-md p-8 rounded-3xl flex flex-col items-center text-center gap-6"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
 
-                    {/* Step Indicators */}
                     <div className="flex items-center gap-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex items-center gap-2">
@@ -177,7 +170,6 @@ export default function ForgotPassword() {
                         ))}
                     </div>
 
-                    {/* ── STEP 1: Email ── */}
                     {step === 1 && (
                         <>
                             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
@@ -221,7 +213,6 @@ export default function ForgotPassword() {
                         </>
                     )}
 
-                    {/* ── STEP 2: Code ── */}
                     {step === 2 && (
                         <>
                             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
@@ -289,7 +280,6 @@ export default function ForgotPassword() {
                         </>
                     )}
 
-                    {/* ── STEP 3: New Password ── */}
                     {step === 3 && (
                         <>
                             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"

@@ -20,10 +20,8 @@ export default function PaymentSuccess() {
         <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
             style={{ background: "#060834" }}>
 
-            {/* Logo */}
             <img src={logo} alt="Gengig" className="w-12 h-12 object-contain mb-10" />
 
-            {/* Success icon */}
             <div className="relative mb-8">
                 <div className="absolute inset-0 rounded-full animate-ping opacity-10"
                     style={{ background: "#4ade80" }} />
@@ -47,11 +45,9 @@ export default function PaymentSuccess() {
                 You will be redirected to your dashboard in 5 seconds.
             </p>
 
-            {/* Divider */}
             <div className="w-12 h-0.5 rounded-full mb-10"
                 style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }} />
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3">
                 <button onClick={() => navigate(dashboardPath)}
                     className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
@@ -65,7 +61,6 @@ export default function PaymentSuccess() {
                 </button>
             </div>
 
-            {/* Countdown indicator */}
             <p className="text-xs mt-8" style={{ color: "rgba(178,178,210,0.4)" }}>
                 Redirecting automatically in 5 seconds...
             </p>

@@ -72,7 +72,6 @@ export default function AgentLayout({ children }) {
 
     const SidebarContent = ({ isCollapsed = false }) => (
         <>
-            {/* Collapse Toggle */}
             <button
                 onClick={() => setCollapsed(!isCollapsed)}
                 className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full mb-6 self-end hover:opacity-80 transition-opacity flex-shrink-0"
@@ -86,7 +85,6 @@ export default function AgentLayout({ children }) {
                 </svg>
             </button>
 
-            {/* Profile — uses reactive photo/name state */}
             <Link
                 to="/agent/profile"
                 className="flex items-center gap-3 mb-8 group flex-shrink-0"
@@ -110,7 +108,6 @@ export default function AgentLayout({ children }) {
                 )}
             </Link>
 
-            {/* Nav Items */}
             <nav className="flex flex-col gap-1">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -142,7 +139,6 @@ export default function AgentLayout({ children }) {
             <Navbar />
             <div className="flex relative">
 
-                {/* Mobile Toggle */}
                 <button
                     className="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
@@ -153,13 +149,11 @@ export default function AgentLayout({ children }) {
                     </svg>
                 </button>
 
-                {/* Mobile Overlay */}
                 {sidebarOpen && (
                     <div className="lg:hidden fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.5)" }}
                         onClick={() => setSidebarOpen(false)} />
                 )}
 
-                {/* Mobile Drawer */}
                 <div
                     className="lg:hidden fixed top-0 left-0 h-full z-50 w-64 py-8 px-4 flex flex-col transition-transform duration-300"
                     style={{ background: "#060834", transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
@@ -169,7 +163,6 @@ export default function AgentLayout({ children }) {
                     <SidebarContent isCollapsed={false} />
                 </div>
 
-                {/* Desktop Sidebar */}
                 <aside
                     className="hidden lg:flex flex-col py-8 px-4 flex-shrink-0 min-h-screen transition-all duration-300"
                     style={{
@@ -182,7 +175,6 @@ export default function AgentLayout({ children }) {
                     <SidebarContent isCollapsed={collapsed} />
                 </aside>
 
-                {/* Main Content */}
                 <main className="flex-1 p-4 md:p-8">
                     {children}
                 </main>

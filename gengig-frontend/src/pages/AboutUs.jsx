@@ -86,9 +86,7 @@ export default function AboutUs() {
                 </div>
             </nav>
 
-            {/* ── 1. HERO ── kept as-is per your request ── */}
             <section className="text-center px-6 py-28 relative overflow-hidden">
-                {/* Background glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none"
                     style={{ background: "radial-gradient(ellipse, rgba(255,192,133,0.06) 0%, transparent 70%)" }} />
 
@@ -112,7 +110,6 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 2. MISSION & VISION — kept as-is, visual upgrade ── */}
             <section className="px-6 md:px-16 py-20" style={{ background: "rgba(255,255,255,0.015)" }}>
                 <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -157,7 +154,7 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 3. VALUES — kept as-is, visual upgrade ── */}
+            {/*VALUES*/}
             <section className="px-6 md:px-16 py-24">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-16">
@@ -182,7 +179,7 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 4. STATS — visual upgrade replacing old plain cards ── */}
+            {/*STATS*/}
             <section className="px-6 md:px-16 py-24 relative overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.015)" }}>
                 <div className="absolute inset-0 pointer-events-none"
@@ -210,7 +207,7 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 5. TEAM — new visual design, initials instead of emojis ── */}
+            {/*TEAM*/}
             <section className="px-6 md:px-16 py-24">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-16">
@@ -225,14 +222,12 @@ export default function AboutUs() {
                                 <div key={member.name}
                                     className="p-6 rounded-3xl text-center group transition-all duration-300 hover:translate-y-[-4px]"
                                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                                    {/* Avatar with initials */}
                                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-lg"
                                         style={{ background: `${color}15`, border: `1.5px solid ${color}30`, color }}>
                                         {member.initials}
                                     </div>
                                     <p className="text-white font-semibold text-sm mb-1">{member.name}</p>
                                     <p className="text-xs" style={{ color: "#B2B2D2" }}>{member.role}</p>
-                                    {/* Accent line */}
                                     <div className="w-8 h-0.5 mx-auto mt-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                         style={{ background: color }} />
                                 </div>
@@ -242,7 +237,7 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 6. HOW WE WORK — new section replacing old plain team section ── */}
+            {/*HOW WE WORK */}
             <section className="px-6 md:px-16 py-24" style={{ background: "rgba(255,255,255,0.015)" }}>
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-16">
@@ -250,7 +245,6 @@ export default function AboutUs() {
                         <p className="text-sm" style={{ color: "#B2B2D2" }}>Gengig is not just another freelance platform</p>
                     </div>
 
-                    {/* Horizontal feature row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
                             {
@@ -287,14 +281,13 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/* ── 7. CTA — kept as-is per your request, visual upgrade ── */}
+            {/*CTA*/}
             <section className="px-6 md:px-16 py-28 relative overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none"
                     style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(255,192,133,0.07) 0%, transparent 60%)" }} />
                 <div className="max-w-2xl mx-auto text-center relative z-10">
                     <div className="p-12 rounded-3xl"
                         style={{ background: "linear-gradient(135deg, rgba(255,192,133,0.1), rgba(232,160,96,0.04))", border: "1px solid rgba(255,192,133,0.18)" }}>
-                        {/* Decorative top line */}
                         <div className="w-12 h-1 rounded-full mx-auto mb-8"
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }} />
                         <h2 className="text-white font-bold text-3xl mb-4 tracking-tight">

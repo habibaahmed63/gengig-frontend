@@ -300,9 +300,7 @@ export default function AgentProfile() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column */}
                 <div className="flex flex-col gap-6">
-                    {/* Bio */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <h2 className="text-white font-semibold mb-3">About Me</h2>
                         {editMode ? (
@@ -320,7 +318,7 @@ export default function AgentProfile() {
                         )}
                     </div>
 
-                    {/* Company Info — edit only */}
+                    {/* Company Info*/}
                     {editMode && (
                         <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <h2 className="text-white font-semibold mb-4">Company Info</h2>
@@ -378,7 +376,6 @@ export default function AgentProfile() {
                     </div>
                 </div>
 
-                {/* Right Column */}
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     {/* Posted Gigs */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
