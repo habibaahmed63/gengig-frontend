@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import heroImg from "../assets/hero section.png";
+import logo from "../assets/Gengig LOGO.png";
 import api from "../services/api";
 
 const categories = [
@@ -45,24 +46,24 @@ const fallbackTestimonials = [
 
 export default function Home() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("For Agents");
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     const name = localStorage.getItem("name") || "";
+    const isGuest = !token;
 
+    const [activeTab, setActiveTab] = useState("For Agents");
     const [featuredGigs, setFeaturedGigs] = useState([]);
     const [gigsLoading, setGigsLoading] = useState(true);
     const [testimonials, setTestimonials] = useState(fallbackTestimonials);
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+    const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+    const [newsletterLoading, setNewsletterLoading] = useState(false);
     const [stats, setStats] = useState({
         teenlancers: "500+",
         agents: "200+",
         gigs: "1,000+",
         rating: "4.8★",
     });
-
-    const [newsletterEmail, setNewsletterEmail] = useState("");
-    const [newsletterSuccess, setNewsletterSuccess] = useState(false);
-    const [newsletterLoading, setNewsletterLoading] = useState(false);
 
     useEffect(() => {
         const fetchHomeData = async () => {
@@ -90,12 +91,9 @@ export default function Home() {
     }, []);
 
     const handleCategoryClick = (categoryLabel) => {
-        const role = localStorage.getItem("role");
-        if (role === "agent") {
-            navigate(`/teenlancers/category/${encodeURIComponent(categoryLabel)}`);
-        } else {
-            navigate(`/gigs/category/${encodeURIComponent(categoryLabel)}`);
-        }
+        if (!token) { navigate("/signup"); return; }
+        if (role === "agent") navigate(`/teenlancers/category/${encodeURIComponent(categoryLabel)}`);
+        else navigate(`/gigs/category/${encodeURIComponent(categoryLabel)}`);
     };
 
     const handleNewsletter = async (e) => {
@@ -104,35 +102,58 @@ export default function Home() {
         setNewsletterLoading(true);
         try {
             await api.post("/newsletter/subscribe", { email: newsletterEmail });
-            setNewsletterSuccess(true);
-            setNewsletterEmail("");
         } catch (err) {
             console.error("Newsletter subscription failed:", err);
+        } finally {
             setNewsletterSuccess(true);
             setNewsletterEmail("");
-        } finally {
             setNewsletterLoading(false);
         }
     };
 
-    const formatBudget = (budget) => {
-        if (!budget) return "";
-        const str = String(budget);
-        return str.startsWith("$") ? str : `$${str}`;
-    };
-
     return (
         <div style={{ background: "#060834" }}>
-            <Navbar />
 
-            {/*HERO */}
-            <section
-                className="relative min-h-screen flex items-center px-6 md:px-16"
-                style={{ backgroundImage: `url(${heroImg})`, backgroundSize: "cover", backgroundPosition: "center" }}
-            >
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(6,8,52,0.95) 50%, rgba(6,8,52,0.3))" }} />
+            {/* ── HEADER — guest sees signup/login, logged-in sees Navbar ── */}
+            {isGuest ? (
+                <nav className="flex items-center justify-between px-6 md:px-12 py-4 sticky top-0 z-50"
+                    style={{
+                        background: "rgba(6,8,52,0.85)",
+                        backdropFilter: "blur(12px)",
+                        borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    }}>
+                    <Link to="/">
+                        <img src={logo} alt="Gengig" className="w-14 h-14 object-contain" />
+                    </Link>
+                    <div className="flex items-center gap-6 text-sm" style={{ color: "#B2B2D2" }}>
+                        <Link to="/about" className="hover:text-white transition-colors hidden sm:block">About</Link>
+                        <Link to="/Exploreagig" className="hover:text-white transition-colors hidden sm:block">Explore</Link>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => navigate("/signin")}
+                            className="px-5 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition-all"
+                            style={{ color: "white", border: "1px solid rgba(255,255,255,0.2)" }}>
+                            Sign In
+                        </button>
+                        <button onClick={() => navigate("/signup")}
+                            className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                            Get Started
+                        </button>
+                    </div>
+                </nav>
+            ) : (
+                <Navbar />
+            )}
+
+            {/* ── HERO ── */}
+            <section className="relative min-h-screen flex items-center px-6 md:px-16"
+                style={{ backgroundImage: `url(${heroImg})`, backgroundSize: "cover", backgroundPosition: "center" }}>
+                <div className="absolute inset-0"
+                    style={{ background: "linear-gradient(to right, rgba(6,8,52,0.95) 50%, rgba(6,8,52,0.3))" }} />
                 <div className="relative z-10 max-w-xl">
-                    <h1 className="font-bold text-white leading-tight mb-4" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+                    <h1 className="font-bold text-white leading-tight mb-4"
+                        style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
                         Empowering the Next Generation of Creators and{" "}
                         <span className="text-gradient">Doers</span>
                     </h1>
@@ -141,40 +162,33 @@ export default function Home() {
                     </p>
                     <div className="flex flex-wrap gap-4">
                         {token ? (
-                            <Link
-                                to={role === "teenlancer" ? "/teenlancer/dashboard" : "/agent/dashboard"}
+                            <Link to={role === "teenlancer" ? "/teenlancer/dashboard" : "/agent/dashboard"}
                                 className="px-6 py-3 rounded-full font-semibold text-white text-sm hover:opacity-80 hover:scale-105 transition-all duration-200"
-                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                            >
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 Go to Dashboard
                             </Link>
                         ) : (
                             <>
-                                <Link
-                                    to="/post"
+                                <button onClick={() => navigate("/signup")}
                                     className="px-6 py-3 rounded-full font-semibold text-white text-sm hover:opacity-80 hover:scale-105 transition-all duration-200"
-                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                                >
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                     Hire Now
-                                </Link>
-                                <Link
-                                    to="/signup"
+                                </button>
+                                <button onClick={() => navigate("/signup")}
                                     className="px-6 py-3 rounded-full font-semibold text-sm text-white border hover:bg-white/20 hover:scale-105 transition-all duration-200"
-                                    style={{ borderColor: "rgba(255,255,255,0.4)" }}
-                                >
+                                    style={{ borderColor: "rgba(255,255,255,0.4)" }}>
                                     Join as a Teenlancer
-                                </Link>
+                                </button>
                             </>
                         )}
                     </div>
-
                     <div className="flex flex-wrap gap-6 mt-10">
                         {[
                             { value: stats.teenlancers, label: "Teenlancers" },
                             { value: stats.agents, label: "Agents" },
                             { value: stats.gigs, label: "Gigs Done" },
                             { value: stats.rating, label: "Avg Rating" },
-                        ].map((s) => (
+                        ].map(s => (
                             <div key={s.label}>
                                 <p className="font-bold text-white text-lg">{s.value}</p>
                                 <p className="text-xs" style={{ color: "#B2B2D2" }}>{s.label}</p>
@@ -184,20 +198,19 @@ export default function Home() {
                 </div>
             </section>
 
-            {/*EXPLORE GENGIG*/}
+            {/* ── EXPLORE GENGIG ── */}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="font-bold text-white mb-3 italic" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                    <h2 className="font-bold text-white mb-3 italic"
+                        style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                         Because every great gig starts with a click
                     </h2>
                     <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Explore what Gengig has to offer</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {features.map((f) => (
-                            <div
-                                key={f.title}
+                        {features.map(f => (
+                            <div key={f.title}
                                 className="p-8 rounded-2xl text-left hover:scale-105 hover:border-[#FFC085] transition-all duration-300 cursor-default"
-                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                            >
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <div className="text-4xl mb-4">{f.icon}</div>
                                 <h3 className="text-white font-semibold mb-2 text-lg">{f.title}</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>{f.desc}</p>
@@ -207,26 +220,25 @@ export default function Home() {
                 </div>
             </section>
 
-            {/*HOW IT WORKS*/}
+            {/* ── HOW IT WORKS ── */}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#060834" }}>
                 <div className="max-w-5xl mx-auto">
-                    <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                    <h2 className="font-bold text-white mb-3"
+                        style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                         How It <span className="text-gradient">Works</span>
                     </h2>
                     <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Get started in just a few simple steps</p>
 
                     <div className="flex justify-center mb-12">
-                        <div className="flex rounded-full p-1" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                            {["For Agents", "For Teenlancers"].map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
+                        <div className="flex rounded-full p-1"
+                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                            {["For Agents", "For Teenlancers"].map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)}
                                     className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
                                     style={{
                                         background: activeTab === tab ? "linear-gradient(90deg, #FFC085, #e8a060)" : "transparent",
                                         color: activeTab === tab ? "white" : "#B2B2D2",
-                                    }}
-                                >
+                                    }}>
                                     {tab}
                                 </button>
                             ))}
@@ -244,19 +256,17 @@ export default function Home() {
                                 <div className="text-4xl mb-4">{step.icon}</div>
                                 <h3 className="text-white font-semibold mb-2 text-lg">{step.title}</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>{step.desc}</p>
-                                {i < 2 && (
-                                    <div className="hidden md:block absolute top-10 -right-4 text-2xl" style={{ color: "#FFC085" }}></div>
-                                )}
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/*CATEGORIES*/}
+            {/* ── CATEGORIES ── */}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                    <h2 className="font-bold text-white mb-3"
+                        style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                         Browse by <span className="text-gradient">Category</span>
                     </h2>
                     <p className="text-sm mb-6" style={{ color: "#B2B2D2" }}>
@@ -265,13 +275,10 @@ export default function Home() {
                             : "Find the perfect gig for your skills"}
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.label}
-                                onClick={() => handleCategoryClick(cat.label)}
+                        {categories.map(cat => (
+                            <button key={cat.label} onClick={() => handleCategoryClick(cat.label)}
                                 className="flex flex-col items-center gap-3 p-6 rounded-2xl group hover:scale-105 hover:border-[#FFC085] transition-all duration-300"
-                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                            >
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"
                                     style={{ background: "rgba(255,192,133,0.1)" }}>
                                     {cat.icon}
@@ -280,56 +287,74 @@ export default function Home() {
                             </button>
                         ))}
                     </div>
+
+                    {/* Guest CTA under categories */}
+                    {isGuest && (
+                        <div className="mt-12 p-8 rounded-3xl max-w-xl mx-auto"
+                            style={{ background: "linear-gradient(135deg, rgba(255,192,133,0.1), rgba(232,160,96,0.04))", border: "1px solid rgba(255,192,133,0.2)" }}>
+                            <p className="text-white font-semibold mb-2">Ready to explore?</p>
+                            <p className="text-sm mb-5" style={{ color: "#B2B2D2" }}>
+                                Create a free account to apply for gigs or post your first project.
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <button onClick={() => navigate("/signup")}
+                                    className="px-6 py-2.5 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                                    Create Account
+                                </button>
+                                <button onClick={() => navigate("/signin")}
+                                    className="px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-white/10 transition-all"
+                                    style={{ color: "white", border: "1px solid rgba(255,255,255,0.2)" }}>
+                                    Sign In
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/*BANNER*/}
-            <section
-                className="py-24 px-6 md:px-16 relative overflow-hidden"
-                style={{ backgroundImage: "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600)", backgroundSize: "cover", backgroundPosition: "center" }}
-            >
+            {/* ── BANNER ── */}
+            <section className="py-24 px-6 md:px-16 relative overflow-hidden"
+                style={{ backgroundImage: "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600)", backgroundSize: "cover", backgroundPosition: "center" }}>
                 <div className="absolute inset-0" style={{ background: "rgba(6,8,52,0.82)" }} />
                 <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                     <div>
-                        <h2 className="font-bold text-white text-center md:text-left mb-3" style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}>
+                        <h2 className="font-bold text-white text-center md:text-left mb-3"
+                            style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}>
                             Every Skill Deserves A <span className="text-gradient">Chance</span>
                         </h2>
                         <p className="text-sm" style={{ color: "#B2B2D2" }}>
-                            {role === "agent"
-                                ? "Post your gig and find the right teenlancer today."
-                                : "Apply to gigs and start building your career today."}
+                            {isGuest || role !== "agent"
+                                ? "Apply to gigs and start building your career today."
+                                : "Post your gig and find the right teenlancer today."}
                         </p>
                     </div>
-                    <Link
-                        to="/Exploreagig"
+                    <button
+                        onClick={() => isGuest ? navigate("/signup") : navigate("/Exploreagig")}
                         className="flex-shrink-0 px-10 py-4 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200 text-lg"
-                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                    >
-                        Explore a Gig
-                    </Link>
+                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                        {isGuest ? "Join Free" : "Explore a Gig"}
+                    </button>
                 </div>
             </section>
 
-
-
-            {/*WORK WITH CREATORS*/}
+            {/* ── WORK WITH CREATORS ── */}
             <section className="py-24 px-6 md:px-16" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 text-center lg:text-left">
-                        <h2 className="font-bold text-white mb-4" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                        <h2 className="font-bold text-white mb-4"
+                            style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                             Work With The Best{" "}
                             <span className="text-gradient">Of Creators</span>
                         </h2>
                         <p className="text-sm mb-8 leading-relaxed" style={{ color: "#B2B2D2" }}>
                             Connect with talented teenlancers who bring fresh perspectives, creative energy, and dedication to every project.
                         </p>
-                        <Link
-                            to="/signup"
+                        <button onClick={() => navigate(isGuest ? "/signup" : "/Exploreagig")}
                             className="inline-block px-8 py-3.5 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
-                            Hire Now
-                        </Link>
+                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                            {isGuest ? "Get Started Free" : "Hire Now"}
+                        </button>
                     </div>
                     <div className="flex-1 grid grid-cols-2 gap-4 w-full">
                         {[
@@ -345,18 +370,17 @@ export default function Home() {
                 </div>
             </section>
 
-            {/*ABOUT US*/}
+            {/* ── ABOUT US ── */}
             <section className="py-24 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 w-full">
-                        <img
-                            src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=600"
+                        <img src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=600"
                             alt="About Gengig"
-                            className="w-full h-72 md:h-96 object-cover rounded-2xl"
-                        />
+                            className="w-full h-72 md:h-96 object-cover rounded-2xl" />
                     </div>
                     <div className="flex-1 text-center lg:text-left">
-                        <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                        <h2 className="font-bold text-white mb-3"
+                            style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                             A bit <span className="text-gradient">About Us</span>
                         </h2>
                         <p className="text-sm mb-3 italic" style={{ color: "#FFC085" }}>
@@ -374,10 +398,11 @@ export default function Home() {
                 </div>
             </section>
 
-            {/*TESTIMONIALS*/}
+            {/* ── TESTIMONIALS ── */}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                    <h2 className="font-bold text-white mb-3"
+                        style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
                         What Our Clients Say <span className="text-gradient">About Us</span>
                     </h2>
                     <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Real stories from real people</p>
@@ -385,8 +410,7 @@ export default function Home() {
                         {testimonials.map((t, i) => (
                             <div key={i}
                                 className="p-8 rounded-2xl text-left flex flex-col gap-5 hover:scale-105 transition-all duration-300"
-                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                            >
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <div className="flex gap-0.5">
                                     {[...Array(5)].map((_, j) => (
                                         <span key={j} style={{ color: j < t.stars ? "#FFC085" : "#555" }}>★</span>
@@ -395,10 +419,8 @@ export default function Home() {
                                 <p className="text-sm leading-relaxed flex-1" style={{ color: "#B2B2D2" }}>"{t.text}"</p>
                                 <div className="flex items-center gap-3 pt-3"
                                     style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                                    <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}
-                                    >
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}>
                                         {t.name.charAt(0)}
                                     </div>
                                     <div>
@@ -412,7 +434,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/*NEWSLETTER*/}
+            {/* ── NEWSLETTER ── */}
             <section className="py-16 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-2xl mx-auto text-center">
                     <h3 className="text-white font-bold text-xl mb-2">Stay in the Loop</h3>
@@ -427,21 +449,14 @@ export default function Home() {
                         </div>
                     ) : (
                         <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-3">
-                            <input
-                                type="email"
-                                value={newsletterEmail}
+                            <input type="email" value={newsletterEmail}
                                 onChange={e => setNewsletterEmail(e.target.value)}
-                                placeholder="Enter your email address"
-                                required
+                                placeholder="Enter your email address" required
                                 className="flex-1 rounded-full px-5 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                            />
-                            <button
-                                type="submit"
-                                disabled={newsletterLoading}
+                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                            <button type="submit" disabled={newsletterLoading}
                                 className="px-6 py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
-                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                            >
+                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                                 {newsletterLoading ? "Subscribing..." : "Subscribe"}
                             </button>
                         </form>

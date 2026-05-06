@@ -183,7 +183,7 @@ export default function GigsByCategory() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {sorted.map(gig => (
-                        <div key={gig.id}
+                        <div key={gig._id}
                             className="p-5 rounded-2xl flex flex-col gap-4 hover:border-[rgba(255,192,133,0.3)] transition-colors"
                             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                         >
@@ -201,13 +201,13 @@ export default function GigsByCategory() {
                                     <h3 className="text-white font-semibold text-base leading-snug">{gig.title}</h3>
                                 </div>
                                 <button
-                                    onClick={() => handleSave(gig.id)}
+                                    onClick={() => handleSave(gig._id)}
                                     className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                                    style={{ background: savedGigs.includes(gig.id) ? "rgba(255,192,133,0.2)" : "rgba(255,255,255,0.05)" }}
-                                    title={savedGigs.includes(gig.id) ? "Unsave" : "Save gig"}
+                                    style={{ background: savedGigs.includes(gig._id) ? "rgba(255,192,133,0.2)" : "rgba(255,255,255,0.05)" }}
+                                    title={savedGigs.includes(gig._id) ? "Unsave" : "Save gig"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4"
-                                        fill={savedGigs.includes(gig.id) ? "#FFC085" : "none"}
+                                        fill={savedGigs.includes(gig._id) ? "#FFC085" : "none"}
                                         viewBox="0 0 24 24" stroke="#FFC085" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                                     </svg>
@@ -237,14 +237,14 @@ export default function GigsByCategory() {
                                 </span>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => navigate(`/gig/${gig.id}`)}
+                                        onClick={() => navigate(`/gig/${gig._id}`)}
                                         className="px-4 py-1.5 rounded-full text-sm font-medium hover:bg-white/10 transition-colors"
                                         style={{ border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
                                     >
                                         View
                                     </button>
                                     <button
-                                        onClick={() => navigate(`/gig/${gig.id}/apply`)}
+                                        onClick={() => navigate(`/gig/${gig._id}/apply`)}
                                         className="px-4 py-1.5 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
                                         style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                                     >

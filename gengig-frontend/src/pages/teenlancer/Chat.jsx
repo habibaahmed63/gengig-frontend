@@ -8,7 +8,10 @@ let socket = null;
 
 export default function TeenlancerChat() {
   const location = useLocation();
-  const currentUserId = localStorage.getItem("userId") || localStorage.getItem("id") || "";
+  const currentUserId = localStorage.getItem("userId")
+    || localStorage.getItem("id")
+    || localStorage.getItem("_id")
+    || "";
   const currentUserName = localStorage.getItem("name") || "";
 
   const [contacts, setContacts] = useState([]);
@@ -16,6 +19,7 @@ export default function TeenlancerChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [contactsLoading, setContactsLoading] = useState(true);
+  const [contactsError, setContactsError] = useState(false);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
@@ -23,7 +27,6 @@ export default function TeenlancerChat() {
   const [isTyping, setIsTyping] = useState(false);
   const [connected, setConnected] = useState(false);
   const [search, setSearch] = useState("");
-
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchUsers, setSearchUsers] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -33,6 +36,7 @@ export default function TeenlancerChat() {
   const typingTimerRef = useRef(null);
   const inputRef = useRef(null);
   const searchTimerRef = useRef(null);
+  const pollTimerRef = useRef(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,82 +44,137 @@ export default function TeenlancerChat() {
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  //  Socket.io //
+  // ── Socket.io ──
   useEffect(() => {
     const token = localStorage.getItem("token");
-    socket = io("http://localhost:3000", { auth: { token }, transports: ["websocket"] });
+    socket = io("http://localhost:3000", {
+      auth: { token },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 5,
+    });
 
     socket.on("connect", () => {
       setConnected(true);
       socket.emit("join", { userId: currentUserId });
     });
     socket.on("disconnect", () => setConnected(false));
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+      setConnected(false);
+    });
 
     socket.on("receive_message", (message) => {
       setMessages(prev => {
-        if (prev.find(m => m.id === message.id)) return prev;
+        const msgId = message._id || message.id;
+        if (prev.find(m => (m._id || m.id) === msgId)) return prev;
         return [...prev, message];
       });
-      setContacts(prev => prev.map(c =>
-        c.id === message.senderId
+      setContacts(prev => prev.map(c => {
+        const senderId = message.senderId || message.sender?._id || message.sender;
+        return String(c._id || c.id) === String(senderId)
           ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
-          : c
-      ));
+          : c;
+      }));
     });
 
     socket.on("user_typing", ({ userId }) => setTypingUsers(prev => new Set([...prev, userId])));
     socket.on("user_stop_typing", ({ userId }) => setTypingUsers(prev => { const n = new Set(prev); n.delete(userId); return n; }));
-    socket.on("user_online", ({ userId }) => { setOnlineUsers(prev => new Set([...prev, userId])); setContacts(prev => prev.map(c => c.id === userId ? { ...c, online: true } : c)); });
-    socket.on("user_offline", ({ userId }) => { setOnlineUsers(prev => { const n = new Set(prev); n.delete(userId); return n; }); setContacts(prev => prev.map(c => c.id === userId ? { ...c, online: false } : c)); });
+    socket.on("user_online", ({ userId }) => {
+      setOnlineUsers(prev => new Set([...prev, userId]));
+      setContacts(prev => prev.map(c => String(c._id || c.id) === String(userId) ? { ...c, online: true } : c));
+    });
+    socket.on("user_offline", ({ userId }) => {
+      setOnlineUsers(prev => { const n = new Set(prev); n.delete(userId); return n; });
+      setContacts(prev => prev.map(c => String(c._id || c.id) === String(userId) ? { ...c, online: false } : c));
+    });
 
     return () => { socket?.disconnect(); socket = null; };
   }, [currentUserId]);
 
-  //Fetch contacts//
-  useEffect(() => {
-    const fetchContacts = async () => {
-      setContactsLoading(true);
-      try {
-        const res = await api.get("/chat/contacts");
-        setContacts(res.data);
-      } catch (err) {
-        console.error("Failed to fetch contacts:", err);
-        setContacts([]);
-      } finally {
-        setContactsLoading(false);
-      }
-    };
-    fetchContacts();
-  }, []);
+  // ── Fetch contacts ──
+  const fetchContacts = async () => {
+    setContactsLoading(true);
+    setContactsError(false);
+    try {
+      const res = await api.get("/chat/contacts");
+      setContacts(res.data);
+    } catch (err) {
+      console.error("Failed to fetch contacts:", err);
+      setContactsError(true);
+      setContacts([]);
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchContacts(); }, []);
 
   useEffect(() => {
     if (location.state?.openContact && contacts.length > 0) {
-      const contact = contacts.find(c => c.id === location.state.openContact.id)
-        || location.state.openContact;
+      const contact = contacts.find(c =>
+        String(c._id || c.id) === String(location.state.openContact._id || location.state.openContact.id)
+      ) || location.state.openContact;
       selectContact(contact);
       window.history.replaceState({}, document.title);
     }
   }, [contacts, location.state]);
 
+  useEffect(() => {
+    if (location.state?.openContact && !contactsLoading && contacts.length === 0) {
+      const contact = location.state.openContact;
+      if (contact && (contact._id || contact.id)) {
+        if (!contacts.find(c => getContactId(c) === getContactId(contact))) {
+          setContacts([{ ...contact, lastMessage: "", unread: 0 }]);
+        }
+        selectContact(contact);
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [contactsLoading]);
+
+  const getContactId = (contact) => contact?._id || contact?.id || "";
+
   const selectContact = async (contact) => {
     setSelectedContact(contact);
     setMessages([]);
     setMessagesLoading(true);
-    setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, unread: 0 } : c));
+    const cId = getContactId(contact);
+    setContacts(prev => prev.map(c => getContactId(c) === cId ? { ...c, unread: 0 } : c));
+
+    clearInterval(pollTimerRef.current);
+
     try {
-      const res = await api.get(`/chat/messages/${contact.id}`);
+      const res = await api.get(`/chat/messages/${cId}`);
       setMessages(res.data);
-      await api.put(`/chat/messages/${contact.id}/read`).catch(() => { });
+      await api.put(`/chat/messages/${cId}/read`).catch(() => { });
     } catch (err) {
       console.error("Failed to fetch messages:", err);
       setMessages([]);
     } finally {
       setMessagesLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
+
+      pollTimerRef.current = setInterval(async () => {
+        if (connected) {
+          clearInterval(pollTimerRef.current);
+          return;
+        }
+        try {
+          const pollRes = await api.get(`/chat/messages/${cId}`);
+          setMessages(pollRes.data);
+        } catch {
+        }
+      }, 5000);
     }
   };
 
-  //  Send message//
+  useEffect(() => {
+    return () => clearInterval(pollTimerRef.current);
+  }, [selectedContact]);
+
+  // ── Send message ──
   const sendMessage = async () => {
     if (!input.trim() || !selectedContact || sending) return;
     const content = input.trim();
@@ -123,10 +182,11 @@ export default function TeenlancerChat() {
     setSending(true);
     stopTyping();
 
+    const cId = getContactId(selectedContact);
     const tempMsg = {
       id: "temp-" + Date.now(),
       senderId: currentUserId,
-      receiverId: selectedContact.id,
+      receiverId: cId,
       content,
       createdAt: new Date().toISOString(),
       status: "sending",
@@ -134,24 +194,35 @@ export default function TeenlancerChat() {
     setMessages(prev => [...prev, tempMsg]);
 
     try {
-      socket?.emit("send_message", { senderId: currentUserId, receiverId: selectedContact.id, content });
-      const res = await api.post(`/chat/messages/${selectedContact.id}`, { content });
-      setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...res.data, status: "sent" } : m));
+      socket?.emit("send_message", {
+        senderId: currentUserId,
+        receiverId: cId,
+        content,
+      });
+      const res = await api.post(`/chat/messages/${cId}`, { content });
+      setMessages(prev => prev.map(m =>
+        m.id === tempMsg.id ? { ...res.data, status: "sent" } : m
+      ));
       setContacts(prev => prev.map(c =>
-        c.id === selectedContact.id ? { ...c, lastMessage: content, lastTime: "Just now" } : c
+        getContactId(c) === cId ? { ...c, lastMessage: content, lastTime: "Just now" } : c
       ));
     } catch (err) {
       console.error("Failed to send message:", err);
-      setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, status: "failed" } : m));
+      setMessages(prev => prev.map(m =>
+        m.id === tempMsg.id ? { ...m, status: "failed" } : m
+      ));
     } finally {
       setSending(false);
     }
   };
 
-  //  Typing//
+  //  Typing  //
   const handleTyping = () => {
     if (!selectedContact || !socket) return;
-    if (!isTyping) { setIsTyping(true); socket.emit("typing", { senderId: currentUserId, receiverId: selectedContact.id }); }
+    if (!isTyping) {
+      setIsTyping(true);
+      socket.emit("typing", { senderId: currentUserId, receiverId: getContactId(selectedContact) });
+    }
     clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(() => stopTyping(), 2000);
   };
@@ -159,7 +230,7 @@ export default function TeenlancerChat() {
   const stopTyping = () => {
     if (isTyping && socket && selectedContact) {
       setIsTyping(false);
-      socket.emit("stop_typing", { senderId: currentUserId, receiverId: selectedContact.id });
+      socket.emit("stop_typing", { senderId: currentUserId, receiverId: getContactId(selectedContact) });
     }
     clearTimeout(typingTimerRef.current);
   };
@@ -168,7 +239,7 @@ export default function TeenlancerChat() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  //  Search teenlancers for new conversation //
+  //  Search users  //
   const handleSearchUsers = (query) => {
     setSearchUsers(query);
     setSearchResults([]);
@@ -190,23 +261,17 @@ export default function TeenlancerChat() {
 
   //  Start new conversation //
   const startNewConversation = async (user) => {
+    const userId = getContactId(user);
     try {
-      await api.post("/chat/conversations", { userId: user.id });
-      setShowNewChat(false);
-      setSearchUsers("");
-      setSearchResults([]);
-      if (!contacts.find(c => c.id === user.id)) {
-        setContacts(prev => [{ ...user, lastMessage: "", unread: 0 }, ...prev]);
-      }
-      selectContact(user);
+      await api.post("/chat/conversations", { userId });
     } catch (err) {
       console.error("Failed to start conversation:", err);
+    } finally {
       setShowNewChat(false);
       setSearchUsers("");
       setSearchResults([]);
-      if (!contacts.find(c => c.id === user.id)) {
-        setContacts(prev => [{ ...user, lastMessage: "", unread: 0 }, ...prev]);
-      }
+      const exists = contacts.find(c => getContactId(c) === userId);
+      if (!exists) setContacts(prev => [{ ...user, lastMessage: "", unread: 0 }, ...prev]);
       selectContact(user);
     }
   };
@@ -228,9 +293,9 @@ export default function TeenlancerChat() {
     try {
       const d = new Date(dateStr);
       const today = new Date();
-      if (d.toDateString() === today.toDateString()) return "Today";
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
+      if (d.toDateString() === today.toDateString()) return "Today";
       if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
       return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     } catch { return ""; }
@@ -247,12 +312,10 @@ export default function TeenlancerChat() {
     !search.trim() || c.name?.toLowerCase().includes(search.toLowerCase())
   );
   const totalUnread = contacts.reduce((s, c) => s + (c.unread || 0), 0);
-  const isContactTyping = selectedContact && typingUsers.has(selectedContact.id);
+  const isContactTyping = selectedContact && typingUsers.has(getContactId(selectedContact));
 
   return (
     <TeenlancerLayout>
-
-
       <div className="rounded-2xl overflow-hidden flex"
         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", height: "calc(100vh - 180px)", minHeight: "500px" }}>
 
@@ -279,7 +342,6 @@ export default function TeenlancerChat() {
               </div>
             </div>
 
-            {/* Search existing contacts */}
             <div className="flex items-center gap-2 rounded-lg px-3 py-2 mb-2"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={2}>
@@ -291,12 +353,9 @@ export default function TeenlancerChat() {
               {search && <button onClick={() => setSearch("")} style={{ color: "#B2B2D2" }}>✕</button>}
             </div>
 
-            {/* ── New Conversation button ── */}
-            <button
-              onClick={() => setShowNewChat(true)}
+            <button onClick={() => setShowNewChat(true)}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
-              style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}
-            >
+              style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
@@ -318,9 +377,27 @@ export default function TeenlancerChat() {
                   </div>
                 ))}
               </div>
+
+            ) : contactsError ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <p className="text-sm font-medium text-white mb-1">Couldn't load chats</p>
+                <p className="text-xs mb-3" style={{ color: "#B2B2D2" }}>
+                  Server error — tap retry or start a new conversation
+                </p>
+                <button onClick={fetchContacts}
+                  className="text-xs px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity mb-2"
+                  style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
+                  Retry
+                </button>
+                <button onClick={() => setShowNewChat(true)}
+                  className="text-xs px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  New Conversation
+                </button>
+              </div>
+
             ) : filteredContacts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <span className="text-3xl mb-2">💬</span>
                 <p className="text-sm font-medium text-white mb-1">
                   {search ? "No contacts found" : "No conversations yet"}
                 </p>
@@ -331,68 +408,77 @@ export default function TeenlancerChat() {
                   <button onClick={() => setShowNewChat(true)}
                     className="text-xs px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity"
                     style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
-                    Find Teenlancers
+                    Find People
                   </button>
                 )}
               </div>
+
             ) : (
-              filteredContacts.map(contact => (
-                <button key={contact.id} onClick={() => selectContact(contact)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5"
-                  style={{
-                    background: selectedContact?.id === contact.id ? "rgba(255,192,133,0.08)" : "transparent",
-                    borderLeft: selectedContact?.id === contact.id ? "2px solid #FFC085" : "2px solid transparent",
-                  }}>
-                  <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
-                      style={{ background: "rgba(255,192,133,0.15)", border: "1.5px solid rgba(255,192,133,0.3)" }}>
-                      {contact.photo ? (
-                        <img src={contact.photo} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
-                          {contact.name?.charAt(0) || "?"}
-                        </span>
+              filteredContacts.map(contact => {
+                const cId = getContactId(contact);
+                const selectedId = getContactId(selectedContact);
+                return (
+                  <button key={cId} onClick={() => selectContact(contact)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5"
+                    style={{
+                      background: cId === selectedId ? "rgba(255,192,133,0.08)" : "transparent",
+                      borderLeft: cId === selectedId ? "2px solid #FFC085" : "2px solid transparent",
+                    }}>
+                    <div className="relative flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+                        style={{ background: "rgba(255,192,133,0.15)", border: "1.5px solid rgba(255,192,133,0.3)" }}>
+                        {contact.photo ? (
+                          <img src={contact.photo} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-bold" style={{ color: "#FFC085" }}>
+                            {contact.name?.charAt(0) || "?"}
+                          </span>
+                        )}
+                      </div>
+                      {(onlineUsers.has(cId) || contact.online) && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
+                          style={{ background: "#4ade80", borderColor: "#090c28" }} />
                       )}
                     </div>
-                    {(onlineUsers.has(contact.id) || contact.online) && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
-                        style={{ background: "#4ade80", borderColor: "#090c28" }} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white truncate">{contact.name}</p>
-                      {contact.lastTime && (
-                        <span className="text-xs flex-shrink-0 ml-1" style={{ color: "#B2B2D2" }}>{contact.lastTime}</span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-white truncate">{contact.name}</p>
+                        {contact.lastTime && (
+                          <span className="text-xs flex-shrink-0 ml-1" style={{ color: "#B2B2D2" }}>
+                            {contact.lastTime}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
+                          {typingUsers.has(cId)
+                            ? <span style={{ color: "#4ade80" }}>typing...</span>
+                            : (contact.lastMessage || "Start a conversation")}
+                        </p>
+                        {contact.unread > 0 && (
+                          <span className="text-xs px-1.5 py-0.5 rounded-full ml-1 flex-shrink-0 font-bold"
+                            style={{ background: "#FFC085", color: "#060834", fontSize: "9px" }}>
+                            {contact.unread > 9 ? "9+" : contact.unread}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
-                        {typingUsers.has(contact.id)
-                          ? <span style={{ color: "#4ade80" }}>typing...</span>
-                          : (contact.lastMessage || "Start a conversation")}
-                      </p>
-                      {contact.unread > 0 && (
-                        <span className="text-xs px-1.5 py-0.5 rounded-full ml-1 flex-shrink-0 font-bold"
-                          style={{ background: "#FFC085", color: "#060834", fontSize: "9px" }}>
-                          {contact.unread > 9 ? "9+" : contact.unread}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* CHAT AREA */}
+        {/*  CHAT AREA */}
         <div className={`flex flex-col flex-1 min-w-0 ${selectedContact ? "flex" : "hidden md:flex"}`}>
           {!selectedContact ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mb-4"
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
                 style={{ background: "rgba(255,192,133,0.1)", border: "2px solid rgba(255,192,133,0.2)" }}>
-                💬
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#FFC085" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
               </div>
               <h3 className="text-white font-bold text-lg mb-2">Select a conversation</h3>
               <p className="text-sm mb-4" style={{ color: "#B2B2D2" }}>
@@ -418,10 +504,12 @@ export default function TeenlancerChat() {
                     {selectedContact.photo ? (
                       <img src={selectedContact.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-bold" style={{ color: "#FFC085" }}>{selectedContact.name?.charAt(0) || "?"}</span>
+                      <span className="font-bold" style={{ color: "#FFC085" }}>
+                        {selectedContact.name?.charAt(0) || "?"}
+                      </span>
                     )}
                   </div>
-                  {(onlineUsers.has(selectedContact.id) || selectedContact.online) && (
+                  {(onlineUsers.has(getContactId(selectedContact)) || selectedContact.online) && (
                     <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                       style={{ background: "#4ade80", borderColor: "#090c28" }} />
                   )}
@@ -430,9 +518,16 @@ export default function TeenlancerChat() {
                   <p className="text-white font-semibold text-sm">{selectedContact.name}</p>
                   <p className="text-xs" style={{ color: isContactTyping ? "#4ade80" : "#B2B2D2" }}>
                     {isContactTyping ? "typing..."
-                      : (onlineUsers.has(selectedContact.id) || selectedContact.online) ? "Online" : "Offline"}
+                      : (onlineUsers.has(getContactId(selectedContact)) || selectedContact.online)
+                        ? "Online" : "Offline"}
                   </p>
                 </div>
+                {!connected && (
+                  <span className="text-xs px-2 py-1 rounded-full flex-shrink-0"
+                    style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
+                    Reconnecting...
+                  </span>
+                )}
               </div>
 
               {/* Messages */}
@@ -444,7 +539,6 @@ export default function TeenlancerChat() {
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center">
-                    <span className="text-4xl mb-3">👋</span>
                     <p className="text-white font-semibold mb-1">Say hello!</p>
                     <p className="text-sm" style={{ color: "#B2B2D2" }}>
                       Start a conversation with {selectedContact.name}
@@ -456,14 +550,27 @@ export default function TeenlancerChat() {
                       <div className="flex items-center gap-3 my-4">
                         <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                         <span className="text-xs px-3 py-1 rounded-full"
-                          style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2" }}>{date}</span>
+                          style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2" }}>
+                          {date}
+                        </span>
                         <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                       </div>
                       {msgs.map((msg, i) => {
-                        const isMine = msg.senderId === currentUserId;
-                        const showAvatar = !isMine && (i === 0 || msgs[i - 1]?.senderId !== msg.senderId);
+                        const isMine =
+                          String(msg.senderId) === String(currentUserId) ||
+                          String(msg.sender?._id) === String(currentUserId) ||
+                          String(msg.sender) === String(currentUserId);
+
+                        const prevSender = String(
+                          msgs[i - 1]?.senderId || msgs[i - 1]?.sender?._id || msgs[i - 1]?.sender || ""
+                        );
+                        const curSender = String(
+                          msg.senderId || msg.sender?._id || msg.sender || ""
+                        );
+                        const showAvatar = !isMine && (i === 0 || prevSender !== curSender);
+
                         return (
-                          <div key={msg.id}
+                          <div key={msg._id || msg.id}
                             className={`flex items-end gap-2 mb-1 ${isMine ? "justify-end" : "justify-start"}`}>
                             {!isMine && (
                               <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center"
@@ -531,7 +638,7 @@ export default function TeenlancerChat() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input bar */}
+              {/* Input */}
               <div className="flex items-center gap-3 p-4 flex-shrink-0"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
                 <input ref={inputRef} type="text" value={input}
@@ -559,6 +666,7 @@ export default function TeenlancerChat() {
         </div>
       </div>
 
+      {/*  New Chat */}
       {showNewChat && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeNewChat} />
@@ -573,7 +681,6 @@ export default function TeenlancerChat() {
                 style={{ color: "#B2B2D2" }}>✕</button>
             </div>
 
-            {/* Search input */}
             <div className="p-4">
               <div className="flex items-center gap-2 rounded-xl px-4 py-2.5"
                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -582,7 +689,7 @@ export default function TeenlancerChat() {
                 </svg>
                 <input type="text" value={searchUsers}
                   onChange={e => handleSearchUsers(e.target.value)}
-                  placeholder="Search teenlancers by name..."
+                  placeholder="Search by name..."
                   className="flex-1 bg-transparent text-white text-sm outline-none"
                   autoFocus />
                 {searchUsers && (
@@ -592,7 +699,6 @@ export default function TeenlancerChat() {
               </div>
             </div>
 
-            {/* Results */}
             <div className="px-4 pb-4 max-h-72 overflow-y-auto">
               {searchingUsers ? (
                 <div className="flex justify-center py-8">
@@ -601,42 +707,43 @@ export default function TeenlancerChat() {
                 </div>
               ) : searchResults.length > 0 ? (
                 <div className="flex flex-col gap-2">
-                  {searchResults.map(user => (
-                    <button key={user.id} onClick={() => startNewConversation(user)}
-                      className="flex items-center gap-3 p-3 rounded-xl w-full text-left hover:bg-white/5 transition-colors"
-                      style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: "rgba(255,192,133,0.15)", border: "2px solid rgba(255,192,133,0.3)" }}>
-                        {user.photo ? (
-                          <img src={user.photo} alt="" className="w-full h-full object-cover rounded-full" />
-                        ) : (
-                          <span className="font-bold text-sm" style={{ color: "#FFC085" }}>
-                            {user.name?.charAt(0) || "?"}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-semibold truncate">{user.name}</p>
-                        {user.skills?.length > 0 && (
-                          <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
-                            {user.skills.slice(0, 2).join(", ")}
-                          </p>
-                        )}
-                      </div>
-                      <span className="text-xs flex-shrink-0" style={{ color: "#FFC085" }}>Message →</span>
-                    </button>
-                  ))}
+                  {searchResults.map(user => {
+                    const uId = getContactId(user);
+                    return (
+                      <button key={uId} onClick={() => startNewConversation(user)}
+                        className="flex items-center gap-3 p-3 rounded-xl w-full text-left hover:bg-white/5 transition-colors"
+                        style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: "rgba(255,192,133,0.15)", border: "2px solid rgba(255,192,133,0.3)" }}>
+                          {user.photo ? (
+                            <img src={user.photo} alt="" className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <span className="font-bold text-sm" style={{ color: "#FFC085" }}>
+                              {user.name?.charAt(0) || "?"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm font-semibold truncate">{user.name}</p>
+                          {user.skills?.length > 0 && (
+                            <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
+                              {user.skills.slice(0, 2).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-xs flex-shrink-0" style={{ color: "#FFC085" }}>Message →</span>
+                      </button>
+                    );
+                  })}
                 </div>
               ) : searchUsers.trim() ? (
                 <div className="flex flex-col items-center py-8 text-center">
-                  <span className="text-3xl mb-2">🔍</span>
-                  <p className="text-sm font-medium text-white mb-1">No teenlancers found</p>
+                  <p className="text-sm font-medium text-white mb-1">No results found</p>
                   <p className="text-xs" style={{ color: "#B2B2D2" }}>Try a different name</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center py-8 text-center">
-                  <span className="text-3xl mb-2">👥</span>
-                  <p className="text-sm font-medium text-white mb-1">Find teenlancers to chat with</p>
+                  <p className="text-sm font-medium text-white mb-1">Find someone to chat with</p>
                   <p className="text-xs" style={{ color: "#B2B2D2" }}>Type a name to search</p>
                 </div>
               )}
