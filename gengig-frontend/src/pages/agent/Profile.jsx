@@ -403,7 +403,7 @@ export default function AgentProfile() {
                         ) : postedGigs.length > 0 ? (
                             <div className="flex flex-col gap-2">
                                 {postedGigs.map(gig => (
-                                    <div key={gig.id}
+                                    <div key={gig._id}
                                         className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
                                         style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
                                         onClick={() => navigate("/agent/my-gigs")}>

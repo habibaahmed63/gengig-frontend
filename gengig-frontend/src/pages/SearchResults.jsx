@@ -196,7 +196,7 @@ export default function SearchResults() {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                 {filtered.map(gig => (
-                                    <Link key={gig.id} to={`/gig/${gig.id}`}
+                                    <Link key={gig._id} to={`/gig/${gig._id}`}
                                         className="rounded-2xl overflow-hidden group hover:scale-105 transition-all duration-300"
                                         style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                         {gig.img && (

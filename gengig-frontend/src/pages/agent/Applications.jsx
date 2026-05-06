@@ -206,7 +206,7 @@ export default function AgentApplications() {
             ) : (
                 <div className="flex flex-col gap-4">
                     {filtered.map(app => {
-                        const appId = app.id || app._id;
+                        const appId = app._id || app._id;
                         const style = statusStyle[app.status] || statusStyle.pending;
                         const isExpanded = expandedApp === appId;
                         const isAcceptLoading = actionLoading === appId + "_accept";

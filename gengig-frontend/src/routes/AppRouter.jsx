@@ -10,7 +10,6 @@ import Notifications from "../pages/Notifications";
 import Support from "../pages/Support";
 import Terms from "../pages/Terms";
 import NotFound from "../pages/NotFound";
-import Landing from "../pages/Landing";
 import AboutUs from "../pages/AboutUs";
 import PublicProfile from "../pages/PublicProfile";
 import PaymentSuccess from "../pages/PaymentSuccess";
@@ -61,17 +60,11 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={(() => {
-          const token = localStorage.getItem("token");
-          const role = localStorage.getItem("role");
-          if (!token) return <Landing />;
-          if (role === "agent") return <Navigate to="/agent/dashboard" replace />;
-          return <Navigate to="/teenlancer/dashboard" replace />;
-        })()} />
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
 
         {/* ── Fully public ── */}
         <Route path="/home" element={<Home />} />
-        <Route path="/landing" element={<Landing />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/Exploreagig" element={<ExplorePage />} />
         <Route path="/search" element={<SearchResults />} />

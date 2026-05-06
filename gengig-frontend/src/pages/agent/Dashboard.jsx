@@ -11,9 +11,7 @@ export default function AgentDashboard() {
   const dateStr = now.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
   const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
-  const [openGigs, setOpenGigs] = useState([]);
-  const [activeGigs, setActiveGigs] = useState([]);
-  const [completedGigs, setCompletedGigs] = useState([]);
+  const [allGigs, setAllGigs] = useState([]);
   const [stats, setStats] = useState(null);
   const [recentApplications, setRecentApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,20 +20,17 @@ export default function AgentDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const [openRes, activeRes, completedRes, statsRes, appsRes] = await Promise.all([
-          api.get("/agent/gigs?status=open"),
-          api.get("/agent/gigs?status=active"),
-          api.get("/agent/gigs?status=completed"),
+        const [gigsRes, statsRes, appsRes] = await Promise.all([
+          api.get("/agent/gigs"),
           api.get("/agent/stats"),
           api.get("/agent/applications?limit=3"),
         ]);
-        setOpenGigs(openRes.data);
-        setActiveGigs(activeRes.data);
-        setCompletedGigs(completedRes.data);
+        setAllGigs(Array.isArray(gigsRes.data) ? gigsRes.data : []);
         setStats(statsRes.data);
-        setRecentApplications(appsRes.data);
+        setRecentApplications(Array.isArray(appsRes.data) ? appsRes.data : []);
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
+        setAllGigs([]);
       } finally {
         setLoading(false);
       }
@@ -43,18 +38,21 @@ export default function AgentDashboard() {
     fetchDashboardData();
   }, []);
 
-  const hasActivity = openGigs.length > 0 || activeGigs.length > 0 || completedGigs.length > 0;
+  const openGigs = allGigs.filter(g => g.status === "open" || g.status === "Open");
+  const activeGigs = allGigs.filter(g => g.status === "active" || g.status === "Active");
+  const completedGigs = allGigs.filter(g => g.status === "completed" || g.status === "Completed" || g.status === "done");
 
-  const statCards = stats ? [
-    { label: "Open Gigs", value: stats.openGigs ?? openGigs.length, color: "#63b3ed" },
-    { label: "Active Gigs", value: stats.activeGigs ?? activeGigs.length, color: "#FFC085" },
-    { label: "Completed Gigs", value: stats.completedGigs ?? completedGigs.length, color: "#4ade80" },
-    { label: "Teenlancers Hired", value: stats.teenlancersHired ?? 0, color: "#a78bfa" },
-  ] : [];
+  const hasActivity = allGigs.length > 0;
+
+  const statCards = [
+    { label: "Open Gigs", value: openGigs.length, color: "#63b3ed" },
+    { label: "Active Gigs", value: activeGigs.length, color: "#FFC085" },
+    { label: "Completed Gigs", value: completedGigs.length, color: "#4ade80" },
+    { label: "Teenlancers Hired", value: stats?.teenlancersHired ?? 0, color: "#a78bfa" },
+  ];
 
   const GigRow = ({ gig, statusLabel, statusColor, statusBg, last }) => (
-    <div
-      onClick={() => navigate("/agent/my-gigs")}
+    <div onClick={() => navigate("/agent/my-gigs")}
       className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors cursor-pointer"
       style={{ borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.06)" }}>
       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -66,11 +64,11 @@ export default function AgentDashboard() {
         </svg>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-semibold truncate">{gig.title}</p>
+        <p className="text-white text-sm font-semibold truncate">{gig.title || "Untitled Gig"}</p>
         <p className="text-xs" style={{ color: "#B2B2D2" }}>
           {[
             gig.category,
-            gig.applications != null && `${gig.applications} applicant${gig.applications !== 1 ? "s" : ""}`,
+            gig.applicationsCount != null && `${gig.applicationsCount} applicant${gig.applicationsCount !== 1 ? "s" : ""}`,
             gig.deadline && `Due ${gig.deadline}`,
             gig.completedDate && `Completed ${gig.completedDate}`,
           ].filter(Boolean).join(" · ")}
@@ -117,6 +115,7 @@ export default function AgentDashboard() {
         </div>
       </div>
 
+      {/* Stat Cards */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[...Array(4)].map((_, i) => (
@@ -132,7 +131,7 @@ export default function AgentDashboard() {
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
               <p className="font-bold text-2xl tracking-tight"
-                style={{ color: stat.value === 0 || stat.value === "$0" ? "#B2B2D2" : stat.color }}>
+                style={{ color: stat.value === 0 ? "#B2B2D2" : stat.color }}>
                 {stat.value}
               </p>
             </div>
@@ -152,8 +151,7 @@ export default function AgentDashboard() {
         <div className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)" }}>
           <div className="relative mb-6">
-            <div className="absolute inset-0 rounded-full animate-ping opacity-10"
-              style={{ background: "#FFC085" }} />
+            <div className="absolute inset-0 rounded-full animate-ping opacity-10" style={{ background: "#FFC085" }} />
             <div className="w-20 h-20 rounded-full flex items-center justify-center relative z-10"
               style={{ background: "rgba(255,192,133,0.1)", border: "2px solid rgba(255,192,133,0.3)" }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none"
@@ -167,11 +165,8 @@ export default function AgentDashboard() {
           <p className="text-sm mb-2 max-w-sm" style={{ color: "#B2B2D2" }}>
             You haven't posted any gigs yet. Post your first gig and start finding talented teenlancers!
           </p>
-          <p className="text-xs mb-8" style={{ color: "rgba(178,178,210,0.5)" }}>
-            Once you post gigs and receive applications, everything will appear here.
-          </p>
           <button onClick={() => navigate("/post")}
-            className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
+            className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200 mt-4"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
             Post Your First Gig →
           </button>
@@ -192,9 +187,9 @@ export default function AgentDashboard() {
         </div>
 
       ) : (
-
         <div className="flex flex-col gap-8">
 
+          {/* Quick nav */}
           <div className="p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-[rgba(255,192,133,0.3)] transition-all"
             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
             onClick={() => navigate("/agent/my-gigs")}>
@@ -217,6 +212,7 @@ export default function AgentDashboard() {
             <span className="text-sm font-medium" style={{ color: "#FFC085" }}>View all →</span>
           </div>
 
+          {/* Recent Applications */}
           {recentApplications.length > 0 && (
             <div className="p-6 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -230,7 +226,7 @@ export default function AgentDashboard() {
               </div>
               <div className="flex flex-col gap-3">
                 {recentApplications.map(app => (
-                  <div key={app.id}
+                  <div key={app._id}
                     onClick={() => navigate("/agent/applications")}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -246,10 +242,10 @@ export default function AgentDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-semibold truncate">
-                        {app.applicant?.name || "Unknown"}
+                        {app.applicant?.name || "Teenlancer"}
                       </p>
                       <p className="text-xs truncate" style={{ color: "#B2B2D2" }}>
-                        Applied for: {app.gigTitle || "Unknown gig"}
+                        Applied for: {app.gigTitle || app.gig?.title || "Unknown gig"}
                       </p>
                     </div>
                     <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium"
@@ -265,13 +261,14 @@ export default function AgentDashboard() {
             </div>
           )}
 
+          {/* ── Open Gigs ── */}
           {openGigs.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-white font-bold text-lg">Open Gigs</h2>
                   <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                    Posted and waiting for teenlancers to apply
+                    Posted — waiting for teenlancers to apply
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -279,17 +276,17 @@ export default function AgentDashboard() {
                     style={{ background: "rgba(99,179,237,0.1)", color: "#63b3ed" }}>
                     {openGigs.length} open
                   </span>
-                  <button onClick={() => navigate("/agent/my-gigs")}
+                  <button onClick={() => navigate("/agent/applications")}
                     className="text-xs hover:opacity-80 transition-opacity"
                     style={{ color: "#FFC085" }}>
-                    Manage →
+                    View Applications →
                   </button>
                 </div>
               </div>
               <div className="rounded-2xl overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 {openGigs.map((gig, i) => (
-                  <GigRow key={gig.id || gig.title} gig={gig}
+                  <GigRow key={gig._id || gig.title} gig={gig}
                     statusLabel="Open"
                     statusColor="#63b3ed"
                     statusBg="rgba(99,179,237,0.1)"
@@ -300,7 +297,7 @@ export default function AgentDashboard() {
             </div>
           )}
 
-          {/* Active Gigs */}
+          {/* ── Active Gigs ── */}
           {activeGigs.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -325,7 +322,7 @@ export default function AgentDashboard() {
               <div className="rounded-2xl overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 {activeGigs.map((gig, i) => (
-                  <GigRow key={gig.id || gig.title} gig={gig}
+                  <GigRow key={gig._id || gig.title} gig={gig}
                     statusLabel="Active"
                     statusColor="#FFC085"
                     statusBg="rgba(255,192,133,0.1)"
@@ -336,7 +333,7 @@ export default function AgentDashboard() {
             </div>
           )}
 
-          {/* Completed Gigs*/}
+          {/* ── Completed Gigs ── */}
           {completedGigs.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -346,22 +343,15 @@ export default function AgentDashboard() {
                     Successfully finished projects
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs px-2 py-1 rounded-full font-medium"
-                    style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
-                    {completedGigs.length} completed
-                  </span>
-                  <button onClick={() => navigate("/agent/my-gigs")}
-                    className="text-xs hover:opacity-80 transition-opacity"
-                    style={{ color: "#FFC085" }}>
-                    View all →
-                  </button>
-                </div>
+                <span className="text-xs px-2 py-1 rounded-full font-medium"
+                  style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
+                  {completedGigs.length} completed
+                </span>
               </div>
               <div className="rounded-2xl overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 {completedGigs.map((gig, i) => (
-                  <GigRow key={gig.id || gig.title} gig={gig}
+                  <GigRow key={gig._id || gig.title} gig={gig}
                     statusLabel="Completed"
                     statusColor="#4ade80"
                     statusBg="rgba(74,222,128,0.1)"
@@ -372,14 +362,15 @@ export default function AgentDashboard() {
             </div>
           )}
 
-          {stats && stats.totalSpent !== "$0" && (
+          {/* Spending Summary */}
+          {stats && stats.totalSpent && stats.totalSpent !== "$0" && stats.totalSpent !== 0 && (
             <div className="p-6 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <h2 className="text-white font-semibold mb-4">Spending Summary</h2>
               <div className="flex flex-wrap gap-6">
                 {[
                   { label: "Total Spent", value: stats.totalSpent },
-                  { label: "Gigs Completed", value: stats.completedGigs },
+                  { label: "Gigs Completed", value: stats.completedGigs || completedGigs.length },
                   { label: "Teenlancers Hired", value: stats.teenlancersHired },
                   { label: "Avg per Gig", value: stats.avgPerGig || "—" },
                 ].map(item => (

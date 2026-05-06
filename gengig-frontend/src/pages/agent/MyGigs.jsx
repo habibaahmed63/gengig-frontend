@@ -59,8 +59,8 @@ export default function MyGigs() {
         setGigDetail(null);
         try {
             const [gigRes, appsRes] = await Promise.all([
-                api.get(`/agent/gigs/${gig.id}`),
-                api.get(`/agent/gigs/${gig.id}/applications`),
+                api.get(`/agent/gigs/${gig._id}`),
+                api.get(`/agent/gigs/${gig._id}/applications`),
             ]);
             setGigDetail({ ...gigRes.data, applications: appsRes.data });
         } catch (err) {
@@ -246,7 +246,7 @@ export default function MyGigs() {
                         const s = STATUS_COLORS[gig.status] || STATUS_COLORS.draft;
                         const appCount = gig.applications ?? 0;
                         return (
-                            <div key={gig.id}
+                            <div key={gig._id}
                                 className="p-5 rounded-2xl cursor-pointer transition-all group"
                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                                 onClick={() => openGig(gig)}
@@ -515,7 +515,7 @@ export default function MyGigs() {
                                             ) : gigDetail.applications.map(app => {
                                                 const s = APP_STATUS_COLORS[app.status] || APP_STATUS_COLORS.pending;
                                                 return (
-                                                    <div key={app.id} className="p-5 rounded-2xl flex flex-col gap-4"
+                                                    <div key={app._id} className="p-5 rounded-2xl flex flex-col gap-4"
                                                         style={{
                                                             background: "rgba(255,255,255,0.04)",
                                                             border: `1px solid ${app.status === "accepted" ? "rgba(74,222,128,0.25)"
@@ -581,29 +581,29 @@ export default function MyGigs() {
                                                             <div className="flex gap-2">
                                                                 {app.status !== "accepted" && (
                                                                     <button
-                                                                        onClick={() => handleAction(app.id, "accept")}
-                                                                        disabled={!!actionLoading[app.id]}
+                                                                        onClick={() => handleAction(app._id, "accept")}
+                                                                        disabled={!!actionLoading[app._id]}
                                                                         className="px-4 py-1.5 rounded-full text-xs font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
                                                                         style={{ background: "linear-gradient(90deg, #4ade80, #22c55e)" }}>
-                                                                        {actionLoading[app.id] === "accept" ? "..." : "✓ Accept"}
+                                                                        {actionLoading[app._id] === "accept" ? "..." : "✓ Accept"}
                                                                     </button>
                                                                 )}
                                                                 {app.status !== "rejected" && (
                                                                     <button
-                                                                        onClick={() => handleAction(app.id, "reject")}
-                                                                        disabled={!!actionLoading[app.id]}
+                                                                        onClick={() => handleAction(app._id, "reject")}
+                                                                        disabled={!!actionLoading[app._id]}
                                                                         className="px-4 py-1.5 rounded-full text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                                                                         style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}>
-                                                                        {actionLoading[app.id] === "reject" ? "..." : "✕ Reject"}
+                                                                        {actionLoading[app._id] === "reject" ? "..." : "✕ Reject"}
                                                                     </button>
                                                                 )}
                                                                 {(app.status === "accepted" || app.status === "rejected") && (
                                                                     <button
-                                                                        onClick={() => handleAction(app.id, "reset")}
-                                                                        disabled={!!actionLoading[app.id]}
+                                                                        onClick={() => handleAction(app._id, "reset")}
+                                                                        disabled={!!actionLoading[app._id]}
                                                                         className="px-4 py-1.5 rounded-full text-xs hover:opacity-80 transition-opacity disabled:opacity-50"
                                                                         style={{ color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
-                                                                        {actionLoading[app.id] === "reset" ? "..." : "↩ Undo"}
+                                                                        {actionLoading[app._id] === "reset" ? "..." : "↩ Undo"}
                                                                     </button>
                                                                 )}
                                                             </div>

@@ -226,8 +226,8 @@ export default function ExplorePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
                         {recommended.map((gig) => (
                             <div
-                                key={gig.id || gig.title}
-                                onClick={() => gig.id && navigate("/gig/" + gig.id)}
+                                key={gig._id || gig.title}
+                                onClick={() => gig._id && navigate("/gig/" + gig._id)}
                                 className="relative rounded-2xl overflow-hidden group cursor-pointer"
                             >
                                 <img
