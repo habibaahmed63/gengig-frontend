@@ -48,9 +48,6 @@ import PostGig from "../pages/PostGig";
 import GigsByCategory from "../pages/GigsByCategory";
 import TeenlancersByCategory from "../pages/TeenlancersByCategory";
 
-// ─────────────────────────────────────────────────────────
-// SINGLE GUARD — only checks if user is logged in
-// ─────────────────────────────────────────────────────────
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -58,14 +55,12 @@ function PrivateRoute({ children }) {
   return children;
 }
 
-// ─────────────────────────────────────────────────────────
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* ── Root ── */}
         <Route path="/" element={(() => {
           const token = localStorage.getItem("token");
           const role = localStorage.getItem("role");
@@ -76,6 +71,7 @@ export default function AppRouter() {
 
         {/* ── Fully public ── */}
         <Route path="/home" element={<Home />} />
+        <Route path="/landing" element={<Landing />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/Exploreagig" element={<ExplorePage />} />
         <Route path="/search" element={<SearchResults />} />

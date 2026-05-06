@@ -110,7 +110,6 @@ export default function Notifications() {
           )}
         </div>
 
-        {/* Filter Tabs */}
         <div className="flex flex-wrap gap-2 mb-6">
           {[
             { key: "all", label: "All" },
@@ -135,7 +134,6 @@ export default function Notifications() {
           ))}
         </div>
 
-        {/* Loading State */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
@@ -166,7 +164,6 @@ export default function Notifications() {
                     border: notif.read ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,192,133,0.2)",
                   }}
                 >
-                  {/* Icon */}
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
                     style={{ background: typeColors[notif.type]?.bg || typeColors.system.bg }}
@@ -174,7 +171,6 @@ export default function Notifications() {
                     {notif.icon || typeIcons[notif.type] || "🔔"}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -202,7 +198,6 @@ export default function Notifications() {
                         )}
                       </div>
 
-                      {/* Delete */}
                       <button
                         onClick={() => deleteNotification(notif.id)}
                         className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
@@ -214,7 +209,6 @@ export default function Notifications() {
                       </button>
                     </div>
 
-                    {/* Action Row */}
                     <div className="flex items-center gap-3 mt-2">
                       {notif.link && (
                         <Link

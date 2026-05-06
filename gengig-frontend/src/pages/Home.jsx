@@ -125,7 +125,7 @@ export default function Home() {
         <div style={{ background: "#060834" }}>
             <Navbar />
 
-            {/* ───── HERO ───── */}
+            {/*HERO */}
             <section
                 className="relative min-h-screen flex items-center px-6 md:px-16"
                 style={{ backgroundImage: `url(${heroImg})`, backgroundSize: "cover", backgroundPosition: "center" }}
@@ -184,7 +184,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── EXPLORE GENGIG ───── */}
+            {/*EXPLORE GENGIG*/}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
                     <h2 className="font-bold text-white mb-3 italic" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
@@ -207,7 +207,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── HOW IT WORKS ───── */}
+            {/*HOW IT WORKS*/}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#060834" }}>
                 <div className="max-w-5xl mx-auto">
                     <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
@@ -253,7 +253,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── CATEGORIES ───── */}
+            {/*CATEGORIES*/}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
                     <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
@@ -283,7 +283,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── BANNER ───── */}
+            {/*BANNER*/}
             <section
                 className="py-24 px-6 md:px-16 relative overflow-hidden"
                 style={{ backgroundImage: "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600)", backgroundSize: "cover", backgroundPosition: "center" }}
@@ -312,7 +312,7 @@ export default function Home() {
 
 
 
-            {/* ───── WORK WITH CREATORS ───── */}
+            {/*WORK WITH CREATORS*/}
             <section className="py-24 px-6 md:px-16" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 text-center lg:text-left">
@@ -345,7 +345,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── ABOUT US ───── */}
+            {/*ABOUT US*/}
             <section className="py-24 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 w-full">
@@ -374,7 +374,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── TESTIMONIALS ───── */}
+            {/*TESTIMONIALS*/}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
                 <div className="max-w-6xl mx-auto">
                     <h2 className="font-bold text-white mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
@@ -412,7 +412,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ───── NEWSLETTER ───── */}
+            {/*NEWSLETTER*/}
             <section className="py-16 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-2xl mx-auto text-center">
                     <h3 className="text-white font-bold text-xl mb-2">Stay in the Loop</h3>

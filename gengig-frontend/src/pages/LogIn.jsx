@@ -28,7 +28,6 @@ export default function SignIn() {
             const d = response.data;
             console.log("Login response:", d);
 
-            // ✅ Always wipe all previous profile data on every login
             [
                 "photo", "bio", "skills", "education", "availability",
                 "hourlyRate", "company", "industry", "workTypes", "location",

@@ -24,7 +24,6 @@ export default function TeenlancerChat() {
   const [connected, setConnected] = useState(false);
   const [search, setSearch] = useState("");
 
-  // ── New Conversation modal state ──────────────────────────────
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchUsers, setSearchUsers] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -41,7 +40,7 @@ export default function TeenlancerChat() {
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  // ── Socket.io ─────────────────────────────────────────────────
+  //  Socket.io //
   useEffect(() => {
     const token = localStorage.getItem("token");
     socket = io("http://localhost:3000", { auth: { token }, transports: ["websocket"] });
@@ -72,7 +71,7 @@ export default function TeenlancerChat() {
     return () => { socket?.disconnect(); socket = null; };
   }, [currentUserId]);
 
-  // ── Fetch contacts ────────────────────────────────────────────
+  //Fetch contacts//
   useEffect(() => {
     const fetchContacts = async () => {
       setContactsLoading(true);
@@ -89,7 +88,6 @@ export default function TeenlancerChat() {
     fetchContacts();
   }, []);
 
-  // ── Handle navigation from Community "Message" button ─────────
   useEffect(() => {
     if (location.state?.openContact && contacts.length > 0) {
       const contact = contacts.find(c => c.id === location.state.openContact.id)
@@ -99,7 +97,6 @@ export default function TeenlancerChat() {
     }
   }, [contacts, location.state]);
 
-  // ── Select contact ────────────────────────────────────────────
   const selectContact = async (contact) => {
     setSelectedContact(contact);
     setMessages([]);
@@ -118,7 +115,7 @@ export default function TeenlancerChat() {
     }
   };
 
-  // ── Send message ──────────────────────────────────────────────
+  //  Send message//
   const sendMessage = async () => {
     if (!input.trim() || !selectedContact || sending) return;
     const content = input.trim();
@@ -151,7 +148,7 @@ export default function TeenlancerChat() {
     }
   };
 
-  // ── Typing ────────────────────────────────────────────────────
+  //  Typing//
   const handleTyping = () => {
     if (!selectedContact || !socket) return;
     if (!isTyping) { setIsTyping(true); socket.emit("typing", { senderId: currentUserId, receiverId: selectedContact.id }); }
@@ -171,7 +168,7 @@ export default function TeenlancerChat() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  // ── Search teenlancers for new conversation ───────────────────
+  //  Search teenlancers for new conversation //
   const handleSearchUsers = (query) => {
     setSearchUsers(query);
     setSearchResults([]);
@@ -191,7 +188,7 @@ export default function TeenlancerChat() {
     }, 400);
   };
 
-  // ── Start new conversation ────────────────────────────────────
+  //  Start new conversation //
   const startNewConversation = async (user) => {
     try {
       await api.post("/chat/conversations", { userId: user.id });
@@ -204,7 +201,6 @@ export default function TeenlancerChat() {
       selectContact(user);
     } catch (err) {
       console.error("Failed to start conversation:", err);
-      // Even if API fails, open the chat so user can send first message
       setShowNewChat(false);
       setSearchUsers("");
       setSearchResults([]);
@@ -221,7 +217,6 @@ export default function TeenlancerChat() {
     setSearchResults([]);
   };
 
-  // ── Helpers ───────────────────────────────────────────────────
   const formatTime = (dateStr) => {
     if (!dateStr) return "";
     try { return new Date(dateStr).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }); }
@@ -261,11 +256,9 @@ export default function TeenlancerChat() {
       <div className="rounded-2xl overflow-hidden flex"
         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", height: "calc(100vh - 180px)", minHeight: "500px" }}>
 
-        {/* ── CONTACTS SIDEBAR ── */}
         <div className={`flex flex-col flex-shrink-0 ${selectedContact ? "hidden md:flex" : "flex"}`}
           style={{ width: "300px", borderRight: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
 
-          {/* Header */}
           <div className="p-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -393,7 +386,7 @@ export default function TeenlancerChat() {
           </div>
         </div>
 
-        {/* ── CHAT AREA ── */}
+        {/* CHAT AREA */}
         <div className={`flex flex-col flex-1 min-w-0 ${selectedContact ? "flex" : "hidden md:flex"}`}>
           {!selectedContact ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -566,14 +559,12 @@ export default function TeenlancerChat() {
         </div>
       </div>
 
-      {/* ── NEW CONVERSATION MODAL ── */}
       {showNewChat && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeNewChat} />
           <div className="relative w-full max-w-md rounded-2xl overflow-hidden z-10"
             style={{ background: "#0a0d2e", border: "1px solid rgba(255,255,255,0.12)" }}>
 
-            {/* Modal header */}
             <div className="flex items-center justify-between p-5"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 className="text-white font-semibold">New Conversation</h3>

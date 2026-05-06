@@ -156,7 +156,7 @@ export default function TeenlancerPayment() {
     }
   };
 
-  //  Paymob payment handler
+  //  Paymob payment handler//
   const handlePayment = async (amount) => {
     setPayLoading(true);
     try {
@@ -219,7 +219,7 @@ export default function TeenlancerPayment() {
         </div>
       </div>
 
-      {/* ✅ Paymob Payment Section */}
+      {/*Paymob Payment Section */}
       <div className="p-6 rounded-2xl mb-8"
         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center justify-between mb-2">

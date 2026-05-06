@@ -40,7 +40,7 @@ export default function Support() {
     }
     setLoading(true);
     setError(null);
-    // TODO: send to backend
+    // lesa backend
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
@@ -84,7 +84,7 @@ export default function Support() {
 
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* Left - Contact Form */}
+          {/* Contact Form */}
           <div className="flex-1">
             <h2 className="text-white font-bold mb-6" style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)" }}>
               Send Us a Message
@@ -193,7 +193,7 @@ export default function Support() {
             )}
           </div>
 
-          {/* Right - FAQs */}
+          {/*FAQs */}
           <div className="w-full lg:w-80 flex-shrink-0">
             <h2 className="text-white font-bold mb-6" style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)" }}>
               Quick Answers

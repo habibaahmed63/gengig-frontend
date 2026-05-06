@@ -409,7 +409,6 @@ export default function TeenlancerProfile() {
                         )}
                     </div>
 
-                    {/* Availability & Rate — edit only */}
                     {editMode && (
                         <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <h2 className="text-white font-semibold mb-4">Availability & Rate</h2>
@@ -473,7 +472,6 @@ export default function TeenlancerProfile() {
                     </div>
                 </div>
 
-                {/* Right Column */}
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     {/* Portfolio */}
                     <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>

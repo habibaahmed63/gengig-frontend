@@ -118,7 +118,6 @@ export default function GigsByCategory() {
                 </div>
             </div>
 
-            {/* Search + Sort */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <div className="flex items-center gap-2 flex-1 rounded-xl px-4 py-2.5"
                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -148,7 +147,6 @@ export default function GigsByCategory() {
                 </select>
             </div>
 
-            {/* Gigs Grid */}
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[...Array(6)].map((_, i) => (
@@ -189,7 +187,6 @@ export default function GigsByCategory() {
                             className="p-5 rounded-2xl flex flex-col gap-4 hover:border-[rgba(255,192,133,0.3)] transition-colors"
                             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                         >
-                            {/* Top Row */}
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
@@ -217,7 +214,6 @@ export default function GigsByCategory() {
                                 </button>
                             </div>
 
-                            {/* Skills */}
                             {gig.skills?.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5">
                                     {gig.skills.map(skill => (
@@ -229,16 +225,13 @@ export default function GigsByCategory() {
                                 </div>
                             )}
 
-                            {/* Stats */}
                             <div className="flex items-center gap-4 text-xs" style={{ color: "#B2B2D2" }}>
                                 {gig.deadline && <span>⏱ {gig.deadline}</span>}
                                 {gig.applications != null && <span>👥 {gig.applications} applicants</span>}
                             </div>
 
-                            {/* Bottom Row */}
                             <div className="flex items-center justify-between pt-2"
                                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                                {/* ✅ formatBudget fixes the $$150 double-dollar bug */}
                                 <span className="text-xl font-bold" style={{ color: "#FFC085" }}>
                                     {formatBudget(gig.budget)}
                                 </span>

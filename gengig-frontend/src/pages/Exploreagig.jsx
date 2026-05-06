@@ -4,7 +4,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
 
-// Static content that doesn't need to be dynamic
 const categories = [
     { label: "Graphic Design", img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400" },
     { label: "Logo Design", img: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400" },
@@ -93,7 +92,7 @@ export default function ExplorePage() {
                 </p>
             </div>
 
-            {/* ───── HERO ───── */}
+            {/*HERO  */}
             <section className="py-10 md:py-12 px-6 md:px-8 flex flex-col items-center text-center">
                 <h1 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.5rem, 4vw, 2.8rem)" }}>
                     {name ? (
@@ -141,7 +140,7 @@ export default function ExplorePage() {
                 </form>
             </section>
 
-            {/* ───── SKILL ZONE ───── */}
+            {/*SKILL ZONE */}
             <section className="py-10 px-6 md:px-8 text-center">
                 <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
                     Tap Into Your <span className="text-gradient">Skill Zone</span>
@@ -152,7 +151,6 @@ export default function ExplorePage() {
                         : "From creative to tech — explore gigs built around your strengths."}
                 </p>
 
-                {/* Desktop Carousel */}
                 <div className="hidden md:flex items-center justify-center gap-4">
                     <button
                         onClick={() => setActiveCategory((prev) => Math.max(0, prev - 1))}
@@ -194,7 +192,6 @@ export default function ExplorePage() {
                     </button>
                 </div>
 
-                {/* Mobile Grid */}
                 <div className="md:hidden grid grid-cols-2 gap-3">
                     {categories.map((cat, i) => (
                         <div
@@ -210,7 +207,7 @@ export default function ExplorePage() {
                 </div>
             </section>
 
-            {/* ───── RECOMMENDED ───── */}
+            {/*RECOMMENDED */}
             <section className="py-10 md:py-12 px-6 md:px-8 text-center">
                 <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
                     Recommended <span className="text-gradient">For You</span>
@@ -278,7 +275,7 @@ export default function ExplorePage() {
                 )}
             </section>
 
-            {/* ───── SMART MOVES ───── */}
+            {/*SMART MOVES */}
             <section className="py-10 md:py-12 px-6 md:px-8 text-center">
                 <h2 className="font-bold text-white mb-10" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
                     Smart Moves for Every Gig
@@ -301,7 +298,7 @@ export default function ExplorePage() {
                 </div>
             </section>
 
-            {/* ───── NEWSLETTER ───── */}
+            {/* NEWSLETTER */}
             <section className="mx-4 md:mx-8 my-12 rounded-2xl overflow-hidden relative" style={{ minHeight: "200px" }}>
                 <img
                     src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=1200"

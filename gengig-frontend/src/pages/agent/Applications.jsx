@@ -130,7 +130,6 @@ export default function AgentApplications() {
                 </button>
             </div>
 
-            {/* Stats row */}
             {!loading && applications.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                     {[
@@ -148,9 +147,7 @@ export default function AgentApplications() {
                 </div>
             )}
 
-            {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                {/* Status filter */}
                 <div className="flex gap-2 flex-wrap">
                     {["all", "pending", "accepted", "rejected"].map(f => (
                         <button key={f} onClick={() => setFilter(f)}
@@ -168,7 +165,6 @@ export default function AgentApplications() {
                     ))}
                 </div>
 
-                {/* Gig filter dropdown */}
                 {uniqueGigs.length > 2 && (
                     <select value={gigFilter} onChange={e => setGigFilter(e.target.value)}
                         className="rounded-xl px-4 py-2 text-white text-xs outline-none focus:ring-1 focus:ring-[#FFC085] sm:ml-auto"
@@ -182,7 +178,6 @@ export default function AgentApplications() {
                 )}
             </div>
 
-            {/* Applications List */}
             {loading ? (
                 <div className="flex justify-center py-16">
                     <div className="w-8 h-8 rounded-full border-2 animate-spin"
@@ -321,7 +316,6 @@ export default function AgentApplications() {
                                         </div>
                                     </div>
 
-                                    {/* Cover letter preview — first 2 lines */}
                                     {app.coverLetter && !isExpanded && (
                                         <p className="text-sm mt-3 leading-relaxed line-clamp-2" style={{ color: "#B2B2D2" }}>
                                             {app.coverLetter}
@@ -329,7 +323,6 @@ export default function AgentApplications() {
                                     )}
                                 </div>
 
-                                {/* ✅ Expanded cover letter */}
                                 {isExpanded && app.coverLetter && (
                                     <div className="px-5 pb-5 pt-0">
                                         <div className="p-4 rounded-xl"
