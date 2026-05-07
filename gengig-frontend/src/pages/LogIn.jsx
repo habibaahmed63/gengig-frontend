@@ -40,6 +40,11 @@ export default function SignIn() {
             // ── Save auth ──
             localStorage.setItem("token", d.token);
             localStorage.setItem("role", d.role);
+            const userId = d._id || d.userId || d.id || d.user?._id || d.user?.id;
+            if (userId) {
+                localStorage.setItem("userId", userId);
+                console.log("Saved userId:", userId);
+            }
 
             // ── Save slug ──
             if (d.slug) localStorage.setItem("slug", d.slug);

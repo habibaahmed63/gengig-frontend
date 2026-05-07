@@ -70,7 +70,7 @@ export default function RoleGuard({ isOpen, onClose, userRole }) {
                             onClick={() => { onClose(); navigate(content.ctaPath); }}
                             className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                            {content.cta} →
+                            {content.cta}
                         </button>
                         <button
                             onClick={onClose}

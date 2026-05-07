@@ -63,7 +63,7 @@ export default function AppRouter() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
 
-        {/* ── Fully public ── */}
+        {/*Fully public*/}
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/Exploreagig" element={<ExplorePage />} />
@@ -77,23 +77,23 @@ export default function AppRouter() {
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
 
-        {/* ── Auth ── */}
+        {/*Auth*/}
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<LogIn />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/google/success" element={<GoogleSuccess />} />
 
-        {/* ── Onboarding ── */}
+        {/*Onboarding*/}
         <Route path="/onboarding/teenlancer" element={<PrivateRoute><TeenlancerOnboarding /></PrivateRoute>} />
         <Route path="/onboarding/agent" element={<PrivateRoute><AgentOnboarding /></PrivateRoute>} />
 
-        {/* ── Requires login only — no role check ── */}
+        {/*Requires login only — no role check*/}
         <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
         <Route path="/post" element={<PrivateRoute><PostGig /></PrivateRoute>} />
         <Route path="/gig/:id/apply" element={<PrivateRoute><ApplyGig /></PrivateRoute>} />
 
-        {/* ── Teenlancer pages — login required only ── */}
+        {/*Teenlancer pages — login required only*/}
         <Route path="/teenlancer/dashboard" element={<PrivateRoute><TeenlancerDashboard /></PrivateRoute>} />
         <Route path="/teenlancer/profile" element={<PrivateRoute><TeenlancerProfile /></PrivateRoute>} />
         <Route path="/teenlancer/payment" element={<PrivateRoute><TeenlancerPayment /></PrivateRoute>} />
@@ -101,7 +101,7 @@ export default function AppRouter() {
         <Route path="/teenlancer/community" element={<PrivateRoute><TeenlancerCommunity /></PrivateRoute>} />
         <Route path="/teenlancer/chat" element={<PrivateRoute><TeenlancerChat /></PrivateRoute>} />
 
-        {/* ── Agent pages — login required only ── */}
+        {/*Agent pages — login required only*/}
         <Route path="/agent/dashboard" element={<PrivateRoute><AgentDashboard /></PrivateRoute>} />
         <Route path="/agent/profile" element={<PrivateRoute><AgentProfile /></PrivateRoute>} />
         <Route path="/agent/payment" element={<PrivateRoute><AgentPayment /></PrivateRoute>} />
@@ -109,7 +109,7 @@ export default function AppRouter() {
         <Route path="/agent/applications" element={<PrivateRoute><AgentApplications /></PrivateRoute>} />
         <Route path="/agent/my-gigs" element={<PrivateRoute><MyGigs /></PrivateRoute>} />
 
-        {/* ── 404 ── */}
+        {/*404*/}
         <Route path="*" element={<NotFound />} />
 
       </Routes>
