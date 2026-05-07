@@ -291,7 +291,14 @@ export default function AgentApplications() {
                                             {app.status === "accepted" && (
                                                 <button
                                                     onClick={() => navigate("/agent/chat", {
-                                                        state: { openContact: { id: app.applicant?.id, name: app.applicant?.name, photo: app.applicant?.photo } }
+                                                        state: {
+                                                            openContact: {
+                                                                _id: app.applicant?._id || app.applicant?.id,
+                                                                id: app.applicant?._id || app.applicant?.id,
+                                                                name: app.applicant?.name,
+                                                                photo: app.applicant?.photo,
+                                                            }
+                                                        }
                                                     })}
                                                     className="px-5 py-2 rounded-full text-xs font-semibold text-white hover:opacity-90 transition-opacity"
                                                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>

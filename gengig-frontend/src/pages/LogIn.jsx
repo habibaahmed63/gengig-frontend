@@ -28,48 +28,48 @@ export default function SignIn() {
             const d = response.data;
             console.log("Login response:", d);
 
-            [
-                "photo", "bio", "skills", "education", "availability",
-                "hourlyRate", "company", "industry", "workTypes", "location",
-                "joinDate", "language", "notificationPrefs", "portfolio",
-                "savedCard", "paymentHistory", "agentPaymentHistory",
-                "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery",
-                "pendingPayments", "totalSpent", "agentPendingPayments", "slug",
-            ].forEach((key) => localStorage.removeItem(key));
+            // ── Wipe all previous user data ──
+            const keys = ["token", "role", "name", "photo", "bio", "skills", "education",
+                "availability", "hourlyRate", "company", "industry", "workTypes",
+                "location", "joinDate", "userId", "slug", "email", "portfolio",
+                "language", "company", "industry", "notificationPrefs",
+                "completedGigs", "totalEarnings", "responseRate", "onTimeDelivery", "totalSpent"];
+            keys.forEach(k => localStorage.removeItem(k));
 
-            // ── Save auth ──
+            // ── Auth ──
             localStorage.setItem("token", d.token);
             localStorage.setItem("role", d.role);
-            const userId = d._id || d.userId || d.id || d.user?._id || d.user?.id;
-            if (userId) {
-                localStorage.setItem("userId", userId);
-                console.log("Saved userId:", userId);
-            }
 
-            // ── Save slug ──
+            // ── User ID ──
+            const userId = d._id || d.userId || d.id || d.user?._id || d.user?.id;
+            if (userId) localStorage.setItem("userId", userId);
+
+            // ── Slug ──
             if (d.slug) localStorage.setItem("slug", d.slug);
 
-            // ── Save profile fields ──
-            localStorage.setItem("name", d.name || "");
-            localStorage.setItem("email", d.email || formData.email);
-            localStorage.setItem("photo", d.photo || "");
-            localStorage.setItem("bio", d.bio || "");
-            localStorage.setItem("location", d.location || "");
-            localStorage.setItem("hourlyRate", d.hourlyRate || "");
-            localStorage.setItem("availability", d.availability || "");
-            localStorage.setItem("education", d.education || "");
-            localStorage.setItem("joinDate", d.joinDate || "");
+            localStorage.setItem("name", d.name || d.user?.name || "");
+            localStorage.setItem("email", d.email || d.user?.email || formData.email);
+            localStorage.setItem("bio", d.bio || d.user?.bio || "");
+            localStorage.setItem("location", d.location || d.user?.location || "");
             localStorage.setItem("language", d.language || "English");
-            localStorage.setItem("company", d.company || "");
-            localStorage.setItem("industry", d.industry || "");
 
-            // ── Arrays ──
-            localStorage.setItem("skills", JSON.stringify(d.skills || []));
-            localStorage.setItem("portfolio", JSON.stringify(d.portfolio || []));
-            localStorage.setItem("workTypes", JSON.stringify(d.workTypes || []));
-            localStorage.setItem("notificationPrefs", JSON.stringify(d.notificationPrefs || { email: true, push: true, sms: false }));
+            const photo = d.photo || d.user?.photo || d.profilePhoto || d.avatar || "";
+            if (photo) localStorage.setItem("photo", photo);
 
-            // ── Stats ──
+            // ── Role-specific fields ──
+            if (d.role === "agent") {
+                localStorage.setItem("company", d.company || d.user?.company || "");
+                localStorage.setItem("industry", d.industry || d.user?.industry || "");
+            }
+
+            if (d.role === "teenlancer") {
+                localStorage.setItem("hourlyRate", d.hourlyRate || d.user?.hourlyRate || "");
+                localStorage.setItem("availability", d.availability || d.user?.availability || "");
+                localStorage.setItem("skills", JSON.stringify(d.skills || d.user?.skills || []));
+                localStorage.setItem("portfolio", JSON.stringify(d.portfolio || d.user?.portfolio || []));
+            }
+
+            // ── Stats (if returned in login response) ──
             if (d.stats) {
                 if (d.stats.completedGigs != null) localStorage.setItem("completedGigs", d.stats.completedGigs);
                 if (d.stats.totalEarnings != null) localStorage.setItem("totalEarnings", d.stats.totalEarnings);
