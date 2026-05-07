@@ -4,6 +4,10 @@ import { io } from "socket.io-client";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 
+console.log("userId:", localStorage.getItem("userId"));
+console.log("id:", localStorage.getItem("id"));
+console.log("_id:", localStorage.getItem("_id"));
+
 let socket = null;
 
 export default function TeenlancerChat() {
@@ -51,10 +55,10 @@ export default function TeenlancerChat() {
       auth: { token },
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 2000,
+      reconnectionDelay: 1000,
       reconnectionAttempts: 5,
+      timeout: 10000,
     });
-
     socket.on("connect", () => {
       setConnected(true);
       socket.emit("join", { userId: currentUserId });
@@ -557,10 +561,10 @@ export default function TeenlancerChat() {
                       </div>
                       {msgs.map((msg, i) => {
                         const isMine =
+                          msg.isMine === true ||
                           String(msg.senderId) === String(currentUserId) ||
                           String(msg.sender?._id) === String(currentUserId) ||
                           String(msg.sender) === String(currentUserId);
-
                         const prevSender = String(
                           msgs[i - 1]?.senderId || msgs[i - 1]?.sender?._id || msgs[i - 1]?.sender || ""
                         );
