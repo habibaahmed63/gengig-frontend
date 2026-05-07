@@ -145,7 +145,7 @@ export default function AgentPayment() {
 
     const handleRemoveCard = async () => {
         try {
-            await api.delete("/payments/cards");
+            await api.delete(`/payments/cards/${cardId}`);
             localStorage.removeItem("savedCard");
             setSavedCard(null);
             showToast("Card removed.");
