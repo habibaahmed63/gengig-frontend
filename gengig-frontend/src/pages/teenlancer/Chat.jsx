@@ -151,6 +151,14 @@ export default function TeenlancerChat() {
 
     try {
       const res = await api.get(`/chat/messages/${cId}`);
+      const myId = localStorage.getItem("userId");
+      const messagesWithOwnership = res.data.map(msg => ({
+        ...msg,
+        isMine: String(msg.sender) === myId ||
+          String(msg.sender?._id) === myId ||
+          msg.isMine === true,
+      }));
+      setMessages(messagesWithOwnership);
       setMessages(res.data);
       await api.put(`/chat/messages/${cId}/read`).catch(() => { });
     } catch (err) {
