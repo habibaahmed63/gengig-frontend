@@ -42,6 +42,7 @@ import AgentSettings from "../pages/agent/Settings";
 import AgentApplications from "../pages/agent/Applications";
 import MyGigs from "../pages/agent/MyGigs";
 import PostGig from "../pages/PostGig";
+import AgentChat from "../pages/agent/Chat";
 
 // Category pages
 import GigsByCategory from "../pages/GigsByCategory";
@@ -108,6 +109,8 @@ export default function AppRouter() {
         <Route path="/agent/settings" element={<PrivateRoute><AgentSettings /></PrivateRoute>} />
         <Route path="/agent/applications" element={<PrivateRoute><AgentApplications /></PrivateRoute>} />
         <Route path="/agent/my-gigs" element={<PrivateRoute><MyGigs /></PrivateRoute>} />
+        <Route path="/agent/chat" element={<PrivateRoute><AgentChat /></PrivateRoute>} />
+
 
         {/*404*/}
         <Route path="*" element={<NotFound />} />
