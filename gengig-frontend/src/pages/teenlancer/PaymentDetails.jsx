@@ -145,8 +145,14 @@ export default function TeenlancerPayment() {
   };
 
   const handleRemoveCard = async () => {
+    if (!savedCard || !savedCard._id) {
+      showToast("No card found to remove.", "error");
+      return;
+    }
+
     try {
-      await api.delete("/payments/cards");
+      await api.delete(`/payments/cards/${savedCard._id}`);
+
       localStorage.removeItem("savedCard");
       setSavedCard(null);
       showToast("Card removed.");

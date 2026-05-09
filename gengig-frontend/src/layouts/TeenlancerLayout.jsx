@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GengigChatbot from "../components/GengigChatbot";
+import PremiumButton from "../components/PremiumButton";
 
 export default function TeenlancerLayout({ children }) {
     const location = useLocation();
@@ -11,6 +12,7 @@ export default function TeenlancerLayout({ children }) {
 
     const [name, setName] = useState(localStorage.getItem("name") || "My Profile");
     const [photo, setPhoto] = useState(localStorage.getItem("photo") || null);
+
 
     useEffect(() => {
         const handleStorageUpdate = () => {
@@ -68,6 +70,8 @@ export default function TeenlancerLayout({ children }) {
                 </svg>
             ),
         },
+
+
     ];
 
     const SidebarContent = ({ isCollapsed = false }) => (
@@ -126,10 +130,17 @@ export default function TeenlancerLayout({ children }) {
                         >
                             {item.icon}
                             {!isCollapsed && <span>{item.label}</span>}
+
                         </Link>
+
                     );
                 })}
             </nav>
+            {/* PREMIUM BUTTON */}
+            <div className="mt-26 pt-4 border-t border-white/10">
+                <PremiumButton onClick={() => navigate("/premium")} />
+            </div>
+
         </>
     );
 
@@ -170,7 +181,9 @@ export default function TeenlancerLayout({ children }) {
 
                 <main className="flex-1 p-4 md:p-8">
                     {children}
+
                 </main>
+
                 <GengigChatbot />
             </div>
         </div>

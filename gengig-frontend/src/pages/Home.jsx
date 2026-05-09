@@ -199,21 +199,46 @@ export default function Home() {
             </section>
 
             {/* ── EXPLORE GENGIG ── */}
-            <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
-                <div className="max-w-6xl mx-auto">
+            <section className="py-24 px-6 md:px-16 text-center relative" style={{ background: "#0a0d2e" }}>
+                {/* Decorative background blur */}
+                <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#FFC085]/5 blur-[100px] rounded-full" />
+
+                <div className="max-w-6xl mx-auto relative z-10">
                     <h2 className="font-bold text-white mb-3 italic"
                         style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-                        Because every great gig starts with a click
+                        Because every great gig starts with a <span className="text-gradient">click</span>
                     </h2>
-                    <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Explore what Gengig has to offer</p>
+                    <p className="text-sm mb-14 uppercase tracking-[0.2em]" style={{ color: "#B2B2D2" }}>
+                        Explore what Gengig has to offer
+                    </p>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {features.map(f => (
                             <div key={f.title}
-                                className="p-8 rounded-2xl text-left hover:scale-105 hover:border-[#FFC085] transition-all duration-300 cursor-default"
-                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                                <div className="text-4xl mb-4">{f.icon}</div>
-                                <h3 className="text-white font-semibold mb-2 text-lg">{f.title}</h3>
-                                <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>{f.desc}</p>
+                                className="group p-8 rounded-3xl text-left transition-all duration-500 cursor-default relative overflow-hidden"
+                                style={{
+                                    background: "rgba(255,255,255,0.03)",
+                                    border: "1px solid rgba(255,255,255,0.08)",
+                                    backdropFilter: "blur(8px)"
+                                }}>
+
+                                {/* Hover Glow Effect */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#FFC085]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                <div className="relative z-10">
+                                    <div className="text-4xl mb-6 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300">
+                                        {f.icon}
+                                    </div>
+                                    <h3 className="text-white font-bold mb-3 text-lg group-hover:text-[#FFC085] transition-colors">
+                                        {f.title}
+                                    </h3>
+                                    <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
+                                        {f.desc}
+                                    </p>
+                                </div>
+
+                                {/* Bottom accent line */}
+                                <div className="absolute bottom-0 left-0 h-[2px] bg-[#FFC085] w-0 group-hover:w-full transition-all duration-500" />
                             </div>
                         ))}
                     </div>
@@ -221,46 +246,87 @@ export default function Home() {
             </section>
 
             {/* ── HOW IT WORKS ── */}
+
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#060834" }}>
+
                 <div className="max-w-5xl mx-auto">
+
                     <h2 className="font-bold text-white mb-3"
+
                         style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+
                         How It <span className="text-gradient">Works</span>
+
                     </h2>
+
                     <p className="text-sm mb-14" style={{ color: "#B2B2D2" }}>Get started in just a few simple steps</p>
 
+
+
                     <div className="flex justify-center mb-12">
+
                         <div className="flex rounded-full p-1"
+
                             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
                             {["For Agents", "For Teenlancers"].map(tab => (
+
                                 <button key={tab} onClick={() => setActiveTab(tab)}
+
                                     className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
+
                                     style={{
+
                                         background: activeTab === tab ? "linear-gradient(90deg, #FFC085, #e8a060)" : "transparent",
+
                                         color: activeTab === tab ? "white" : "#B2B2D2",
+
                                     }}>
+
                                     {tab}
+
                                 </button>
+
                             ))}
+
                         </div>
+
                     </div>
 
+
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
                         {(activeTab === "For Agents" ? agentSteps : teenlancerSteps).map((step, i) => (
+
                             <div key={i} className="relative p-8 rounded-2xl text-left hover:scale-105 transition-all duration-300"
+
                                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-5"
+
                                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", color: "white" }}>
+
                                     {i + 1}
+
                                 </div>
+
                                 <div className="text-4xl mb-4">{step.icon}</div>
+
                                 <h3 className="text-white font-semibold mb-2 text-lg">{step.title}</h3>
+
                                 <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>{step.desc}</p>
+
                             </div>
+
                         ))}
+
                     </div>
+
                 </div>
+
             </section>
+
 
             {/* ── CATEGORIES ── */}
             <section className="py-24 px-6 md:px-16 text-center" style={{ background: "#0a0d2e" }}>
@@ -350,7 +416,7 @@ export default function Home() {
                         <p className="text-sm mb-8 leading-relaxed" style={{ color: "#B2B2D2" }}>
                             Connect with talented teenlancers who bring fresh perspectives, creative energy, and dedication to every project.
                         </p>
-                        <button onClick={() => navigate(isGuest ? "/signup" : "/Exploreagig")}
+                        <button onClick={() => navigate(isGuest ? "/signup" : "/post")}
                             className="inline-block px-8 py-3.5 rounded-full font-semibold text-white hover:opacity-80 hover:scale-105 transition-all duration-200"
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                             {isGuest ? "Get Started Free" : "Hire Now"}
@@ -374,13 +440,13 @@ export default function Home() {
             <section className="py-24 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 w-full">
-                        <img src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=600"
+                        <img src="../src/assets/team3.png"
                             alt="About Gengig"
                             className="w-full h-72 md:h-96 object-cover rounded-2xl" />
                     </div>
                     <div className="flex-1 text-center lg:text-left">
                         <h2 className="font-bold text-white mb-3"
-                            style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+                            style={{ fontSize: "clamp(1.5rem, 3vw, 4rem)" }}>
                             A bit <span className="text-gradient">About Us</span>
                         </h2>
                         <p className="text-sm mb-3 italic" style={{ color: "#FFC085" }}>
@@ -392,7 +458,7 @@ export default function Home() {
                         <button onClick={() => navigate("/about")}
                             className="mt-4 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
                             style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
-                            Learn More About Us →
+                            Learn More About Us
                         </button>
                     </div>
                 </div>
@@ -434,35 +500,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ── NEWSLETTER ── */}
-            <section className="py-16 px-6 md:px-16" style={{ background: "#060834" }}>
-                <div className="max-w-2xl mx-auto text-center">
-                    <h3 className="text-white font-bold text-xl mb-2">Stay in the Loop</h3>
-                    <p className="text-sm mb-6" style={{ color: "#B2B2D2" }}>
-                        Get notified about new gigs, teenlancer spotlights and platform updates.
-                    </p>
-                    {newsletterSuccess ? (
-                        <div className="flex items-center justify-center gap-2 py-3 px-6 rounded-full"
-                            style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)" }}>
-                            <span style={{ color: "#4ade80" }}>✓</span>
-                            <p className="text-sm font-medium" style={{ color: "#4ade80" }}>You're subscribed!</p>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-3">
-                            <input type="email" value={newsletterEmail}
-                                onChange={e => setNewsletterEmail(e.target.value)}
-                                placeholder="Enter your email address" required
-                                className="flex-1 rounded-full px-5 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
-                                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
-                            <button type="submit" disabled={newsletterLoading}
-                                className="px-6 py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
-                                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                {newsletterLoading ? "Subscribing..." : "Subscribe"}
-                            </button>
-                        </form>
-                    )}
-                </div>
-            </section>
+
 
             <Footer />
         </div>

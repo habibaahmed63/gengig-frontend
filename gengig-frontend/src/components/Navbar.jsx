@@ -15,6 +15,7 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showGuard, setShowGuard] = useState(false);
 
+
   useEffect(() => {
     const handleStorageUpdate = () => setPhoto(localStorage.getItem("photo") || null);
     window.addEventListener("storage", handleStorageUpdate);

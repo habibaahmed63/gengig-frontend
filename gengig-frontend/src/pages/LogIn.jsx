@@ -53,7 +53,16 @@ export default function SignIn() {
             localStorage.setItem("location", d.location || d.user?.location || "");
             localStorage.setItem("language", d.language || "English");
 
-            const photo = d.photo || d.user?.photo || d.profilePhoto || d.avatar || "";
+            const photo =
+                d.photo ||
+                d.profilePhoto ||
+                d.profile_photo ||
+                d.avatar ||
+                d.image ||
+                d.profileImage ||
+                d.user?.photo ||
+                d.data?.photo ||
+                "";
             if (photo) localStorage.setItem("photo", photo);
 
             // ── Role-specific fields ──

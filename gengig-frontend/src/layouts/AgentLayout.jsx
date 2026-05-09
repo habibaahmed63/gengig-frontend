@@ -138,6 +138,10 @@ export default function AgentLayout({ children }) {
                     );
                 })}
             </nav>
+            {/* PREMIUM BUTTON */}
+            <div className="mt-26 pt-4 border-t border-white/10">
+                <PremiumButton onClick={() => navigate("/premium")} />
+            </div>
         </>
     );
 
