@@ -94,12 +94,10 @@ export default function ExplorePage() {
 
             {/*HERO  */}
             <section className="py-10 md:py-12 px-6 md:px-8 flex flex-col items-center text-center">
-                <h1 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.5rem, 4vw, 2.8rem)" }}>
-                    {name ? (
-                        <>Hey {name.split(" ")[0]}, your next <span className="text-gradient">Opportunity</span> Awaits ✦</>
-                    ) : (
+                <h1 className="font-bold text-white mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+                    
                         <>Your Next <span className="text-gradient">Opportunity</span> Awaits ✦</>
-                    )}
+                    
                 </h1>
                 {skills.length > 0 && (
                     <div className="flex flex-wrap gap-2 justify-center mt-3 mb-2">
@@ -140,8 +138,8 @@ export default function ExplorePage() {
                 </form>
             </section>
 
-            {/*SKILL ZONE */}
-            <section className="py-10 px-6 md:px-8 text-center">
+            {/* SKILL ZONE */}
+            <section className="py-10 px-6 md:px-8 text-center overflow-hidden">
                 <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
                     Tap Into Your <span className="text-gradient">Skill Zone</span>
                 </h2>
@@ -151,154 +149,175 @@ export default function ExplorePage() {
                         : "From creative to tech — explore gigs built around your strengths."}
                 </p>
 
-                <div className="hidden md:flex items-center justify-center gap-4">
+                {/* Desktop Carousel */}
+                <div className="hidden md:flex items-center justify-center gap-8 relative max-w-5xl mx-auto">
+                    {/* Left Arrow */}
                     <button
-                        onClick={() => setActiveCategory((prev) => Math.max(0, prev - 1))}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+                        onClick={() => setActiveCategory((prev) => (prev > 0 ? prev - 1 : prev))}
+                        className="z-10 w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#FFC085] hover:text-[#060834] transition-all duration-300 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white"
                         style={{ border: "1px solid rgba(255,255,255,0.2)", color: "white" }}
+                        disabled={activeCategory === 0}
                     >
                         ‹
                     </button>
-                    <div className="flex gap-4 items-end">
-                        {categories.map((cat, i) => (
-                            <div
-                                key={cat.label}
-                                onClick={() => { setActiveCategory(i); handleCategoryClick(cat.label); }}
-                                className="cursor-pointer flex flex-col items-center gap-2 transition-all duration-300 hover:opacity-90"
-                                style={{
-                                    transform: i === activeCategory ? "scale(1.15)" : "scale(0.9)",
-                                    opacity: i === activeCategory ? 1 : 0.6,
-                                }}
-                            >
-                                <img
-                                    src={cat.img}
-                                    alt={cat.label}
-                                    className="rounded-xl object-cover"
-                                    style={{
-                                        width: i === activeCategory ? "160px" : "100px",
-                                        height: i === activeCategory ? "200px" : "140px",
-                                    }}
-                                />
-                                <span className="text-white text-xs font-medium">{cat.label}</span>
-                            </div>
-                        ))}
+
+                    {/* Carousel Container */}
+                    <div className="overflow-hidden w-full py-10">
+                        <div
+                            className="flex items-center justify-center gap-6 transition-transform duration-500 ease-out"
+                            style={{
+                                transform: `translateX(calc(0px - (${activeCategory} * 10px)))`
+                            }}
+                        >
+                            {categories.map((cat, i) => {
+                                const isActive = i === activeCategory;
+                                return (
+                                    <div
+                                        key={cat.label}
+                                        onClick={() => { setActiveCategory(i); handleCategoryClick(cat.label); }}
+                                        className="cursor-pointer flex flex-col items-center gap-4 transition-all duration-500 ease-in-out"
+                                        style={{
+                                            transform: isActive ? "scale(1.2)" : "scale(0.85)",
+                                            opacity: isActive ? 1 : 0.4,
+                                            minWidth: isActive ? "180px" : "120px",
+                                            filter: isActive ? "none" : "grayscale(80%)",
+                                        }}
+                                    >
+                                        <img
+                                            src={cat.img}
+                                            alt={cat.label}
+                                            className="rounded-2xl object-cover shadow-2xl transition-all duration-500"
+                                            style={{
+                                                width: isActive ? "180px" : "120px",
+                                                height: isActive ? "240px" : "160px",
+                                                border: isActive ? "3px solid #FFC085" : "1px solid rgba(255,255,255,0.1)"
+                                            }}
+                                        />
+                                        <span className={`text-xs font-bold uppercase tracking-widest transition-colors duration-500 ${isActive ? 'text-[#FFC085]' : 'text-white'}`}>
+                                            {cat.label}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+
+                    {/* Right Arrow */}
                     <button
-                        onClick={() => setActiveCategory((prev) => Math.min(categories.length - 1, prev + 1))}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+                        onClick={() => setActiveCategory((prev) => (prev < categories.length - 1 ? prev + 1 : prev))}
+                        className="z-10 w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#FFC085] hover:text-[#060834] transition-all duration-300 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white"
                         style={{ border: "1px solid rgba(255,255,255,0.2)", color: "white" }}
+                        disabled={activeCategory === categories.length - 1}
                     >
                         ›
                     </button>
                 </div>
 
-                <div className="md:hidden grid grid-cols-2 gap-3">
-                    {categories.map((cat, i) => (
-                        <div
-                            key={cat.label}
-                            onClick={() => { setActiveCategory(i); handleCategoryClick(cat.label); }}
-                            className="flex flex-col items-center gap-2 cursor-pointer rounded-xl overflow-hidden"
-                            style={{ border: i === activeCategory ? "2px solid #FFC085" : "2px solid transparent" }}
-                        >
-                            <img src={cat.img} alt={cat.label} className="w-full h-28 object-cover rounded-xl" />
-                            <span className="text-white text-xs font-medium pb-2">{cat.label}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/*RECOMMENDED */}
-            <section className="py-10 md:py-12 px-6 md:px-8 text-center">
-                <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
-                    Recommended <span className="text-gradient">For You</span>
-                </h2>
-                <p className="text-sm mb-8" style={{ color: "#B2B2D2" }}>
-                    {skills.length > 0
-                        ? "Gigs matched to your skills — " + skills.slice(0, 2).join(", ")
-                        : "Opportunities that push your limits and level up your skills."}
-                </p>
-
-                {recommendedLoading ? (
-                    <div className="flex justify-center py-12">
-                        <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
-                    </div>
-                ) : recommended.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        {recommended.map((gig) => (
-                            <div
-                                key={gig._id || gig.title}
-                                onClick={() => gig._id && navigate("/gig/" + gig._id)}
-                                className="relative rounded-2xl overflow-hidden group cursor-pointer"
-                            >
-                                <img
-                                    src={gig.img}
-                                    alt={gig.title}
-                                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                                />
-                                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,8,52,0.9) 40%, transparent)" }} />
-                                <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                                    <div className="text-left">
-                                        <p className="text-white text-sm font-semibold">{gig.title}</p>
-                                        {gig.category && <p className="text-xs" style={{ color: "#B2B2D2" }}>{gig.category}</p>}
-                                        {gig.budget && <p className="text-xs font-bold mt-1" style={{ color: "#FFC085" }}>{gig.budget}</p>}
-                                    </div>
-                                    <button
-                                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                                        style={{ background: "#FFC085" }}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#060834">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
+            <div className="md:hidden grid grid-cols-2 gap-3">
+                {categories.map((cat, i) => (
                     <div
-                        className="flex flex-col items-center justify-center py-16 rounded-2xl max-w-4xl mx-auto"
-                        style={{ border: "1px dashed rgba(255,255,255,0.1)" }}
+                        key={cat.label}
+                        onClick={() => { setActiveCategory(i); handleCategoryClick(cat.label); }}
+                        className="flex flex-col items-center gap-2 cursor-pointer rounded-xl overflow-hidden"
+                        style={{ border: i === activeCategory ? "2px solid #FFC085" : "2px solid transparent" }}
                     >
-                        <p className="text-3xl mb-3">🎯</p>
-                        <p className="text-sm font-medium text-white mb-1">No recommendations yet</p>
-                        <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>
-                            Complete your profile and add skills to get personalized gig recommendations.
-                        </p>
-                        <Link
-                            to="/teenlancer/profile"
-                            className="text-xs px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity text-white"
-                            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
-                        >
-                            Complete Profile →
-                        </Link>
+                        <img src={cat.img} alt={cat.label} className="w-full h-28 object-cover rounded-xl" />
+                        <span className="text-white text-xs font-medium pb-2">{cat.label}</span>
                     </div>
-                )}
-            </section>
+                ))}
+            </div>
+        </section>
 
-            {/*SMART MOVES */}
-            <section className="py-10 md:py-12 px-6 md:px-8 text-center">
-                <h2 className="font-bold text-white mb-10" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
-                    Smart Moves for Every Gig
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-                    {tips.map((tip) => (
-                        <div
-                            key={tip.title}
-                            className="relative rounded-2xl overflow-hidden flex flex-col justify-end hover:scale-105 transition-all duration-300"
-                            style={{ height: "320px" }}
-                        >
-                            <img src={tip.img} alt={tip.title} className="absolute inset-0 w-full h-full object-cover" />
-                            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,8,52,0.95) 50%, rgba(6,8,52,0.2))" }} />
-                            <div className="relative z-10 p-4 text-left">
-                                <h3 className="text-white font-bold text-sm mb-2">{tip.title}</h3>
-                                <p className="text-xs leading-relaxed" style={{ color: "#B2B2D2" }}>{tip.desc}</p>
+            {/* RECOMMENDED SECTION */ }
+    <section className="py-10 md:py-12 px-6 md:px-8 text-center">
+        <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
+            Recommended <span className="text-gradient">For You</span>
+        </h2>
+        <p className="text-sm mb-8" style={{ color: "#B2B2D2" }}>
+            {skills.length > 0
+                ? "Gigs matched to your skills — " + skills.slice(0, 2).join(", ")
+                : "Opportunities that push your limits and level up your skills."}
+        </p>
+
+        {recommendedLoading ? (
+            <div className="flex justify-center py-12">
+                <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+            </div>
+        ) : recommended.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {recommended.map((gig) => (
+                    <div
+                        key={gig._id || gig.title}
+                        onClick={() => gig._id && navigate("/gig/" + gig._id)}
+                        className="relative rounded-2xl p-5 group cursor-pointer border border-white/5 transition-all duration-300 hover:border-white/20 flex flex-col justify-between min-h-[160px] text-left"
+                        style={{ background: "rgba(255, 255, 255, 0.03)" }}
+                    >
+                        <div>
+                            <div className="flex justify-between items-start mb-3">
+                                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-white/5 text-white/60">
+                                    {gig.category || "General"}
+                                </span>
                             </div>
+                            <h3 className="text-white text-base font-semibold line-clamp-2 mb-2 group-hover:text-[#FFC085] transition-colors">
+                                {gig.title}
+                            </h3>
                         </div>
-                    ))}
-                </div>
-            </section>
 
-            {/* NEWSLETTER */}
+                        <div className="flex items-end justify-between mt-4">
+                            <div>
+                                <p className="text-xs" style={{ color: "#B2B2D2" }}>Budget</p>
+                                <p className="text-sm font-bold" style={{ color: "#FFC085" }}>{gig.budget || "Competitive"}</p>
+                            </div>
+
+                            <button
+                                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                                style={{ background: "#FFC085" }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#060834">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        ) : (
+            // Empty state remains the same
+            <div className="flex flex-col items-center justify-center py-16 rounded-2xl max-w-4xl mx-auto" style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
+                <p className="text-3xl mb-3">🎯</p>
+                <p className="text-sm font-medium text-white mb-1">No recommendations yet</p>
+                <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>Complete your profile and add skills to get personalized gig recommendations.</p>
+                <Link to="/teenlancer/profile" className="text-xs px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity text-white" style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                    Complete Profile
+                </Link>
+            </div>
+        )}
+    </section>
+
+    {/*SMART MOVES */ }
+    <section className="py-10 md:py-12 px-6 md:px-8 text-center">
+        <h2 className="font-bold text-white mb-10" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
+            Smart Moves for Every Gig
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            {tips.map((tip) => (
+                <div
+                    key={tip.title}
+                    className="relative rounded-2xl overflow-hidden flex flex-col justify-end hover:scale-105 transition-all duration-300"
+                    style={{ height: "320px" }}
+                >
+                    <img src={tip.img} alt={tip.title} className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,8,52,0.95) 50%, rgba(6,8,52,0.2))" }} />
+                    <div className="relative z-10 p-4 text-left">
+                        <h3 className="text-white font-bold text-sm mb-2">{tip.title}</h3>
+                        <p className="text-xs leading-relaxed" style={{ color: "#B2B2D2" }}>{tip.desc}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </section>
+
+    {/* NEWSLETTER */ }
             <section className="mx-4 md:mx-8 my-12 rounded-2xl overflow-hidden relative" style={{ minHeight: "200px" }}>
                 <img
                     src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=1200"
@@ -349,6 +368,6 @@ export default function ExplorePage() {
             </section>
 
             <Footer />
-        </div>
+        </div >
     );
 }

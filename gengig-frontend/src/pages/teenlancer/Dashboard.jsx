@@ -35,7 +35,6 @@ export default function TeenlancerDashboard() {
     fetchDashboardData();
   }, []);
 
-  // ✅ Derive sections from applications — single source of truth
   const acceptedApps = myApplications.filter(a => a.status === "accepted");
   const pendingApps = myApplications.filter(a => a.status === "pending");
   const rejectedApps = myApplications.filter(a => a.status === "rejected");

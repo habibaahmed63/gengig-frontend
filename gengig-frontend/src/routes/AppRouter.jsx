@@ -14,6 +14,8 @@ import AboutUs from "../pages/AboutUs";
 import PublicProfile from "../pages/PublicProfile";
 import PaymentSuccess from "../pages/PaymentSuccess";
 import PaymentFailed from "../pages/PaymentFailed";
+import PremiumPage from "../pages/PremiumPage";
+import PremiumCheckout from "../pages/PremiumCheckout";
 
 // Auth
 import SignUp from "../pages/SignUp";
@@ -77,6 +79,8 @@ export default function AppRouter() {
         <Route path="/Terms" element={<Terms />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
+        <Route path="/premium" element={<PremiumPage />} />
+        <Route path="/premium/checkout" element={<PremiumCheckout />} />
 
         {/*Auth*/}
         <Route path="/signup" element={<SignUp />} />
