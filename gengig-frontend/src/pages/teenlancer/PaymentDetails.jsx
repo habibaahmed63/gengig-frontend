@@ -78,21 +78,29 @@ export default function TeenlancerPayment() {
     const fetchPaymentData = async () => {
       try {
         const cardRes = await api.get("/payments/cards");
-        if (cardRes.data) {
-          setSavedCard(cardRes.data);
-          localStorage.setItem("savedCard", JSON.stringify(cardRes.data));
+        const cardData = cardRes.data;
+        if (cardData && (cardData._id || cardData.maskedNumber || cardData.number)) {
+          setSavedCard(cardData);
+          localStorage.setItem("savedCard", JSON.stringify(cardData));
+        } else {
+          localStorage.removeItem("savedCard");
+          setSavedCard(null);
         }
       } catch {
         const stored = localStorage.getItem("savedCard");
-        if (stored) setSavedCard(JSON.parse(stored));
+        if (stored) {
+          try { setSavedCard(JSON.parse(stored)); } catch { }
+        }
       }
+
       setStatsLoading(true);
       try {
         const statsRes = await api.get("/teenlancer/stats");
         setTotalEarnings(statsRes.data.totalEarnings || "$0");
         setPendingPayments(statsRes.data.pendingPayments || "$0");
-      } catch (err) {
-        console.error("Failed to fetch stats:", err);
+        localStorage.setItem("totalEarnings", statsRes.data.totalEarnings || "$0");
+        localStorage.setItem("pendingPayments", statsRes.data.pendingPayments || "$0");
+      } catch {
         setTotalEarnings(localStorage.getItem("totalEarnings") || "$0");
         setPendingPayments(localStorage.getItem("pendingPayments") || "$0");
       } finally {
@@ -102,9 +110,8 @@ export default function TeenlancerPayment() {
       setHistoryLoading(true);
       try {
         const historyRes = await api.get("/payments/transactions");
-        setPaymentHistory(historyRes.data);
-      } catch (err) {
-        console.error("Failed to fetch payment history:", err);
+        setPaymentHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+      } catch {
         setPaymentHistory([]);
       } finally {
         setHistoryLoading(false);
@@ -124,7 +131,7 @@ export default function TeenlancerPayment() {
     if (!cardData.expiry.trim()) { setCardError("Please enter the expiry date."); return; }
     if (!cardData.ccv.trim()) { setCardError("Please enter the CCV."); return; }
 
-    const card = {
+    const payload = {
       cardType: cardData.cardType,
       name: cardData.name,
       number: cardData.number,
@@ -133,32 +140,38 @@ export default function TeenlancerPayment() {
     };
 
     try {
-      await api.post("/payments/save-card", card);
-      localStorage.setItem("savedCard", JSON.stringify(card));
-      setSavedCard(card);
+      const res = await api.post("/payments/save-card", payload);
+      const saved = { ...payload, _id: res.data._id || res.data.id || res.data.cardId };
+      localStorage.setItem("savedCard", JSON.stringify(saved));
+      setSavedCard(saved);
       setShowCardForm(false);
       setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
       showToast("Card saved successfully!");
-    } catch (err) {
-      setCardError("Failed to save card. Please try again.");
+    } catch {
+      const saved = { ...payload, _id: null };
+      localStorage.setItem("savedCard", JSON.stringify(saved));
+      setSavedCard(saved);
+      setShowCardForm(false);
+      setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
+      showToast("Card saved locally.");
     }
   };
 
   const handleRemoveCard = async () => {
-    if (!savedCard || !savedCard._id) {
-      showToast("No card found to remove.", "error");
-      return;
-    }
-
     try {
-      await api.delete(`/payments/cards/${savedCard._id}`);
+      if (savedCard?._id) {
+        await api.delete(`/payments/cards/${savedCard._id}`);
+      } else {
+        await api.delete("/payments/cards");
+      }
+    } catch (err) {
+      console.error("API remove card failed, removing locally:", err);
 
+    } finally {
       localStorage.removeItem("savedCard");
       setSavedCard(null);
+      setShowCardForm(false);
       showToast("Card removed.");
-    } catch (err) {
-      console.error("Failed to remove card:", err);
-      showToast("Failed to remove card. Please try again.", "error");
     }
   };
 

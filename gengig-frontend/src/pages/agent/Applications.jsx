@@ -198,7 +198,7 @@ export default function AgentApplications() {
                         <button onClick={() => navigate("/post")}
                             className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                            Post a Gig →
+                            Post a Gig
                         </button>
                     )}
                 </div>

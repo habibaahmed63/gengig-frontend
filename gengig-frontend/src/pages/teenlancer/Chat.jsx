@@ -615,8 +615,19 @@ export default function TeenlancerChat() {
                                   {formatTime(msg.createdAt)}
                                 </span>
                                 {isMine && (
-                                  <span className="text-xs" style={{ color: "rgba(178,178,210,0.5)" }}>
-                                    {msg.status === "sending" ? "⏳" : msg.status === "failed" ? "❌" : "✓"}
+                                  <span className="text-xs font-medium"
+                                    style={{
+                                      color: msg.isRead ? "#60a5fa"           
+                                        : msg.isDelivered ? "rgba(178,178,210,0.7)" 
+                                          : msg.status === "sending" ? "rgba(178,178,210,0.4)"
+                                            : msg.status === "failed" ? "#f87171"
+                                              : "rgba(178,178,210,0.5)",
+                                    }}>
+                                    {msg.status === "sending" ? "⏳"
+                                      : msg.status === "failed" ? "✕"
+                                        : msg.isRead ? "✓✓"  
+                                          : msg.isDelivered ? "✓✓" 
+                                            : "✓"}  
                                   </span>
                                 )}
                               </div>
