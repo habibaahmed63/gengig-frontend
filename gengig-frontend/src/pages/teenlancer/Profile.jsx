@@ -149,18 +149,33 @@ export default function TeenlancerProfile() {
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            showToast("Image is too large. Please choose an image under 2MB.", "error");
+        if (file.size > 5 * 1024 * 1024) {
+            showToast("Image is too large. Please choose an image under 5MB.", "error");
             return;
         }
+
+        showToast("Uploading photo...");
+
         try {
             const formData = new FormData();
             formData.append("image", file);
-            const res = await api.post("/uploads/image", formData);
-            setEditData(prev => ({ ...prev, photo: res.data.url }));
-        } catch {
-            const compressed = await compressImage(file, 400, 0.7);
-            setEditData(prev => ({ ...prev, photo: compressed }));
+            const res = await api.post("/uploads/image", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            const photoUrl = res.data.url || res.data.imageUrl || res.data.secure_url;
+
+            if (!photoUrl) {
+                showToast("Upload failed — no URL returned.", "error");
+                return;
+            }
+
+            setEditData(prev => ({ ...prev, photo: photoUrl }));
+            showToast("Photo uploaded! Save your profile to keep it.");
+
+        } catch (err) {
+            console.error("Photo upload failed:", err);
+            showToast("Failed to upload photo. Please try again.", "error");
         }
     };
 
@@ -218,11 +233,13 @@ export default function TeenlancerProfile() {
                 name: editData.name,
                 bio: editData.bio,
                 location: editData.location,
+                ...(editData.photo && editData.photo.startsWith("http")
+                    ? { photo: editData.photo }
+                    : {}),
                 skills: editData.skills,
                 portfolio: editData.portfolio,
                 hourlyRate: editData.hourlyRate,
                 availability: editData.availability,
-                photo: editData.photo,
             });
             const savedData = res.data || editData;
             localStorage.setItem("name", savedData.name || editData.name);

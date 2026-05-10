@@ -243,7 +243,7 @@ export default function ApplyGig() {
                                                     style={{ borderColor: "white", borderTopColor: "transparent" }} />
                                                 Submitting...
                                             </span>
-                                        ) : "Submit Application →"}
+                                        ) : "Submit Application"}
                                     </button>
                                     <Link to={`/gig/${id}`}
                                         className="flex-1 py-3 rounded-full font-semibold text-center hover:bg-white/10 transition-all"

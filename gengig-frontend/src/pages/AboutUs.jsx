@@ -50,10 +50,12 @@ export default function AboutUs() {
     ];
 
     const team = [
+        { name: "Habiba Ahmed", role: "Frontend Developer", initials: "HA" },
+        { name: "Kenzy Zayed", role: "Backend Developer", initials: "KZ" },
         { name: "Ahmed Negm", role: "Backend Developer", initials: "AN" },
-        { name: "Ahmed Habib", role: "Frontend Developer", initials: "AH" },
-        { name: "Nada Yasser", role: "UI/UX Designer", initials: "NY" },
-        { name: "Omar Khaled", role: "Full Stack", initials: "OK" },
+        { name: "Youssef Mohamed", role: "Frontend Developer", initials: "YM" },
+        { name: "Omar Hesham", role: "Frontend Developer", initials: "OH" },
+
     ];
 
     const stats = [
@@ -66,25 +68,6 @@ export default function AboutUs() {
     return (
         <div className="min-h-screen" style={{ background: "#060834" }}>
             <Navbar />
-            {/* ── Navbar ── */}
-            <nav className="flex items-center justify-between px-6 md:px-16 py-4"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <button onClick={() => navigate("/")} className="flex items-center gap-3">
-                    <img src={logo} alt="Gengig" className="w-10 h-10 object-contain" />
-                </button>
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate("/signin")}
-                        className="px-5 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition-all"
-                        style={{ color: "white", border: "1px solid rgba(255,255,255,0.2)" }}>
-                        Sign In
-                    </button>
-                    <button onClick={() => navigate("/signup")}
-                        className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                        Get Started
-                    </button>
-                </div>
-            </nav>
 
             <section className="text-center px-6 py-28 relative overflow-hidden">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none"
@@ -179,41 +162,16 @@ export default function AboutUs() {
                 </div>
             </section>
 
-            {/*STATS*/}
-            <section className="px-6 md:px-16 py-24 relative overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.015)" }}>
-                <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,192,133,0.04) 0%, transparent 65%)" }} />
-                <div className="max-w-5xl mx-auto relative z-10">
-                    <div className="text-center mb-16">
-                        <h2 className="text-white font-bold text-3xl tracking-tight mb-3">By The Numbers</h2>
-                        <p className="text-sm" style={{ color: "#B2B2D2" }}>The impact Gengig is creating</p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-px"
-                        style={{ background: "rgba(255,255,255,0.06)", borderRadius: "1.5rem", overflow: "hidden" }}>
-                        {stats.map((stat, i) => (
-                            <div key={stat.label} className="flex flex-col items-center justify-center py-10 px-6 text-center"
-                                style={{ background: "#060834" }}>
-                                <p className="font-black tracking-tight mb-2"
-                                    style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", color: "#FFC085", lineHeight: 1 }}>
-                                    {stat.value}
-                                </p>
-                                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "#B2B2D2" }}>
-                                    {stat.label}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
-            {/*TEAM*/}
+
+            {/* TEAM */}
             <section className="px-6 md:px-16 py-24">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-white font-bold text-3xl tracking-tight mb-3">The Team Behind Gengig</h2>
                         <p className="text-sm" style={{ color: "#B2B2D2" }}>A graduation project built with passion and purpose</p>
                     </div>
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                         {team.map((member, i) => {
                             const colors = ["#FFC085", "#63b3ed", "#4ade80", "#a78bfa"];
@@ -233,6 +191,27 @@ export default function AboutUs() {
                                 </div>
                             );
                         })}
+                        {/* TEAM PHOTO CARD */}
+                        <div className="col-span-2 md:col-span-3 rounded-3xl overflow-hidden relative group h-full"
+                            style={{
+                                border: "1px solid rgba(255,255,255,0.07)",
+                                height: "200px"
+                            }}>
+                            <img
+                                src="../src/assets/team.png"
+                                alt="Gengig Team"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 
+                   object-[center_30%]"
+                            />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#070b17] via-transparent to-transparent opacity-80" />
+
+                            <div className="absolute bottom-4 left-6">
+                                <p className="text-[10px] uppercase tracking-widest text-[#FFC085]">
+                                    Graduation Project Team
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -268,8 +247,11 @@ export default function AboutUs() {
                         ].map(item => (
                             <div key={item.number} className="p-7 rounded-3xl relative overflow-hidden"
                                 style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                                <span className="absolute top-4 right-5 font-black text-5xl select-none pointer-events-none"
-                                    style={{ color: `${item.color}10`, lineHeight: 1 }}>
+                                <span className="absolute top-4 right-5 font-white text-5xl select-none pointer-events-none"
+                                    style={{
+                                        color: "white",
+                                        lineHeight: 1
+                                    }}>
                                     {item.number}
                                 </span>
                                 <div className="w-1 h-8 rounded-full mb-5" style={{ background: item.color }} />
