@@ -94,6 +94,14 @@ export default function TeenlancerDashboard() {
               💬 Chat
             </button>
           )}
+          {app.status === "accepted" && (
+            <button
+              onClick={() => navigate(`/teenlancer/submitwork/${app._id || app.id}`)}
+              className="text-xs px-3 py-1.5 rounded-full font-medium hover:opacity-90 transition-opacity"
+              style={{ background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.25)" }}>
+              📤 Submit Work
+            </button>
+          )}
           {app.status === "rejected" && (
             <button onClick={() => navigate("/Exploreagig")}
               className="text-xs px-3 py-1.5 rounded-full font-medium hover:opacity-80 transition-opacity"
@@ -121,7 +129,7 @@ export default function TeenlancerDashboard() {
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>
-       
+
         <button onClick={() => navigate('/teenlancer/savedgigs')}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
           style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>

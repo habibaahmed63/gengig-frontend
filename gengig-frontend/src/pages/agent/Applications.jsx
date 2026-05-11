@@ -313,6 +313,15 @@ export default function AgentApplications() {
                                                 </span>
                                             )}
 
+                                            {(app.status === "work_submitted" || app.workSubmitted) && (
+                                                <button
+                                                    onClick={() => navigate(`/agent/reviewwork/${app._id}`)}
+                                                    className="text-xs px-3 py-1.5 rounded-full font-medium text-white hover:opacity-90"
+                                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                                                    Review Work
+                                                </button>
+                                            )}
+
                                             {app.coverLetter && (
                                                 <button onClick={() => setExpandedApp(isExpanded ? null : appId)}
                                                     className="text-xs text-center hover:opacity-80 transition-opacity"

@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/Gengig LOGO.png";
 import api from "../services/api";
 import RoleGuard from "./RoleGuard";
+import socket from "../services/socket";
+
 
 export default function Navbar() {
   const location = useLocation();
@@ -22,17 +24,20 @@ export default function Navbar() {
     return () => window.removeEventListener("storage", handleStorageUpdate);
   }, []);
 
+
+
   useEffect(() => {
-    if (!token) return;
-    const fetchUnreadCount = async () => {
-      try {
-        const response = await api.get("/notifications/unread-count");
-        setUnreadCount(response.data.count);
-      } catch (err) {
-        console.error("Failed to fetch unread count:", err);
-      }
+    const userId = localStorage.getItem("userId");
+    if (!userId || !token) return;
+
+    socket.emit("join", { userId });
+
+    const handleNewNotification = () => {
+      setUnreadCount(prev => prev + 1);
     };
-    fetchUnreadCount();
+
+    socket.on("new_notification", handleNewNotification);
+    return () => socket.off("new_notification", handleNewNotification);
   }, [token]);
 
   useEffect(() => {

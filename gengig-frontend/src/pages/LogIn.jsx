@@ -2,6 +2,8 @@ import { useState } from "react";
 import logo from "../assets/Gengig LOGO.png";
 import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../services/supabase";
+
 
 export default function SignIn() {
     const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +36,7 @@ export default function SignIn() {
             } else {
                 sessionStorage.setItem("token", d.token);
                 localStorage.removeItem("rememberMe");
-                localStorage.removeItem("token"); 
+                localStorage.removeItem("token");
             }
             localStorage.setItem("role", d.role);
             localStorage.setItem("name", d.name || "");
@@ -114,8 +116,14 @@ export default function SignIn() {
         }
     };
 
-    const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:3000/auth/google";
+    const handleGoogleLogin = async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: "http://localhost:5173/auth/callback",
+            },
+        });
+        if (error) console.error("Google login error:", error);
     };
 
     return (

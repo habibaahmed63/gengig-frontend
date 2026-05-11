@@ -3,8 +3,9 @@ import { useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import AgentLayout from "../../layouts/AgentLayout";
 import api from "../../services/api";
+import socket from "../../services/socket";
 
-let socket = null;
+
 
 export default function AgentChat() {
     const location = useLocation();
@@ -43,56 +44,64 @@ export default function AgentChat() {
 
     useEffect(() => { scrollToBottom(); }, [messages]);
 
+
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        socket = io("http://localhost:3000", {
-            auth: { token },
-            transports: ["websocket", "polling"],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5,
-            timeout: 10000,
-        });
+        const userId = localStorage.getItem("userId");
+        if (userId) socket.emit("join", { userId });
 
-        socket.on("connect", () => {
-            setConnected(true);
-            socket.emit("join", { userId: currentUserId });
-        });
-        socket.on("disconnect", () => setConnected(false));
-        socket.on("connect_error", (err) => { console.error("Socket error:", err.message); setConnected(false); });
-
-        socket.on("receive_message", (message) => {
+        const handleReceiveMessage = (message) => {
             const senderId = message.senderId || message.sender?._id || message.sender;
-            if (String(senderId) === String(currentUserId)) return;
+            if (String(senderId) === String(currentUserId)) return; // ignore own echo
 
             setMessages(prev => {
                 const msgId = message._id || message.id;
-                if (prev.find(m => (m._id && m._id === msgId) || (m.id && m.id === msgId))) return prev;
+                if (prev.find(m => (m._id || m.id) === msgId)) return prev;
                 const myId = localStorage.getItem("userId");
-                return [...prev, {
-                    ...message,
-                    isMine: String(senderId) === String(myId),
-                }];
+                return [...prev, { ...message, isMine: String(senderId) === String(myId) }];
             });
             setContacts(prev => prev.map(c =>
                 String(c._id || c.id) === String(senderId)
                     ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
                     : c
             ));
-        });
+        };
 
-        socket.on("user_typing", ({ userId }) => setTypingUsers(prev => new Set([...prev, userId])));
-        socket.on("user_stop_typing", ({ userId }) => setTypingUsers(prev => { const n = new Set(prev); n.delete(userId); return n; }));
-        socket.on("user_online", ({ userId }) => {
+        const handleUserTyping = ({ userId }) => setTypingUsers(prev => new Set([...prev, userId]));
+        const handleUserStopTyping = ({ userId }) => setTypingUsers(prev => { const n = new Set(prev); n.delete(userId); return n; });
+        const handleUserOnline = ({ userId }) => {
             setOnlineUsers(prev => new Set([...prev, userId]));
             setContacts(prev => prev.map(c => String(c._id || c.id) === String(userId) ? { ...c, online: true } : c));
-        });
-        socket.on("user_offline", ({ userId }) => {
+        };
+        const handleUserOffline = ({ userId }) => {
             setOnlineUsers(prev => { const n = new Set(prev); n.delete(userId); return n; });
             setContacts(prev => prev.map(c => String(c._id || c.id) === String(userId) ? { ...c, online: false } : c));
-        });
+        };
+        const handleConnected = () => {
+            setConnected(true);
+            const uid = localStorage.getItem("userId");
+            if (uid) socket.emit("join", { userId: uid });
+        };
+        const handleDisconnected = () => setConnected(false);
 
-        return () => { socket?.disconnect(); socket = null; };
+        socket.on("receive_message", handleReceiveMessage);
+        socket.on("user_typing", handleUserTyping);
+        socket.on("user_stop_typing", handleUserStopTyping);
+        socket.on("user_online", handleUserOnline);
+        socket.on("user_offline", handleUserOffline);
+        socket.on("connect", handleConnected);
+        socket.on("disconnect", handleDisconnected);
+
+        setConnected(socket.connected);
+
+        return () => {
+            socket.off("receive_message", handleReceiveMessage);
+            socket.off("user_typing", handleUserTyping);
+            socket.off("user_stop_typing", handleUserStopTyping);
+            socket.off("user_online", handleUserOnline);
+            socket.off("user_offline", handleUserOffline);
+            socket.off("connect", handleConnected);
+            socket.off("disconnect", handleDisconnected);
+        };
     }, [currentUserId]);
 
     const fetchContacts = async () => {
@@ -196,16 +205,11 @@ export default function AgentChat() {
 
         const cId = getContactId(selectedContact);
         const tempId = "temp-" + Date.now();
-        const tempMsg = {
-            id: tempId,
-            senderId: currentUserId,
-            receiverId: cId,
-            content,
-            createdAt: new Date().toISOString(),
-            status: "sending",
-            isMine: true,
-        };
-        setMessages(prev => [...prev, tempMsg]);
+        setMessages(prev => [...prev, {
+            id: tempId, senderId: currentUserId,
+            content, createdAt: new Date().toISOString(),
+            status: "sending", isMine: true,
+        }]);
 
         try {
             const res = await api.post(`/chat/messages/${cId}`, { content });
@@ -213,9 +217,7 @@ export default function AgentChat() {
                 m.id === tempId ? { ...res.data, status: "sent", isMine: true } : m
             ));
             setContacts(prev => prev.map(c =>
-                getContactId(c) === cId
-                    ? { ...c, lastMessage: content, lastTime: "Just now" }
-                    : c
+                getContactId(c) === cId ? { ...c, lastMessage: content, lastTime: "Just now" } : c
             ));
         } catch {
             setMessages(prev => prev.map(m =>
@@ -402,7 +404,7 @@ export default function AgentChat() {
                                                     </span>
                                                 )}
                                             </div>
-                                            {onlineUsers.has(cId) && (  
+                                            {onlineUsers.has(cId) && (
                                                 <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                                                     style={{ background: "#4ade80", borderColor: "#090c28" }} />
                                             )}
