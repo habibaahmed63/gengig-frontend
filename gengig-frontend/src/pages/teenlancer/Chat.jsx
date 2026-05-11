@@ -55,40 +55,32 @@ export default function TeenlancerChat() {
       auth: { token },
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
       timeout: 10000,
     });
-
     socket.on("connect", () => {
       setConnected(true);
-      const userId = localStorage.getItem("userId");
-      if (userId) socket.emit("join", { userId });
+      socket.emit("join", { userId: currentUserId });
     });
-
     socket.on("disconnect", () => setConnected(false));
     socket.on("connect_error", (err) => {
-      console.error("Socket error:", err.message);
+      console.error("Socket connection error:", err.message);
       setConnected(false);
     });
 
     socket.on("receive_message", (message) => {
-      const senderId = message.senderId || message.sender?._id || message.sender;
-      if (String(senderId) === String(currentUserId)) return; // ignore own echo
       setMessages(prev => {
         const msgId = message._id || message.id;
         if (prev.find(m => (m._id || m.id) === msgId)) return prev;
-        return [...prev, { ...message, isMine: false }];
+        return [...prev, message];
       });
       setContacts(prev => prev.map(c => {
+        const senderId = message.senderId || message.sender?._id || message.sender;
         return String(c._id || c.id) === String(senderId)
           ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
           : c;
       }));
-    });
-
-    socket.on("new_notification", (notification) => {
-      window.dispatchEvent(new CustomEvent("newNotification", { detail: notification }));
     });
 
     socket.on("user_typing", ({ userId }) => setTypingUsers(prev => new Set([...prev, userId])));
@@ -111,11 +103,7 @@ export default function TeenlancerChat() {
     setContactsError(false);
     try {
       const res = await api.get("/chat/contacts");
-      const normalized = res.data.map(c => ({
-        ...c,
-        unread: c.unread || c.unreadCount || 0,
-      }));
-      setContacts(normalized);
+      setContacts(res.data);
     } catch (err) {
       console.error("Failed to fetch contacts:", err);
       setContactsError(true);

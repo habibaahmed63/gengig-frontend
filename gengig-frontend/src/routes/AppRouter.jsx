@@ -35,6 +35,7 @@ import TeenlancerPayment from "../pages/teenlancer/PaymentDetails";
 import TeenlancerSettings from "../pages/teenlancer/Settings";
 import TeenlancerCommunity from "../pages/teenlancer/Community";
 import TeenlancerChat from "../pages/teenlancer/Chat";
+import SavedGigs from "../pages/teenlancer/SavedGigs";
 
 // Agent pages
 import AgentDashboard from "../pages/agent/Dashboard";
@@ -106,6 +107,8 @@ export default function AppRouter() {
         <Route path="/teenlancer/settings" element={<PrivateRoute><TeenlancerSettings /></PrivateRoute>} />
         <Route path="/teenlancer/community" element={<PrivateRoute><TeenlancerCommunity /></PrivateRoute>} />
         <Route path="/teenlancer/chat" element={<PrivateRoute><TeenlancerChat /></PrivateRoute>} />
+        <Route path="/teenlancer/savedgigs" element={<PrivateRoute><SavedGigs /></PrivateRoute>} />
+
 
         {/*Agent pages — login required only*/}
         <Route path="/agent/dashboard" element={<PrivateRoute><AgentDashboard /></PrivateRoute>} />
