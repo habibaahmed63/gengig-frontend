@@ -99,23 +99,40 @@ export default function Community() {
     };
 
     const handleComment = async (postId) => {
-        const text = commentInputs[postId];
-        if (!text?.trim()) return;
-        const newComment = {
-            id: Date.now(),
+        const text = (commentInputs[postId] || "").trim();
+        if (!text) return;
+
+        const tempId = "temp-" + Date.now();
+        const optimistic = {
+            _id: tempId,
             user: { name: userName, img: userPhoto || null },
             text,
+            content: text,
         };
-        setPosts(prev => prev.map(p => {
-            const pId = p._id || p.id;
-            return pId === postId ? { ...p, comments: [...(p.comments || []), newComment] } : p;
-        }));
+
+        setPosts(prev => prev.map(p =>
+            String(p._id || p.id) === String(postId)
+                ? { ...p, comments: [...(p.comments || []), optimistic] }
+                : p
+        ));
         setCommentInputs(prev => ({ ...prev, [postId]: "" }));
         setExpandedComments(prev => ({ ...prev, [postId]: true }));
+
         try {
-            await api.post(`/community/posts/${postId}/comment`, { text });
+            await api.post(`/community/posts/${postId}/comment`, { text, content: text });
+
+            const refreshed = await api.get(`/community/posts/${postId}`);
+            const updatedPost = refreshed.data;
+            setPosts(prev => prev.map(p =>
+                String(p._id || p.id) === String(postId) ? updatedPost : p
+            ));
         } catch (err) {
             console.error("Failed to post comment:", err);
+            setPosts(prev => prev.map(p =>
+                String(p._id || p.id) === String(postId)
+                    ? { ...p, comments: (p.comments || []).filter(c => c._id !== tempId) }
+                    : p
+            ));
         }
     };
 
@@ -162,9 +179,7 @@ export default function Community() {
 
     const getPostId = (post) => post._id || post.id;
 
-    const filtered = activeTag === "All"
-        ? posts
-        : posts.filter(p => p.tags?.includes(activeTag));
+    const filtered = posts;
 
     return (
         <TeenlancerLayout>
@@ -251,21 +266,6 @@ export default function Community() {
                                 </button>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Tag Filter */}
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                        {allTags.map(tag => (
-                            <button key={tag} onClick={() => setActiveTag(tag)}
-                                className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0"
-                                style={{
-                                    background: activeTag === tag ? "linear-gradient(90deg, #FFC085, #e8a060)" : "rgba(255,255,255,0.05)",
-                                    color: activeTag === tag ? "white" : "#B2B2D2",
-                                    border: activeTag === tag ? "none" : "1px solid rgba(255,255,255,0.08)",
-                                }}>
-                                {tag === "All" ? "All" : "#" + tag}
-                            </button>
-                        ))}
                     </div>
 
                     {/* Posts */}

@@ -33,15 +33,14 @@ export default function ExplorePage() {
     const role = localStorage.getItem("role");
     const skills = JSON.parse(localStorage.getItem("skills") || "[]");
 
-    // ✅ Read category from URL and highlight matching skill pill
     useEffect(() => {
         const categoryFromUrl = searchParams.get("category");
         if (categoryFromUrl) {
             const idx = categories.findIndex(c =>
-                c.label.toLowerCase() === categoryFromUrl.toLowerCase()
+                c.label.toLowerCase().includes(categoryFromUrl.toLowerCase()) ||
+                categoryFromUrl.toLowerCase().includes(c.label.toLowerCase())
             );
             if (idx >= 0) setActiveCategory(idx);
-            // Trigger fetch with this category
             fetchRecommendedByCategory(categoryFromUrl);
         } else {
             fetchRecommended();
@@ -72,7 +71,6 @@ export default function ExplorePage() {
         }
     };
 
-    // ✅ Skill pill click — navigate to explore with category filter
     const handleSkillClick = (skill) => {
         navigate(`/Exploreagig?category=${encodeURIComponent(skill)}`);
     };
@@ -119,19 +117,23 @@ export default function ExplorePage() {
                     Your Next <span className="text-gradient">Opportunity</span> Awaits ✦
                 </h1>
 
-                {/* ✅ Skills pills — clickable, filter gigs by category */}
                 {skills.length > 0 && (
                     <div className="flex flex-wrap gap-2 justify-center mt-3 mb-2">
                         {skills.slice(0, 6).map(skill => (
-                            <button key={skill} onClick={() => handleSkillClick(skill)}
+                            <button key={skill}
+                                onClick={() => {
+                                    navigate(`/Exploreagig?category=${encodeURIComponent(skill)}`);
+                                    setTimeout(() => {
+                                        document.getElementById("recommended-section")?.scrollIntoView({ behavior: "smooth" });
+                                    }, 300);
+                                }}
                                 className="text-xs px-3 py-1.5 rounded-full hover:scale-105 hover:opacity-90 transition-all duration-200 cursor-pointer"
-                                style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.2)" }}>
+                                style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
                                 {skill}
                             </button>
                         ))}
                     </div>
                 )}
-
                 {searchParams.get("category") && (
                     <div className="flex items-center gap-2 mt-2 mb-1">
                         <span className="text-xs px-3 py-1 rounded-full font-medium"
@@ -236,7 +238,8 @@ export default function ExplorePage() {
             </section>
 
             {/* RECOMMENDED */}
-            <section className="py-10 md:py-12 px-6 md:px-8 text-center">
+
+            <section id="recommended-section" className="py-10 md:py-12 px-6 md:px-8 text-center">
                 <h2 className="font-bold text-white mb-2" style={{ fontSize: "clamp(1.2rem, 3vw, 2.2rem)" }}>
                     {searchParams.get("category")
                         ? <>{searchParams.get("category")} <span className="text-gradient">Gigs</span></>

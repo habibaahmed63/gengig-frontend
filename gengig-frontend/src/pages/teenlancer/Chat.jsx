@@ -68,19 +68,24 @@ export default function TeenlancerChat() {
       console.error("Socket connection error:", err.message);
       setConnected(false);
     });
-
     socket.on("receive_message", (message) => {
+      const senderId = message.senderId || message.sender?._id || message.sender;
+      if (String(senderId) === String(currentUserId)) return;
+
       setMessages(prev => {
         const msgId = message._id || message.id;
-        if (prev.find(m => (m._id || m.id) === msgId)) return prev;
-        return [...prev, message];
+        if (prev.find(m => (m._id && m._id === msgId) || (m.id && m.id === msgId))) return prev;
+        const myId = localStorage.getItem("userId");
+        return [...prev, {
+          ...message,
+          isMine: String(senderId) === String(myId),
+        }];
       });
-      setContacts(prev => prev.map(c => {
-        const senderId = message.senderId || message.sender?._id || message.sender;
-        return String(c._id || c.id) === String(senderId)
+      setContacts(prev => prev.map(c =>
+        String(c._id || c.id) === String(senderId)
           ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
-          : c;
-      }));
+          : c
+      ));
     });
 
     socket.on("user_typing", ({ userId }) => setTypingUsers(prev => new Set([...prev, userId])));
@@ -195,33 +200,31 @@ export default function TeenlancerChat() {
     stopTyping();
 
     const cId = getContactId(selectedContact);
+    const tempId = "temp-" + Date.now();
     const tempMsg = {
-      id: "temp-" + Date.now(),
+      id: tempId,
       senderId: currentUserId,
       receiverId: cId,
       content,
       createdAt: new Date().toISOString(),
       status: "sending",
+      isMine: true,
     };
     setMessages(prev => [...prev, tempMsg]);
 
     try {
-      socket?.emit("send_message", {
-        senderId: currentUserId,
-        receiverId: cId,
-        content,
-      });
       const res = await api.post(`/chat/messages/${cId}`, { content });
       setMessages(prev => prev.map(m =>
-        m.id === tempMsg.id ? { ...res.data, status: "sent" } : m
+        m.id === tempId ? { ...res.data, status: "sent", isMine: true } : m
       ));
       setContacts(prev => prev.map(c =>
-        getContactId(c) === cId ? { ...c, lastMessage: content, lastTime: "Just now" } : c
+        getContactId(c) === cId
+          ? { ...c, lastMessage: content, lastTime: "Just now" }
+          : c
       ));
-    } catch (err) {
-      console.error("Failed to send message:", err);
+    } catch {
       setMessages(prev => prev.map(m =>
-        m.id === tempMsg.id ? { ...m, status: "failed" } : m
+        m.id === tempId ? { ...m, status: "failed" } : m
       ));
     } finally {
       setSending(false);
@@ -447,7 +450,7 @@ export default function TeenlancerChat() {
                           </span>
                         )}
                       </div>
-                      {(onlineUsers.has(cId) || contact.online) && (
+                      {onlineUsers.has(cId) && ( 
                         <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                           style={{ background: "#4ade80", borderColor: "#090c28" }} />
                       )}
@@ -521,7 +524,7 @@ export default function TeenlancerChat() {
                       </span>
                     )}
                   </div>
-                  {(onlineUsers.has(getContactId(selectedContact)) || selectedContact.online) && (
+                  {onlineUsers.has(getContactId(selectedContact)) && (
                     <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                       style={{ background: "#4ade80", borderColor: "#090c28" }} />
                   )}
@@ -529,9 +532,11 @@ export default function TeenlancerChat() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{selectedContact.name}</p>
                   <p className="text-xs" style={{ color: isContactTyping ? "#4ade80" : "#B2B2D2" }}>
-                    {isContactTyping ? "typing..."
-                      : (onlineUsers.has(getContactId(selectedContact)) || selectedContact.online)
-                        ? "Online" : "Offline"}
+                    {isContactTyping
+                      ? "typing..."
+                      : onlineUsers.has(getContactId(selectedContact))
+                        ? "Online"
+                        : "Offline"}
                   </p>
                 </div>
                 {!connected && (

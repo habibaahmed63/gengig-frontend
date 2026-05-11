@@ -67,14 +67,18 @@ export default function AgentChat() {
 
             setMessages(prev => {
                 const msgId = message._id || message.id;
-                if (prev.find(m => (m._id || m.id) === msgId)) return prev;
-                return [...prev, message];
+                if (prev.find(m => (m._id && m._id === msgId) || (m.id && m.id === msgId))) return prev;
+                const myId = localStorage.getItem("userId");
+                return [...prev, {
+                    ...message,
+                    isMine: String(senderId) === String(myId),
+                }];
             });
-            setContacts(prev => prev.map(c => {
-                return String(c._id || c.id) === String(senderId)
+            setContacts(prev => prev.map(c =>
+                String(c._id || c.id) === String(senderId)
                     ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
-                    : c;
-            }));
+                    : c
+            ));
         });
 
         socket.on("user_typing", ({ userId }) => setTypingUsers(prev => new Set([...prev, userId])));
@@ -191,8 +195,9 @@ export default function AgentChat() {
         stopTyping();
 
         const cId = getContactId(selectedContact);
+        const tempId = "temp-" + Date.now();
         const tempMsg = {
-            id: "temp-" + Date.now(),
+            id: tempId,
             senderId: currentUserId,
             receiverId: cId,
             content,
@@ -203,24 +208,23 @@ export default function AgentChat() {
         setMessages(prev => [...prev, tempMsg]);
 
         try {
-
             const res = await api.post(`/chat/messages/${cId}`, { content });
             setMessages(prev => prev.map(m =>
-                m.id === tempMsg.id ? { ...res.data, status: "sent", isMine: true } : m
+                m.id === tempId ? { ...res.data, status: "sent", isMine: true } : m
             ));
             setContacts(prev => prev.map(c =>
-                getContactId(c) === cId ? { ...c, lastMessage: content, lastTime: "Just now" } : c
+                getContactId(c) === cId
+                    ? { ...c, lastMessage: content, lastTime: "Just now" }
+                    : c
             ));
-        } catch (err) {
-            console.error("Failed to send message:", err);
+        } catch {
             setMessages(prev => prev.map(m =>
-                m.id === tempMsg.id ? { ...m, status: "failed" } : m
+                m.id === tempId ? { ...m, status: "failed" } : m
             ));
         } finally {
             setSending(false);
         }
     };
-
     const handleTyping = () => {
         if (!selectedContact || !socket) return;
         if (!isTyping) { setIsTyping(true); socket.emit("typing", { senderId: currentUserId, receiverId: getContactId(selectedContact) }); }
@@ -398,7 +402,7 @@ export default function AgentChat() {
                                                     </span>
                                                 )}
                                             </div>
-                                            {(onlineUsers.has(cId) || contact.online) && (
+                                            {onlineUsers.has(cId) && (  
                                                 <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                                                     style={{ background: "#4ade80", borderColor: "#090c28" }} />
                                             )}
@@ -469,7 +473,7 @@ export default function AgentChat() {
                                             </span>
                                         )}
                                     </div>
-                                    {(onlineUsers.has(getContactId(selectedContact)) || selectedContact.online) && (
+                                    {onlineUsers.has(getContactId(selectedContact)) && (
                                         <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                                             style={{ background: "#4ade80", borderColor: "#090c28" }} />
                                     )}
@@ -477,8 +481,11 @@ export default function AgentChat() {
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white font-semibold text-sm">{selectedContact.name}</p>
                                     <p className="text-xs" style={{ color: isContactTyping ? "#4ade80" : "#B2B2D2" }}>
-                                        {isContactTyping ? "typing..."
-                                            : (onlineUsers.has(getContactId(selectedContact)) || selectedContact.online) ? "Online" : "Offline"}
+                                        {isContactTyping
+                                            ? "typing..."
+                                            : onlineUsers.has(getContactId(selectedContact))
+                                                ? "Online"
+                                                : "Offline"}
                                     </p>
                                 </div>
                                 {!connected && (
@@ -556,17 +563,17 @@ export default function AgentChat() {
                                                                 {isMine && (
                                                                     <span className="text-xs font-medium"
                                                                         style={{
-                                                                            color: msg.isRead ? "#60a5fa"              
-                                                                                : msg.isDelivered ? "rgba(178,178,210,0.7)" 
+                                                                            color: msg.isRead ? "#60a5fa"
+                                                                                : msg.isDelivered ? "rgba(178,178,210,0.7)"
                                                                                     : msg.status === "sending" ? "rgba(178,178,210,0.4)"
                                                                                         : msg.status === "failed" ? "#f87171"
                                                                                             : "rgba(178,178,210,0.5)",
                                                                         }}>
                                                                         {msg.status === "sending" ? "⏳"
                                                                             : msg.status === "failed" ? "✕"
-                                                                                : msg.isRead ? "✓✓" 
-                                                                                    : msg.isDelivered ? "✓✓"  
-                                                                                        : "✓"}  
+                                                                                : msg.isRead ? "✓✓"
+                                                                                    : msg.isDelivered ? "✓✓"
+                                                                                        : "✓"}
                                                                     </span>
                                                                 )}
                                                             </div>
