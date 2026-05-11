@@ -98,26 +98,30 @@ export default function Community() {
         }
     };
 
-    const handleComment = async (postId) => {
-        const text = commentInputs[postId];
-        if (!text?.trim()) return;
-        const newComment = {
-            id: Date.now(),
-            user: { name: userName, img: userPhoto || null },
-            text,
-        };
-        setPosts(prev => prev.map(p => {
-            const pId = p._id || p.id;
-            return pId === postId ? { ...p, comments: [...(p.comments || []), newComment] } : p;
-        }));
-        setCommentInputs(prev => ({ ...prev, [postId]: "" }));
-        setExpandedComments(prev => ({ ...prev, [postId]: true }));
+    const fetchPosts = async () => {
+        const res = await api.get("/community/posts");
+        setPosts(Array.isArray(res.data) ? res.data : []);
+    };
+
+    const handleComment = async (postId, content) => {
+        if (!content.trim()) return;
         try {
-            await api.post(`/community/posts/${postId}/comment`, { text });
+            const res = await api.post(`/community/posts/${postId}/comments`, { content });
+            setPosts(prev => prev.map(p =>
+                String(p._id) === String(postId)
+                    ? {
+                        ...p,
+                        comments: res.data.comments || [...(p.comments || []), { content, createdAt: new Date() }],
+                        commentsCount: res.data.commentsCount || (p.commentsCount || 0) + 1,
+                    }
+                    : p
+            ));
         } catch (err) {
-            console.error("Failed to post comment:", err);
+            console.error("Failed to add comment:", err);
         }
     };
+
+    const comments = post.comments || [];
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];

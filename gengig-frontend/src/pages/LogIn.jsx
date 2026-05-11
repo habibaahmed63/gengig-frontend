@@ -28,7 +28,17 @@ export default function SignIn() {
             const d = response.data;
             console.log("Login response:", d);
 
-            // ── Wipe all previous user data ──
+            if (formData.rememberMe) {
+                localStorage.setItem("token", d.token);
+                localStorage.setItem("rememberMe", "true");
+            } else {
+                sessionStorage.setItem("token", d.token);
+                localStorage.removeItem("rememberMe");
+                localStorage.removeItem("token"); 
+            }
+            localStorage.setItem("role", d.role);
+            localStorage.setItem("name", d.name || "");
+
             const keys = ["token", "role", "name", "photo", "bio", "skills", "education",
                 "availability", "hourlyRate", "company", "industry", "workTypes",
                 "location", "joinDate", "userId", "slug", "email", "portfolio",
