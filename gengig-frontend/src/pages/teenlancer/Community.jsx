@@ -119,13 +119,42 @@ export default function Community() {
         setExpandedComments(prev => ({ ...prev, [postId]: true }));
 
         try {
-            await api.post(`/community/posts/${postId}/comment`, { text, content: text });
+            const res = await api.post(`/community/posts/${postId}/comment`, {
+                text,
+                content: text,
+            });
 
-            const refreshed = await api.get(`/community/posts/${postId}`);
-            const updatedPost = refreshed.data;
-            setPosts(prev => prev.map(p =>
-                String(p._id || p.id) === String(postId) ? updatedPost : p
-            ));
+            const responseData = res.data;
+
+            setPosts(prev => prev.map(p => {
+                if (String(p._id || p.id) !== String(postId)) return p;
+
+                if (responseData?.comments && Array.isArray(responseData.comments)) {
+                    return { ...p, comments: responseData.comments };
+                }
+                if (responseData?.comment) {
+                    return {
+                        ...p,
+                        comments: p.comments.map(c =>
+                            c._id === tempId ? { ...responseData.comment } : c
+                        ),
+                    };
+                }
+                if (responseData?._id || responseData?.id) {
+                    return {
+                        ...p,
+                        comments: p.comments.map(c =>
+                            c._id === tempId ? { ...responseData } : c
+                        ),
+                    };
+                }
+                return {
+                    ...p,
+                    comments: p.comments.map(c =>
+                        c._id === tempId ? { ...c, _id: Date.now().toString() } : c
+                    ),
+                };
+            }));
         } catch (err) {
             console.error("Failed to post comment:", err);
             setPosts(prev => prev.map(p =>

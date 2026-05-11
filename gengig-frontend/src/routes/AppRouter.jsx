@@ -23,6 +23,8 @@ import LogIn from "../pages/LogIn";
 import VerifyEmail from "../pages/VerifyEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import GoogleSuccess from "../pages/auth/GoogleSuccess";
+import AuthCallback from "../pages/AuthCallback";
+
 
 // Onboarding
 import TeenlancerOnboarding from "../pages/onboarding/TeenlancerOnboarding";
@@ -36,6 +38,8 @@ import TeenlancerSettings from "../pages/teenlancer/Settings";
 import TeenlancerCommunity from "../pages/teenlancer/Community";
 import TeenlancerChat from "../pages/teenlancer/Chat";
 import SavedGigs from "../pages/teenlancer/SavedGigs";
+import SubmitWork from "../pages/teenlancer/SubmitWork";
+
 
 // Agent pages
 import AgentDashboard from "../pages/agent/Dashboard";
@@ -46,6 +50,8 @@ import AgentApplications from "../pages/agent/Applications";
 import MyGigs from "../pages/agent/MyGigs";
 import PostGig from "../pages/PostGig";
 import AgentChat from "../pages/agent/Chat";
+import ReviewWork from "../pages/agent/ReviewWork";
+
 
 // Category pages
 import GigsByCategory from "../pages/GigsByCategory";
@@ -89,6 +95,8 @@ export default function AppRouter() {
         <Route path="/auth/google/success" element={<GoogleSuccess />} />
         <Route path="/google/success" element={<GoogleSuccess />} />
         <Route path="/auth/callback" element={<GoogleSuccess />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
 
 
         {/*Onboarding*/}
@@ -108,6 +116,9 @@ export default function AppRouter() {
         <Route path="/teenlancer/community" element={<PrivateRoute><TeenlancerCommunity /></PrivateRoute>} />
         <Route path="/teenlancer/chat" element={<PrivateRoute><TeenlancerChat /></PrivateRoute>} />
         <Route path="/teenlancer/savedgigs" element={<PrivateRoute><SavedGigs /></PrivateRoute>} />
+        <Route path="/teenlancer/submitwork/:applicationId" element={<PrivateRoute><SubmitWork /></PrivateRoute>} />
+
+
 
 
         {/*Agent pages — login required only*/}
@@ -118,6 +129,8 @@ export default function AppRouter() {
         <Route path="/agent/applications" element={<PrivateRoute><AgentApplications /></PrivateRoute>} />
         <Route path="/agent/my-gigs" element={<PrivateRoute><MyGigs /></PrivateRoute>} />
         <Route path="/agent/chat" element={<PrivateRoute><AgentChat /></PrivateRoute>} />
+        <Route path="/agent/reviewwork/:applicationId" element={<PrivateRoute><ReviewWork /></PrivateRoute>} />
+
 
 
         {/*404*/}
