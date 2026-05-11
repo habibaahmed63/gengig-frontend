@@ -47,6 +47,7 @@ export default function TeenlancerDashboard() {
     { label: "Accepted", value: acceptedApps.length, color: "#4ade80" },
     { label: "Pending", value: pendingApps.length, color: "#FFC085" },
     { label: "Completed", value: completedApps.length, color: "#63b3ed" },
+
   ];
 
   const appStatusStyle = {
@@ -120,10 +121,16 @@ export default function TeenlancerDashboard() {
           </h1>
           <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
         </div>
-        <button onClick={() => navigate("/Exploreagig")}
-          className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity flex-shrink-0"
-          style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-          Find Gigs →
+       
+        <button onClick={() => navigate('/teenlancer/savedgigs')}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
+          style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+          Saved Gigs
         </button>
       </div>
 
@@ -310,6 +317,7 @@ export default function TeenlancerDashboard() {
               Community Hub
             </button>
           </div>
+
         </div>
       )}
     </TeenlancerLayout>

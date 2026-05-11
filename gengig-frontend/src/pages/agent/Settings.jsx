@@ -167,7 +167,7 @@ export default function AgentSettings() {
 
             <h1 className="text-white font-bold text-2xl mb-8">Settings</h1>
 
-            <div className="flex flex-col gap-6 max-w-2xl">
+            <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
                 {/* Personal Info */}
                 <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
                     <h2 className="text-white font-semibold mb-5">Personal Information</h2>
