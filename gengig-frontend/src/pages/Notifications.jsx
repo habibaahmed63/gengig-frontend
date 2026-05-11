@@ -44,7 +44,6 @@ export default function Notifications() {
     fetchNotifications();
   }, []);
 
-  // ✅ Get navigation path based on notification type and data
   const getNotificationPath = (notif) => {
     const type = notif.type || notif.notificationType || "";
     switch (type) {
@@ -71,11 +70,11 @@ export default function Notifications() {
   };
 
   const handleNotificationClick = async (notif) => {
-    if (!notif.read) await markRead(notif._id || notif.id);
+    const id = notif._id || notif.id;
+    if (!notif.read) await markRead(id);
     const path = getNotificationPath(notif);
     if (path) navigate(path);
-  };
-
+  }
   const markAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     try { await api.put("/notifications/read-all"); } catch { }
@@ -83,17 +82,23 @@ export default function Notifications() {
 
   const markRead = async (id) => {
     setNotifications(prev => prev.map(n =>
-      (n._id || n.id) === id ? { ...n, read: true } : n
+      (n._id === id || n.id === id) ? { ...n, read: true } : n
     ));
-    try { await api.put(`/notifications/${id}/read`); } catch { }
+    try {
+      await api.put(`/notifications/${id}/read`);
+    } catch (err) {
+      console.error("Failed to mark read:", err);
+    }
   };
 
   const deleteNotification = async (id, e) => {
-    e.stopPropagation(); // prevent triggering notification click
-    setNotifications(prev => prev.filter(n => (n._id || n.id) !== id));
-    try { await api.delete(`/notifications/${id}`); } catch {
+    e.stopPropagation();
+    setNotifications(prev => prev.filter(n => n._id !== id && n.id !== id));
+    try {
+      await api.delete(`/notifications/${id}`);
+    } catch {
       const res = await api.get("/notifications").catch(() => ({ data: [] }));
-      setNotifications(res.data);
+      setNotifications(Array.isArray(res.data) ? res.data : []);
     }
   };
 
