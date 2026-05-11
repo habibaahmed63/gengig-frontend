@@ -77,20 +77,18 @@ export default function TeenlancerPayment() {
   useEffect(() => {
     const fetchPaymentData = async () => {
       try {
-        const cardRes = await api.get("/payments/cards");
-        const cardData = cardRes.data;
-        if (cardData && (cardData._id || cardData.maskedNumber || cardData.number)) {
-          setSavedCard(cardData);
-          localStorage.setItem("savedCard", JSON.stringify(cardData));
+        const res = await api.get("/payments/cards");
+        const cards = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+        if (cards.length > 0) {
+          setSavedCard(cards[0]);
+          localStorage.setItem("savedCard", JSON.stringify(cards[0]));
         } else {
           localStorage.removeItem("savedCard");
           setSavedCard(null);
         }
       } catch {
         const stored = localStorage.getItem("savedCard");
-        if (stored) {
-          try { setSavedCard(JSON.parse(stored)); } catch { }
-        }
+        if (stored) { try { setSavedCard(JSON.parse(stored)); } catch { } }
       }
 
       setStatsLoading(true);
@@ -131,46 +129,42 @@ export default function TeenlancerPayment() {
     if (!cardData.expiry.trim()) { setCardError("Please enter the expiry date."); return; }
     if (!cardData.ccv.trim()) { setCardError("Please enter the CCV."); return; }
 
-    const payload = {
-      cardType: cardData.cardType,
-      name: cardData.name,
-      number: cardData.number,
-      expiry: cardData.expiry,
-      maskedNumber: "**** **** **** " + cardData.number.replace(/\s/g, "").slice(-4),
-    };
-
     try {
-      const res = await api.post("/payments/save-card", payload);
-      const saved = { ...payload, _id: res.data._id || res.data.id || res.data.cardId };
+      const res = await api.post("/payments/save-card", {
+        nameOnCard: cardData.name,
+        cardNumber: cardData.number,
+        expiryDate: cardData.expiry,
+        cardType: cardData.cardType,
+      });
+      const saved = {
+        ...res.data,
+        maskedNumber: "**** **** **** " + cardData.number.replace(/\s/g, "").slice(-4),
+        name: cardData.name,
+        expiry: cardData.expiry,
+        cardType: cardData.cardType,
+      };
       localStorage.setItem("savedCard", JSON.stringify(saved));
       setSavedCard(saved);
       setShowCardForm(false);
       setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
       showToast("Card saved successfully!");
     } catch {
-      const saved = { ...payload, _id: null };
-      localStorage.setItem("savedCard", JSON.stringify(saved));
-      setSavedCard(saved);
-      setShowCardForm(false);
-      setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
-      showToast("Card saved locally.");
+      showToast("Failed to save card. Please try again.", "error");
     }
   };
-
   const handleRemoveCard = async () => {
     try {
-      if (savedCard?._id) {
-        await api.delete(`/payments/cards/${savedCard._id}`);
+      const cardId = savedCard?._id || savedCard?.id;
+      if (cardId) {
+        await api.delete(`/payments/cards/${cardId}`);
       } else {
         await api.delete("/payments/cards");
       }
     } catch (err) {
-      console.error("API remove card failed, removing locally:", err);
-
+      console.error("Remove card API failed:", err);
     } finally {
       localStorage.removeItem("savedCard");
       setSavedCard(null);
-      setShowCardForm(false);
       showToast("Card removed.");
     }
   };

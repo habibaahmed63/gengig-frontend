@@ -52,11 +52,9 @@ import TeenlancersByCategory from "../pages/TeenlancersByCategory";
 
 
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/signin" replace />;
-  return children;
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  return token ? children : <Navigate to="/signin" replace />;
 }
-
 
 export default function AppRouter() {
   return (
@@ -88,6 +86,9 @@ export default function AppRouter() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/google/success" element={<GoogleSuccess />} />
+        <Route path="/google/success" element={<GoogleSuccess />} />
+        <Route path="/auth/callback" element={<GoogleSuccess />} />
+
 
         {/*Onboarding*/}
         <Route path="/onboarding/teenlancer" element={<PrivateRoute><TeenlancerOnboarding /></PrivateRoute>} />

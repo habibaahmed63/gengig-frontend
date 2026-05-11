@@ -35,6 +35,14 @@ export default function Navbar() {
     fetchUnreadCount();
   }, [token]);
 
+  useEffect(() => {
+    const handleNewNotification = () => {
+      setUnreadCount(prev => prev + 1);
+    };
+    window.addEventListener("newNotification", handleNewNotification);
+    return () => window.removeEventListener("newNotification", handleNewNotification);
+  }, []);
+
   const navLinks = [
     { label: "Home", path: "/home" },
     { label: "Explore a Gig", path: "/Exploreagig" },
