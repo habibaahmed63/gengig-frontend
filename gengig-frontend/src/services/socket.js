@@ -1,27 +1,27 @@
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 
-const socket = io("http://localhost:3000", {
-    transports: ["websocket", "polling"],
-    reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 1000,
-    autoConnect: true,
+// Create socket ONCE — outside component
+const socket = io('http://localhost:3000', {
+  transports: ['polling', 'websocket'],
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 2000,
+  autoConnect: true,
 });
 
-socket.on("connect", () => {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-        socket.emit("join", { userId });
-        console.log("Socket connected, joined room:", userId);
-    }
+socket.on('connect', () => {
+  console.log('✅ Socket connected:', socket.id);
+  const userId = localStorage.getItem('userId');
+  if (userId) socket.emit('join', { userId });
 });
 
-socket.on("disconnect", (reason) => {
-    console.log("Socket disconnected:", reason);
+socket.on('disconnect', (reason) => {
+  console.log('❌ Socket disconnected:', reason);
 });
 
-socket.on("connect_error", (err) => {
-    console.error("Socket connection error:", err.message);
+socket.on('reconnect', () => {
+  const userId = localStorage.getItem('userId');
+  if (userId) socket.emit('join', { userId });
 });
 
 export default socket;
