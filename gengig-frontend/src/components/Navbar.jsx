@@ -27,17 +27,35 @@ export default function Navbar() {
 
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId || !token) return;
+    if (!token) {
+      setUnreadCount(0);
+      return;
+    }
 
-    socket.emit("join", { userId });
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get("/notifications/unread-count");
+        const count = response.data?.count ?? response.data?.unreadCount ?? 0;
+        setUnreadCount(count);
+      } catch (err) {
+        console.error("Failed to fetch unread count:", err);
+      }
+    };
+    fetchUnreadCount();
 
-    const handleNewNotification = () => {
+    const handleNewNotification = (notification) => {
+      console.log("New notification received:", notification);
       setUnreadCount(prev => prev + 1);
     };
-
     socket.on("new_notification", handleNewNotification);
-    return () => socket.off("new_notification", handleNewNotification);
+
+    const handleMarkAllRead = () => setUnreadCount(0);
+    window.addEventListener("notificationsRead", handleMarkAllRead);
+
+    return () => {
+      socket.off("new_notification", handleNewNotification);
+      window.removeEventListener("notificationsRead", handleMarkAllRead);
+    };
   }, [token]);
 
   useEffect(() => {

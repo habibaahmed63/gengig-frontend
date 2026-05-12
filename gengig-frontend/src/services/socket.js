@@ -9,6 +9,15 @@ const socket = io('http://localhost:3000', {
   autoConnect: true,
 });
 
+const joinRoom = () => {
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    socket.emit("join", { userId });
+    console.log("Socket joined room:", userId);
+  }
+};
+
+
 socket.on('connect', () => {
   console.log('✅ Socket connected:', socket.id);
   const userId = localStorage.getItem('userId');
@@ -24,4 +33,10 @@ socket.on('reconnect', () => {
   if (userId) socket.emit('join', { userId });
 });
 
+if (socket.connected) joinRoom();
+
+
 export default socket;
+
+
+

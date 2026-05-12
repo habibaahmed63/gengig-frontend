@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
+import socket from "../services/socket";
 
 const typeColors = {
   application: { bg: "rgba(255,192,133,0.1)", color: "#FFC085" },
@@ -33,7 +34,11 @@ export default function Notifications() {
       setLoading(true);
       try {
         const res = await api.get("/notifications");
-        setNotifications(Array.isArray(res.data) ? res.data : []);
+        const normalized = (Array.isArray(res.data) ? res.data : []).map(n => ({
+          ...n,
+          read: n.read === true || n.isRead === true,
+        }));
+        setNotifications(normalized);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
         setNotifications([]);
@@ -42,63 +47,92 @@ export default function Notifications() {
       }
     };
     fetchNotifications();
+
+    const handleNewNotification = (notification) => {
+      setNotifications(prev => [{
+        ...notification,
+        read: false,
+      }, ...prev]);
+    };
+    socket.on("new_notification", handleNewNotification);
+    return () => socket.off("new_notification", handleNewNotification);
   }, []);
 
   const getNotificationPath = (notif) => {
     const type = notif.type || notif.notificationType || "";
+    const gigId = notif.gigId || notif.gig?._id || notif.gig?.id || notif.relatedId;
+
     switch (type) {
       case "application":
       case "new_application":
-        return notif.gigId ? `/gig/${notif.gigId}` : "/agent/applications";
+        return role === "agent"
+          ? "/agent/applications"
+          : gigId ? `/gig/${gigId}` : "/teenlancer/dashboard";
+
       case "accepted":
       case "application_accepted":
-        return notif.gigId ? `/gig/${notif.gigId}` : "/teenlancer/dashboard";
+        return gigId ? `/gig/${gigId}` : "/teenlancer/dashboard";
+
       case "rejected":
       case "application_rejected":
         return "/teenlancer/dashboard";
+
+      case "work_submitted":
+        return notif.applicationId
+          ? `/agent/reviewwork/${notif.applicationId}`
+          : "/agent/applications";
+
+      case "work_approved":
+        return gigId ? `/gig/${gigId}` : "/teenlancer/dashboard";
+
+      case "work_rejected":
+      case "revision_requested":
+        return notif.applicationId
+          ? `/teenlancer/submitwork/${notif.applicationId}`
+          : "/teenlancer/dashboard";
+
       case "message":
       case "new_message":
         return role === "agent" ? "/agent/chat" : "/teenlancer/chat";
+
       case "gig":
       case "new_gig":
-        return notif.gigId ? `/gig/${notif.gigId}` : "/Exploreagig";
+        return gigId ? `/gig/${gigId}` : "/Exploreagig";
+
       case "payment":
+      case "payment_released":
         return role === "agent" ? "/agent/payment" : "/teenlancer/payment";
+
       default:
-        return notif.link || null;
+        return notif.link || notif.url || null;
     }
   };
 
   const handleNotificationClick = async (notif) => {
     const id = notif._id || notif.id;
-    if (!notif.read) await markRead(id);
+    if (!notif.read) {
+      setNotifications(prev => prev.map(n =>
+        (n._id === id || n.id === id) ? { ...n, read: true } : n
+      ));
+      try { await api.put(`/notifications/${id}/read`); } catch { }
+    }
     const path = getNotificationPath(notif);
     if (path) navigate(path);
-  }
+  };
+
   const markAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     try { await api.put("/notifications/read-all"); } catch { }
   };
 
-  const markRead = async (id) => {
-    setNotifications(prev => prev.map(n =>
-      (n._id === id || n.id === id) ? { ...n, read: true } : n
-    ));
-    try {
-      await api.put(`/notifications/${id}/read`);
-    } catch (err) {
-      console.error("Failed to mark read:", err);
-    }
-  };
-
   const deleteNotification = async (id, e) => {
     e.stopPropagation();
     setNotifications(prev => prev.filter(n => n._id !== id && n.id !== id));
-    try {
-      await api.delete(`/notifications/${id}`);
-    } catch {
+    try { await api.delete(`/notifications/${id}`); } catch {
       const res = await api.get("/notifications").catch(() => ({ data: [] }));
-      setNotifications(Array.isArray(res.data) ? res.data : []);
+      setNotifications((Array.isArray(res.data) ? res.data : []).map(n => ({
+        ...n, read: n.read === true || n.isRead === true,
+      })));
     }
   };
 
@@ -144,11 +178,7 @@ export default function Notifications() {
           {[
             { key: "all", label: "All" },
             { key: "unread", label: "Unread" },
-            { key: "application", label: "Applications" },
-            { key: "gig", label: "Gigs" },
-            { key: "message", label: "Messages" },
-            { key: "payment", label: "Payments" },
-            { key: "system", label: "System" },
+            
           ].map(filter => (
             <button key={filter.key} onClick={() => setActiveFilter(filter.key)}
               className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
@@ -194,6 +224,7 @@ export default function Notifications() {
                       border: notif.read ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,192,133,0.2)",
                       cursor: isClickable ? "pointer" : "default",
                     }}>
+
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
                       style={{ background: typeColors[notif.type]?.bg || typeColors.system.bg }}>
                       {notif.icon || typeIcons[notif.type] || "🔔"}
@@ -221,32 +252,22 @@ export default function Notifications() {
                               {notif.time}
                             </p>
                           )}
-                          {/* ✅ Shows where the click will lead */}
                           {isClickable && (
-                            <p className="text-xs mt-1 hover:opacity-80 transition-opacity"
+                            <p className="text-xs mt-1 font-medium"
                               style={{ color: typeColors[notif.type]?.color || "#FFC085" }}>
-                              {notif.read ? "View →" : "Tap to view →"}
+                              {notif.read ? "View " : "Tap to view "}
                             </p>
                           )}
                         </div>
-
                         <button onClick={e => deleteNotification(notifId, e)}
                           className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
                           style={{ color: "#B2B2D2" }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
                       </div>
-
-                      {!notif.read && (
-                        <button onClick={e => { e.stopPropagation(); markRead(notifId); }}
-                          className="text-xs mt-2 hover:text-white transition-colors"
-                          style={{ color: "#B2B2D2" }}>
-                          Mark as read
-                        </button>
-                      )}
                     </div>
                   </div>
                 );
