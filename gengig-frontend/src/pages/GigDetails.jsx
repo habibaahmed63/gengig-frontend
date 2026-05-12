@@ -27,9 +27,11 @@ export default function GigDetails() {
                 if (response.data.gig) {
                     setGig(response.data.gig);
                     setRelatedGigs(response.data.relatedGigs || []);
+                    setSaved(response.data.gig.isSaved || response.data.isSaved || false);
                 } else {
                     setGig(response.data);
                     setRelatedGigs(response.data.relatedGigs || []);
+                    setSaved(response.data.isSaved || false);
                 }
             } catch (err) {
                 console.error("Failed to fetch gig:", err);
@@ -47,12 +49,18 @@ export default function GigDetails() {
     };
 
     const handleSave = async () => {
-        setSaved(prev => !prev);
+        if (!localStorage.getItem("token")) {
+            navigate("/signin");
+            return;
+        }
+        const newSaved = !saved;
+        setSaved(newSaved); 
         try {
-            await api.post(`/gigs/${id}/save`);
+            const res = await api.post(`/gigs/${id}/save`);
+            if (res.data?.isSaved !== undefined) setSaved(res.data.isSaved);
         } catch (err) {
             console.error("Failed to save gig:", err);
-            setSaved(prev => !prev);
+            setSaved(!newSaved); 
         }
     };
 

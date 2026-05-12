@@ -126,8 +126,11 @@ export default function Home() {
                         <img src={logo} alt="Gengig" className="w-14 h-14 object-contain" />
                     </Link>
                     <div className="flex items-center gap-6 text-sm" style={{ color: "#B2B2D2" }}>
+                        <Link to="/home" className="hover:text-white transition-colors hidden sm:block">Home</Link>
                         <Link to="/about" className="hover:text-white transition-colors hidden sm:block">About</Link>
                         <Link to="/Exploreagig" className="hover:text-white transition-colors hidden sm:block">Explore</Link>
+                        <Link to="/post" className="hover:text-white transition-colors hidden sm:block">Post a Gig</Link>
+
                     </div>
                     <div className="flex items-center gap-3">
                         <button onClick={() => navigate("/signin")}

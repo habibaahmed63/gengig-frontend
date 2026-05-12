@@ -5,9 +5,6 @@ import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 import socket from "../../services/socket";
 
-console.log("userId:", localStorage.getItem("userId"));
-console.log("id:", localStorage.getItem("id"));
-console.log("_id:", localStorage.getItem("_id"));
 
 
 export default function TeenlancerChat() {
@@ -171,7 +168,6 @@ export default function TeenlancerChat() {
           msg.isMine === true,
       }));
       setMessages(messagesWithOwnership);
-      setMessages(res.data);
       await api.put(`/chat/messages/${cId}/read`).catch(() => { });
     } catch (err) {
       console.error("Failed to fetch messages:", err);
