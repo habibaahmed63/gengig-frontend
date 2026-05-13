@@ -56,7 +56,7 @@ export default function SubmitWork() {
             if (form.file) data.append("file", form.file);
 
             // ✅ Same endpoint — backend handles both initial and revision
-            await api.post(`/applications/${applicationId}/submit-work`, data);
+            await api.post(`/applications/${applicationId}/submitwork`, data);
             setSubmitted(true);
         } catch (err) {
             setError(err.response?.data?.message || "Failed to submit work. Please try again.");

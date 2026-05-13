@@ -4,8 +4,7 @@ import { io } from "socket.io-client";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 import socket from "../../services/socket";
-
-
+import RevisionModal from "../../components/RevisionModal";
 
 export default function TeenlancerChat() {
   const location = useLocation();
@@ -13,8 +12,8 @@ export default function TeenlancerChat() {
     || localStorage.getItem("id")
     || localStorage.getItem("_id")
     || "";
-  const currentUserName = localStorage.getItem("name") || "";
 
+  // All state declarations
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -32,6 +31,7 @@ export default function TeenlancerChat() {
   const [searchUsers, setSearchUsers] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const [revisionModal, setRevisionModal] = useState(null);
 
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
@@ -53,7 +53,7 @@ export default function TeenlancerChat() {
 
     const handleReceiveMessage = (message) => {
       const senderId = message.senderId || message.sender?._id || message.sender;
-      if (String(senderId) === String(currentUserId)) return; // ignore own echo
+      if (String(senderId) === String(currentUserId)) return;
 
       setMessages(prev => {
         const msgId = message._id || message.id;
@@ -64,6 +64,24 @@ export default function TeenlancerChat() {
       setContacts(prev => prev.map(c =>
         String(c._id || c.id) === String(senderId)
           ? { ...c, lastMessage: message.content, lastTime: "Just now", unread: (c.unread || 0) + 1 }
+          : c
+      ));
+    };
+
+    const handleRevisionRequest = (data) => {
+      setMessages(prev => [...prev, {
+        _id: data._id,
+        senderId: data.senderId,
+        content: data.content,
+        type: "revision_request",
+        gigId: data.gigId,
+        revisionData: data.revisionData,
+        createdAt: new Date().toISOString(),
+        isMine: false,
+      }]);
+      setContacts(prev => prev.map(c =>
+        String(c._id || c.id) === String(data.senderId)
+          ? { ...c, lastMessage: "📝 Edit request", lastTime: "Just now", unread: (c.unread || 0) + 1 }
           : c
       ));
     };
@@ -86,6 +104,7 @@ export default function TeenlancerChat() {
     const handleDisconnected = () => setConnected(false);
 
     socket.on("receive_message", handleReceiveMessage);
+    socket.on("revision_request", handleRevisionRequest);
     socket.on("user_typing", handleUserTyping);
     socket.on("user_stop_typing", handleUserStopTyping);
     socket.on("user_online", handleUserOnline);
@@ -97,6 +116,7 @@ export default function TeenlancerChat() {
 
     return () => {
       socket.off("receive_message", handleReceiveMessage);
+      socket.off("revision_request", handleRevisionRequest);
       socket.off("user_typing", handleUserTyping);
       socket.off("user_stop_typing", handleUserStopTyping);
       socket.off("user_online", handleUserOnline);
@@ -291,6 +311,14 @@ export default function TeenlancerChat() {
     setShowNewChat(false);
     setSearchUsers("");
     setSearchResults([]);
+  };
+
+  const handleRevisionClick = (message) => {
+    api.get(`/gigs/${message.gigId}`).then(res => {
+      setRevisionModal({ message, gig: res.data });
+    }).catch(err => {
+      console.error("Failed to fetch gig:", err);
+    });
   };
 
   const formatTime = (dateStr) => {
@@ -569,6 +597,35 @@ export default function TeenlancerChat() {
                         <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                       </div>
                       {msgs.map((msg, i) => {
+                        // Handle revision request messages differently
+                        if (msg.type === "revision_request") {
+                          return (
+                            <div key={msg._id || msg.id} className="flex justify-start mb-3">
+                              <div className="max-w-sm p-4 rounded-2xl"
+                                style={{ background: "rgba(248,113,113,0.1)", border: "2px solid rgba(248,113,113,0.2)" }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#f87171" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="font-semibold text-sm" style={{ color: "#f87171" }}>Edit Request</p>
+                                </div>
+                                <p className="text-sm mb-3 text-white">{msg.content}</p>
+                                {msg.revisionData?.requestedChanges && (
+                                  <p className="text-xs mb-2 p-2 rounded" style={{ background: "rgba(248,113,113,0.05)", color: "#fca5a5" }}>
+                                    {msg.revisionData.requestedChanges}
+                                  </p>
+                                )}
+                                <button onClick={() => handleRevisionClick(msg)}
+                                  className="w-full text-xs px-3 py-2 rounded-lg font-medium transition-colors"
+                                  style={{ background: "#f87171", color: "white" }}>
+                                  View & Submit Revision
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Regular messages
                         const isMine =
                           msg.isMine === true ||
                           String(msg.senderId) === String(currentUserId) ||
@@ -774,6 +831,18 @@ export default function TeenlancerChat() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Revision Modal */}
+      {revisionModal && (
+        <RevisionModal
+          message={revisionModal.message}
+          gig={revisionModal.gig}
+          onClose={() => setRevisionModal(null)}
+          onSubmit={(updatedGig) => {
+            setRevisionModal(null);
+          }}
+        />
       )}
     </TeenlancerLayout>
   );

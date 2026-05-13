@@ -1,12 +1,21 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
 
-const categories = ["All", "Graphic Design", "Marketing", "UI/UX", "Video Editing", "Logo Design", "Social Media", "Web Development", "Photography"];
-const budgetRanges = ["All", "Under $100", "$100 - $200", "$200 - $300", "Above $300"];
+const categories = ["All", "Animation", "Content Writing", "UI/UX Design", "Motion Graphics", "Logo Design", "Social Media", "Web Development", "Photography"];
+const budgetRanges = ["All", "Under $100", "$100 - $200", "$200 - $500", "$500+"];
 const sortOptions = ["Most Relevant", "Highest Rated", "Lowest Budget", "Highest Budget", "Most Reviews"];
+
+const normalize = (value) =>
+    String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const parseBudgetAmount = (budget, mode = "max") => {
+    const numbers = String(budget || "").match(/\d+(?:\.\d+)?/g)?.map(Number) || [];
+    if (numbers.length === 0) return 0;
+    return mode === "min" ? Math.min(...numbers) : Math.max(...numbers);
+};
 
 const formatBudget = (budget) => {
     if (!budget) return "";
@@ -15,18 +24,21 @@ const formatBudget = (budget) => {
 };
 
 export default function SearchResults() {
-    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+
     const query = searchParams.get("q") || "";
+    const activeCategory = searchParams.get("category") || "All";
+    const activeBudget = searchParams.get("budget") || "All";
+    const sortBy = searchParams.get("sort") || "Most Relevant";
 
     const [search, setSearch] = useState(query);
-    const [activeCategory, setActiveCategory] = useState("All");
-    const [activeBudget, setActiveBudget] = useState("All");
-    const [sortBy, setSortBy] = useState("Most Relevant");
     const [showFilters, setShowFilters] = useState(false);
-
     const [gigs, setGigs] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setSearch(query);
+    }, [query]);
 
     useEffect(() => {
         const fetchResults = async () => {
@@ -46,33 +58,62 @@ export default function SearchResults() {
         fetchResults();
     }, [query]);
 
+    const updateUrlParams = (newParams) => {
+        const current = Object.fromEntries(searchParams.entries());
+        const merged = { ...current, ...newParams };
+
+        if (merged.category === "All") delete merged.category;
+        if (merged.budget === "All") delete merged.budget;
+        if (merged.sort === "Most Relevant") delete merged.sort;
+        if (!merged.q) delete merged.q;
+
+        setSearchParams(merged);
+    };
+
     const handleSearch = (e) => {
         e.preventDefault();
-        if (search.trim()) setSearchParams({ q: search.trim() });
+        updateUrlParams({ q: search.trim() });
     };
 
     const filterByBudget = (gig) => {
-        const budget = parseFloat(String(gig.budget).replace(/[^0-9.]/g, "")) || 0;
         if (activeBudget === "All") return true;
-        if (activeBudget === "Under $100") return budget < 100;
-        if (activeBudget === "$100 - $200") return budget >= 100 && budget <= 200;
-        if (activeBudget === "$200 - $300") return budget > 200 && budget <= 300;
-        if (activeBudget === "Above $300") return budget > 300;
+
+        const budgetMax = parseBudgetAmount(gig.budget, "max");
+        const budgetMin = parseBudgetAmount(gig.budget, "min");
+
+        if (activeBudget === "Under $100") {
+            return budgetMax < 100;
+        }
+        if (activeBudget === "$100 - $200") {
+            return budgetMax >= 100 && budgetMin <= 200;
+        }
+        if (activeBudget === "$200 - $500") {
+            return budgetMax >= 200 && budgetMin <= 500;
+        }
+        if (activeBudget === "$500+") {
+            return budgetMax >= 500;
+        }
         return true;
     };
 
+    // Filter and Sort
     const filtered = gigs
         .filter((g) => {
-            const matchesCategory = activeCategory === "All" || g.category === activeCategory;
+            const matchesCategory =
+                activeCategory === "All" ||
+                normalize(g.category) === normalize(activeCategory);
             return matchesCategory && filterByBudget(g);
         })
         .sort((a, b) => {
-            const budgetA = parseFloat(String(a.budget).replace(/[^0-9.]/g, "")) || 0;
-            const budgetB = parseFloat(String(b.budget).replace(/[^0-9.]/g, "")) || 0;
             if (sortBy === "Highest Rated") return (b.rating || 0) - (a.rating || 0);
             if (sortBy === "Most Reviews") return (b.reviews || 0) - (a.reviews || 0);
-            if (sortBy === "Lowest Budget") return budgetA - budgetB;
-            if (sortBy === "Highest Budget") return budgetB - budgetA;
+
+            if (sortBy === "Lowest Budget") {
+                return parseBudgetAmount(a.budget, "min") - parseBudgetAmount(b.budget, "min");
+            }
+            if (sortBy === "Highest Budget") {
+                return parseBudgetAmount(b.budget, "max") - parseBudgetAmount(a.budget, "max");
+            }
             return 0;
         });
 
@@ -111,7 +152,7 @@ export default function SearchResults() {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                        <select value={sortBy} onChange={e => updateUrlParams({ sort: e.target.value })}
                             className="rounded-xl px-3 py-2 text-white text-xs outline-none"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
                             {sortOptions.map(opt => (
@@ -134,7 +175,7 @@ export default function SearchResults() {
                             <h3 className="text-white font-semibold text-sm mb-3">Category</h3>
                             <div className="flex flex-col gap-1">
                                 {categories.map(cat => (
-                                    <button key={cat} onClick={() => setActiveCategory(cat)}
+                                    <button key={cat} onClick={() => updateUrlParams({ category: cat })}
                                         className="text-left text-xs px-3 py-2 rounded-lg transition-colors"
                                         style={{
                                             background: activeCategory === cat ? "rgba(255,192,133,0.15)" : "transparent",
@@ -151,7 +192,7 @@ export default function SearchResults() {
                             <h3 className="text-white font-semibold text-sm mb-3">Budget</h3>
                             <div className="flex flex-col gap-1">
                                 {budgetRanges.map(range => (
-                                    <button key={range} onClick={() => setActiveBudget(range)}
+                                    <button key={range} onClick={() => updateUrlParams({ budget: range })}
                                         className="text-left text-xs px-3 py-2 rounded-lg transition-colors"
                                         style={{
                                             background: activeBudget === range ? "rgba(255,192,133,0.15)" : "transparent",
@@ -165,7 +206,7 @@ export default function SearchResults() {
                         </div>
 
                         {(activeCategory !== "All" || activeBudget !== "All") && (
-                            <button onClick={() => { setActiveCategory("All"); setActiveBudget("All"); }}
+                            <button onClick={() => updateUrlParams({ category: "All", budget: "All" })}
                                 className="text-xs px-4 py-2 rounded-full transition-colors hover:bg-white/10"
                                 style={{ border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
                                 Clear Filters
