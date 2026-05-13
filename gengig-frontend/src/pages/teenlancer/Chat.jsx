@@ -4,7 +4,6 @@ import { io } from "socket.io-client";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 import socket from "../../services/socket";
-import RevisionModal from "../../components/RevisionModal";
 
 export default function TeenlancerChat() {
   const location = useLocation();

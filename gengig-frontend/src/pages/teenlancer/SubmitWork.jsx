@@ -1,4 +1,3 @@
-// ✅ Update SubmitWork.jsx — add revision mode detection at top:
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
@@ -9,7 +8,6 @@ export default function SubmitWork() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    // ✅ Detect if this is a revision resubmission
     const isRevision = searchParams.get("revision") === "true";
     const revisionReason = searchParams.get("reason") || "";
 
