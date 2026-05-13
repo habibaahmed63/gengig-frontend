@@ -1,11 +1,17 @@
+// ✅ Update SubmitWork.jsx — add revision mode detection at top:
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 
 export default function SubmitWork() {
     const { applicationId } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    // ✅ Detect if this is a revision resubmission
+    const isRevision = searchParams.get("revision") === "true";
+    const revisionReason = searchParams.get("reason") || "";
 
     const [application, setApplication] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -46,9 +52,11 @@ export default function SubmitWork() {
             data.append("deliverables", form.deliverables);
             data.append("portfolioLink", form.portfolioLink || "");
             data.append("notes", form.notes || "");
+            data.append("isRevision", isRevision ? "true" : "false");
             if (form.file) data.append("file", form.file);
 
-            await api.post(`/applications/${applicationId}/submitwork`, data);
+            // ✅ Same endpoint — backend handles both initial and revision
+            await api.post(`/applications/${applicationId}/submit-work`, data);
             setSubmitted(true);
         } catch (err) {
             setError(err.response?.data?.message || "Failed to submit work. Please try again.");
@@ -78,9 +86,13 @@ export default function SubmitWork() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
-                <h2 className="text-white font-bold text-2xl mb-3">Work Submitted!</h2>
+                <h2 className="text-white font-bold text-2xl mb-3">
+                    {isRevision ? "Revision Submitted!" : "Work Submitted!"}
+                </h2>
                 <p className="text-sm mb-2 leading-relaxed" style={{ color: "#B2B2D2" }}>
-                    Your work has been submitted to the agent for review.
+                    {isRevision
+                        ? "Your revised work has been sent to the agent for review."
+                        : "Your work has been submitted to the agent for review."}
                 </p>
                 <p className="text-sm mb-8" style={{ color: "#B2B2D2" }}>
                     Once the agent approves your work, payment will be released to your account.
@@ -89,7 +101,8 @@ export default function SubmitWork() {
                     style={{ background: "rgba(255,192,133,0.08)", border: "1px solid rgba(255,192,133,0.2)" }}>
                     <p className="text-xs font-semibold mb-1" style={{ color: "#FFC085" }}>💰 Payment Status</p>
                     <p className="text-xs" style={{ color: "#B2B2D2" }}>
-                        Payment is held securely by Gengig until the agent approves your work. You'll be notified immediately when payment is released.
+                        Payment is held securely by Gengig until the agent approves your work.
+                        You'll be notified immediately when payment is released.
                     </p>
                 </div>
                 <button onClick={() => navigate("/teenlancer/dashboard")}
@@ -106,14 +119,40 @@ export default function SubmitWork() {
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
                 <Link to="/teenlancer/dashboard" className="hover:text-[#FFC085]">Dashboard</Link>
                 {" › "}
-                <span style={{ color: "#FFC085" }}>Submit Work</span>
+                <span style={{ color: "#FFC085" }}>
+                    {isRevision ? "Submit Revision" : "Submit Work"}
+                </span>
             </p>
 
             <div className="max-w-2xl mx-auto">
-                <h1 className="text-white font-bold text-2xl mb-2">Submit Your Work</h1>
-                <p className="text-sm mb-8" style={{ color: "#B2B2D2" }}>
-                    Upload your completed work for the agent to review and approve.
+                <h1 className="text-white font-bold text-2xl mb-2">
+                    {isRevision ? "Submit Your Revision" : "Submit Your Work"}
+                </h1>
+                <p className="text-sm mb-6" style={{ color: "#B2B2D2" }}>
+                    {isRevision
+                        ? "The agent has requested changes. Upload your revised work below."
+                        : "Upload your completed work for the agent to review and approve."}
                 </p>
+
+                {/* ✅ Show revision reason if this is a resubmission */}
+                {isRevision && revisionReason && (
+                    <div className="p-4 rounded-2xl mb-6 flex gap-3"
+                        style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none"
+                            viewBox="0 0 24 24" stroke="#f87171" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p className="text-sm font-semibold mb-1" style={{ color: "#f87171" }}>
+                                Agent's Revision Request
+                            </p>
+                            <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
+                                {decodeURIComponent(revisionReason)}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {application && (
                     <div className="p-4 rounded-2xl mb-6 flex items-center gap-4"
@@ -132,6 +171,12 @@ export default function SubmitWork() {
                             </p>
                             <p className="text-xs" style={{ color: "#B2B2D2" }}>
                                 by {application.agentName || application.agent?.name || "Agent"}
+                                {isRevision && (
+                                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium"
+                                        style={{ background: "rgba(248,113,113,0.1)", color: "#f87171" }}>
+                                        Revision #{(application.revisionCount || 0) + 1}
+                                    </span>
+                                )}
                             </p>
                         </div>
                     </div>
@@ -140,15 +185,21 @@ export default function SubmitWork() {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                     <div className="flex flex-col gap-2">
                         <label className="text-white text-sm font-medium">
-                            Work Description <span style={{ color: "#f87171" }}>*</span>
+                            {isRevision ? "What did you change?" : "Work Description"}{" "}
+                            <span style={{ color: "#f87171" }}>*</span>
                         </label>
                         <p className="text-xs" style={{ color: "#B2B2D2" }}>
-                            Describe what you've completed and how it meets the requirements.
+                            {isRevision
+                                ? "Explain what you changed based on the agent's feedback."
+                                : "Describe what you've completed and how it meets the requirements."}
                         </p>
                         <textarea value={form.description}
                             onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-                            placeholder="I've completed the logo design with 3 variations as requested. The designs include..."
-                            rows={4} className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
+                            placeholder={isRevision
+                                ? "I've made the following changes based on your feedback..."
+                                : "I've completed the logo design with 3 variations as requested..."}
+                            rows={4}
+                            className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                     </div>
 
@@ -160,13 +211,15 @@ export default function SubmitWork() {
                         <textarea value={form.deliverables}
                             onChange={e => setForm(prev => ({ ...prev, deliverables: e.target.value }))}
                             placeholder={"Logo in PNG format (3 variations)\nSource files in AI format\nBrand guidelines PDF"}
-                            rows={3} className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
+                            rows={3}
+                            className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                     </div>
 
                     <div className="flex flex-col gap-2">
                         <label className="text-white text-sm font-medium">
-                            Portfolio / Drive Link <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
+                            Portfolio / Drive Link{" "}
+                            <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
                         </label>
                         <input type="url" value={form.portfolioLink}
                             onChange={e => setForm(prev => ({ ...prev, portfolioLink: e.target.value }))}
@@ -177,7 +230,8 @@ export default function SubmitWork() {
 
                     <div className="flex flex-col gap-2">
                         <label className="text-white text-sm font-medium">
-                            Upload File <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
+                            Upload File{" "}
+                            <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
                         </label>
                         <label className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-xl cursor-pointer hover:bg-white/5 transition-colors"
                             style={{ border: "2px dashed rgba(255,255,255,0.15)" }}>
@@ -206,16 +260,19 @@ export default function SubmitWork() {
 
                     <div className="flex flex-col gap-2">
                         <label className="text-white text-sm font-medium">
-                            Notes to Agent <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
+                            Notes to Agent{" "}
+                            <span className="text-xs font-normal" style={{ color: "#B2B2D2" }}>(optional)</span>
                         </label>
                         <textarea value={form.notes}
                             onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                            placeholder="Any additional notes, instructions for using the files, or feedback..."
-                            rows={2} className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
+                            placeholder={isRevision
+                                ? "Any additional notes about the changes made..."
+                                : "Any additional notes, instructions for using the files..."}
+                            rows={2}
+                            className="w-full rounded-xl px-4 py-3 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085] resize-none"
                             style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                     </div>
 
-                    {/* Payment info banner */}
                     <div className="p-4 rounded-xl flex gap-3"
                         style={{ background: "rgba(99,179,237,0.08)", border: "1px solid rgba(99,179,237,0.2)" }}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none"
@@ -224,8 +281,8 @@ export default function SubmitWork() {
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="text-xs leading-relaxed" style={{ color: "#B2B2D2" }}>
-                            Payment is securely held by <span className="text-white font-medium">Gengig</span> until the agent approves your work.
-                            After approval, payment will be released to your account automatically.
+                            Payment is securely held by <span className="text-white font-medium">Gengig</span> until
+                            the agent approves your work. After approval, payment will be released automatically.
                         </p>
                     </div>
 
@@ -243,8 +300,9 @@ export default function SubmitWork() {
                             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                             {submitting ? (
                                 <><div className="w-4 h-4 rounded-full border-2 animate-spin"
-                                    style={{ borderColor: "white", borderTopColor: "transparent" }} /> Submitting...</>
-                            ) : "Submit Work "}
+                                    style={{ borderColor: "white", borderTopColor: "transparent" }} />
+                                    Submitting...</>
+                            ) : isRevision ? "Submit Revision →" : "Submit Work →"}
                         </button>
                         <Link to="/teenlancer/dashboard"
                             className="flex-1 py-3 rounded-full font-semibold text-center hover:bg-white/10 transition-all"

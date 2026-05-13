@@ -20,6 +20,8 @@ export default function ReviewWork() {
     const [rejectReason, setRejectReason] = useState("");
     const [showRejectForm, setShowRejectForm] = useState(false);
     const [error, setError] = useState(null);
+    const [rejected, setRejected] = useState(false);
+
 
     useEffect(() => {
         api.get(`/applications/${applicationId}/submission`)
@@ -45,10 +47,12 @@ export default function ReviewWork() {
         if (!rejectReason.trim()) return;
         setRejecting(true);
         try {
-            await api.post(`/applications/${applicationId}/reject-work`, { reason: rejectReason });
-            navigate("/agent/applications");
+            await api.post(`/applications/${applicationId}/reject-work`, {
+                reason: rejectReason,
+            });
+            setRejected(true); // ← add this state
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to reject.");
+            setError(err.response?.data?.message || "Failed to send revision request.");
         } finally {
             setRejecting(false);
         }
@@ -170,6 +174,44 @@ export default function ReviewWork() {
                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
                     Back to Dashboard
                 </button>
+            </div>
+        </AgentLayout>
+    );
+    if (rejected) return (
+        <AgentLayout>
+            <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                    style={{ background: "rgba(248,113,113,0.12)", border: "2px solid #f87171" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none"
+                        viewBox="0 0 24 24" stroke="#f87171" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+                <h2 className="text-white font-bold text-2xl mb-3">Revision Requested!</h2>
+                <p className="text-sm mb-4 leading-relaxed" style={{ color: "#B2B2D2" }}>
+                    Your revision request has been sent to the teenlancer.
+                </p>
+                <p className="text-sm mb-8" style={{ color: "#B2B2D2" }}>
+                    They'll be notified and asked to resubmit their work addressing your feedback.
+                </p>
+                <div className="p-4 rounded-2xl w-full mb-8"
+                    style={{ background: "rgba(255,192,133,0.08)", border: "1px solid rgba(255,192,133,0.2)" }}>
+                    <p className="text-xs font-semibold mb-2" style={{ color: "#FFC085" }}>📋 Your Feedback</p>
+                    <p className="text-xs leading-relaxed" style={{ color: "#B2B2D2" }}>{rejectReason}</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                    <button onClick={() => navigate("/agent/applications")}
+                        className="flex-1 py-3 rounded-full font-semibold text-white hover:opacity-90"
+                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                        View All Applications
+                    </button>
+                    <button onClick={() => navigate("/agent/dashboard")}
+                        className="flex-1 py-3 rounded-full font-semibold hover:bg-white/10"
+                        style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#B2B2D2" }}>
+                        Go to Dashboard
+                    </button>
+                </div>
             </div>
         </AgentLayout>
     );

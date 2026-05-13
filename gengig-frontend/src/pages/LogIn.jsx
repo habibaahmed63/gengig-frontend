@@ -98,7 +98,15 @@ export default function SignIn() {
                 if (d.stats.onTimeDelivery != null) localStorage.setItem("onTimeDelivery", d.stats.onTimeDelivery);
                 if (d.stats.totalSpent != null) localStorage.setItem("totalSpent", d.stats.totalSpent);
             }
-
+            window.dispatchEvent(new Event("storage"));
+            setTimeout(() => {
+                const userId = localStorage.getItem("userId");
+                if (userId) {
+                    import("../services/socket").then(({ default: socket }) => {
+                        socket.emit("join", { userId });
+                    });
+                }
+            }, 100);
             // ── Navigate by role ──
             if (d.role === "teenlancer") navigate("/teenlancer/dashboard", { replace: true });
             else if (d.role === "agent") navigate("/agent/dashboard", { replace: true });
