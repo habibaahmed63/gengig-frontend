@@ -32,6 +32,7 @@ export default function TeenlancerChat() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
   const [revisionModal, setRevisionModal] = useState(null);
+  const [pendingRevisionsCount, setPendingRevisionsCount] = useState(0);
 
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
@@ -353,6 +354,19 @@ export default function TeenlancerChat() {
   const totalUnread = contacts.reduce((s, c) => s + (c.unread || 0), 0);
   const isContactTyping = selectedContact && typingUsers.has(getContactId(selectedContact));
 
+  // Fetch pending revisions on mount (or via socket updates)
+  useEffect(() => {
+    const fetchPendingRevisions = async () => {
+      try {
+        const res = await api.get("/gigs/my-gigs?status=pending"); // Adjust endpoint
+        setPendingRevisionsCount(res.data.filter(g => g.revisionStatus === "pending").length);
+      } catch (err) {
+        console.error("Failed to fetch pending revisions:", err);
+      }
+    };
+    fetchPendingRevisions();
+  }, []);
+
   return (
     <TeenlancerLayout>
       <div className="rounded-2xl overflow-hidden flex"
@@ -600,7 +614,7 @@ export default function TeenlancerChat() {
                         // Handle revision request messages differently
                         if (msg.type === "revision_request") {
                           return (
-                            <div key={msg._id || msg.id} className="flex justify-start mb-3">
+                            <div key={msg._id} className="flex justify-start mb-3">
                               <div className="max-w-sm p-4 rounded-2xl"
                                 style={{ background: "rgba(248,113,113,0.1)", border: "2px solid rgba(248,113,113,0.2)" }}>
                                 <div className="flex items-center gap-2 mb-2">
@@ -615,11 +629,18 @@ export default function TeenlancerChat() {
                                     {msg.revisionData.requestedChanges}
                                   </p>
                                 )}
-                                <button onClick={() => handleRevisionClick(msg)}
-                                  className="w-full text-xs px-3 py-2 rounded-lg font-medium transition-colors"
-                                  style={{ background: "#f87171", color: "white" }}>
-                                  View & Submit Revision
-                                </button>
+                                <div className="flex gap-2">
+                                  <button onClick={() => handleRevisionClick(msg)}
+                                    className="flex-1 text-xs px-3 py-2 rounded-lg font-medium transition-colors"
+                                    style={{ background: "#f87171", color: "white" }}>
+                                    View & Submit Revision
+                                  </button>
+                                  <button onClick={() => window.location.href = "/teenlancer/dashboard"} // Link to dashboard
+                                    className="flex-1 text-xs px-3 py-2 rounded-lg font-medium transition-colors"
+                                    style={{ background: "rgba(255,255,255,0.08)", color: "#B2B2D2" }}>
+                                    Go to Dashboard
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
