@@ -112,7 +112,7 @@ export default function TeenlancerDashboard() {
           {(app.status === "revision_requested" || app.status === "revision" || app.workRejected) && (
             <button
               onClick={() => navigate(
-                `/teenlancer/submit-work/${app._id || app.id}?revision=true&reason=${encodeURIComponent(app.revisionReason || app.rejectionReason || "")}`
+                `/teenlancer/submitwork/${app._id || app.id}?revision=true&reason=${encodeURIComponent(app.revisionReason || app.rejectionReason || "")}`
               )}
               className="text-xs px-3 py-1.5 rounded-full font-medium hover:opacity-90 transition-opacity"
               style={{ background: "rgba(248,113,113,0.12)", color: "#f87171", border: "1px solid rgba(248,113,113,0.25)" }}>
