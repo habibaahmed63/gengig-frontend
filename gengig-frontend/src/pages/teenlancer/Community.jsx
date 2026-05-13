@@ -108,6 +108,7 @@ export default function Community() {
             user: { name: userName, img: userPhoto || null },
             text,
             content: text,
+            createdAt: new Date().toISOString(),
         };
 
         setPosts(prev => prev.map(p =>
@@ -122,41 +123,41 @@ export default function Community() {
             const res = await api.post(`/community/posts/${postId}/comment`, {
                 text,
                 content: text,
+                comment: text,
             });
 
-            const responseData = res.data;
-
+            const data = res.data;
             setPosts(prev => prev.map(p => {
                 if (String(p._id || p.id) !== String(postId)) return p;
 
-                if (responseData?.comments && Array.isArray(responseData.comments)) {
-                    return { ...p, comments: responseData.comments };
+                if (data?.comments && Array.isArray(data.comments)) {
+                    return { ...p, comments: data.comments };
                 }
-                if (responseData?.comment) {
+                if (data?.comment && typeof data.comment === "object") {
                     return {
                         ...p,
                         comments: p.comments.map(c =>
-                            c._id === tempId ? { ...responseData.comment } : c
+                            c._id === tempId ? data.comment : c
                         ),
                     };
                 }
-                if (responseData?._id || responseData?.id) {
+                if (data?._id || data?.id) {
                     return {
                         ...p,
                         comments: p.comments.map(c =>
-                            c._id === tempId ? { ...responseData } : c
+                            c._id === tempId ? data : c
                         ),
                     };
                 }
                 return {
                     ...p,
                     comments: p.comments.map(c =>
-                        c._id === tempId ? { ...c, _id: Date.now().toString() } : c
+                        c._id === tempId ? { ...c, _id: "real-" + Date.now() } : c
                     ),
                 };
             }));
         } catch (err) {
-            console.error("Failed to post comment:", err);
+            console.error("Failed to post comment:", err.response?.data || err.message);
             setPosts(prev => prev.map(p =>
                 String(p._id || p.id) === String(postId)
                     ? { ...p, comments: (p.comments || []).filter(c => c._id !== tempId) }
