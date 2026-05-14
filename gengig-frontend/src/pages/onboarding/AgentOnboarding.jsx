@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Gengig LOGO.png";
 
+const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
+
 const workTypes = ["Graphic Design", "Video Editing", "Web Development", "UI/UX Design", "Content Writing", "Social Media", "Animation", "Photography", "Logo Design", "Marketing"];
 
 export default function AgentOnboarding() {
@@ -27,15 +36,20 @@ export default function AgentOnboarding() {
         });
     };
 
-    const handlePhoto = (e) => {
+    const handlePhoto = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData({ ...formData, photo: URL.createObjectURL(file) });
+            const base64 = await convertToBase64(file);
+            setFormData({ ...formData, photo: base64 });
         }
     };
 
     const handleSubmit = () => {
-        // TODO: send formData to backend
+        localStorage.setItem("company", formData.companyName);
+        localStorage.setItem("industry", formData.industry);
+        localStorage.setItem("workTypes", JSON.stringify(formData.workTypes));
+        if (formData.photo) localStorage.setItem("photo", formData.photo);
+
         console.log(formData);
         navigate("/agent/dashboard");
     };

@@ -93,7 +93,7 @@ export default function Terms() {
 
                 <div className="flex flex-col lg:flex-row gap-8">
 
-                    {/* Sidebar - Table of Contents */}
+                    {/* Table of Contents */}
                     <div className="w-full lg:w-60 flex-shrink-0">
                         <div
                             className="p-5 rounded-2xl sticky top-24"
@@ -145,7 +145,7 @@ export default function Terms() {
                             </div>
                         ))}
 
-                        {/* Agreement Banner */}
+                        {/* Agreement  */}
                         <div
                             className="p-6 rounded-2xl text-center mt-4"
                             style={{

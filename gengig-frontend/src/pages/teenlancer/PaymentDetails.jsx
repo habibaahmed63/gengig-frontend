@@ -1,84 +1,438 @@
+import { useState, useEffect } from "react";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
-
-const paymentHistory = [
-    { id: "#15267", date: "Mar 1, 2023", amount: 100, questions: 1, status: "Success" },
-    { id: "#153587", date: "Jan 26, 2023", amount: 300, questions: 3, status: "Success" },
-    { id: "#12436", date: "Feb 12, 2023", amount: 100, questions: 1, status: "Success" },
-    { id: "#16879", date: "Feb 12, 2023", amount: 500, questions: 5, status: "Success" },
-    { id: "#16378", date: "Feb 28, 2023", amount: 500, questions: 5, status: "Rejected" },
-    { id: "#16609", date: "March 13, 2023", amount: 100, questions: 1, status: "Success" },
-    { id: "#16907", date: "March 18, 2023", amount: 100, questions: 1, status: "Pending" },
-];
+import api from "../../services/api";
+import { Link } from "react-router-dom";
 
 const statusColor = {
-    Success: "#4ade80",
-    Rejected: "#f87171",
-    Pending: "#FFC085",
+  Success: "#4ade80",
+  Rejected: "#f87171",
+  Pending: "#FFC085",
 };
 
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-semibold text-white shadow-lg flex items-center gap-2"
+      style={{ background: toast.type === "error" ? "rgba(248,113,113,0.95)" : "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+      <span>{toast.type === "error" ? "✕" : "✓"}</span>
+      {toast.message}
+    </div>
+  );
+}
+
+function CustomAmountInput({ onPay, loading }) {
+  const [customAmount, setCustomAmount] = useState("");
+  const handleSubmit = () => {
+    const amount = parseFloat(customAmount);
+    if (!amount || amount <= 0) return;
+    onPay(amount);
+  };
+  return (
+    <div className="flex gap-3">
+      <div className="relative flex-1">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: "#FFC085" }}>$</span>
+        <input
+          type="number" value={customAmount}
+          onChange={e => setCustomAmount(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSubmit()}
+          placeholder="Enter custom amount" min="1"
+          className="w-full rounded-xl pl-7 pr-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+        />
+      </div>
+      <button onClick={handleSubmit}
+        disabled={loading || !customAmount || parseFloat(customAmount) <= 0}
+        className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
+        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full border-2 animate-spin"
+              style={{ borderColor: "white", borderTopColor: "transparent" }} />
+            Processing...
+          </div>
+        ) : "Pay Now"}
+      </button>
+    </div>
+  );
+}
+
 export default function TeenlancerPayment() {
-    return (
-        <TeenlancerLayout>
-            {/* Breadcrumb */}
-            <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
-                Home › Account › <span style={{ color: "#FFC085" }}>Payment Details</span>
+  const [savedCard, setSavedCard] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [totalEarnings, setTotalEarnings] = useState("$0");
+  const [pendingPayments, setPendingPayments] = useState("$0");
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [cardData, setCardData] = useState({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
+  const [cardError, setCardError] = useState("");
+  const [payLoading, setPayLoading] = useState(false);
+
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  useEffect(() => {
+    const fetchPaymentData = async () => {
+      try {
+        const res = await api.get("/payments/cards");
+        const cards = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+        if (cards.length > 0) {
+          setSavedCard(cards[0]);
+          localStorage.setItem("savedCard", JSON.stringify(cards[0]));
+        } else {
+          localStorage.removeItem("savedCard");
+          setSavedCard(null);
+        }
+      } catch {
+        const stored = localStorage.getItem("savedCard");
+        if (stored) { try { setSavedCard(JSON.parse(stored)); } catch { } }
+      }
+
+      setStatsLoading(true);
+      try {
+        const statsRes = await api.get("/teenlancer/stats");
+        setTotalEarnings(statsRes.data.totalEarnings || "$0");
+        setPendingPayments(statsRes.data.pendingPayments || "$0");
+        localStorage.setItem("totalEarnings", statsRes.data.totalEarnings || "$0");
+        localStorage.setItem("pendingPayments", statsRes.data.pendingPayments || "$0");
+      } catch {
+        setTotalEarnings(localStorage.getItem("totalEarnings") || "$0");
+        setPendingPayments(localStorage.getItem("pendingPayments") || "$0");
+      } finally {
+        setStatsLoading(false);
+      }
+
+      setHistoryLoading(true);
+      try {
+        const historyRes = await api.get("/payments/transactions");
+        setPaymentHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+      } catch {
+        setPaymentHistory([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+    fetchPaymentData();
+  }, []);
+
+  const handleCardChange = (e) => {
+    setCardData({ ...cardData, [e.target.name]: e.target.value });
+    setCardError("");
+  };
+
+  const handleSaveCard = async () => {
+    if (!cardData.name.trim()) { setCardError("Please enter the name on card."); return; }
+    if (cardData.number.replace(/\s/g, "").length < 12) { setCardError("Please enter a valid card number."); return; }
+    if (!cardData.expiry.trim()) { setCardError("Please enter the expiry date."); return; }
+    if (!cardData.ccv.trim()) { setCardError("Please enter the CCV."); return; }
+
+    try {
+      const res = await api.post("/payments/save-card", {
+        nameOnCard: cardData.name,
+        cardNumber: cardData.number,
+        expiryDate: cardData.expiry,
+        cardType: cardData.cardType,
+      });
+      const saved = {
+        ...res.data,
+        maskedNumber: "**** **** **** " + cardData.number.replace(/\s/g, "").slice(-4),
+        name: cardData.name,
+        expiry: cardData.expiry,
+        cardType: cardData.cardType,
+      };
+      localStorage.setItem("savedCard", JSON.stringify(saved));
+      setSavedCard(saved);
+      setShowCardForm(false);
+      setCardData({ cardType: "Mastercard", name: "", number: "", expiry: "", ccv: "" });
+      showToast("Card saved successfully!");
+    } catch {
+      showToast("Failed to save card. Please try again.", "error");
+    }
+  };
+  const handleRemoveCard = async () => {
+    try {
+      const cardId = savedCard?._id || savedCard?.id;
+      if (cardId) {
+        await api.delete(`/payments/cards/${cardId}`);
+      } else {
+        await api.delete("/payments/cards");
+      }
+    } catch (err) {
+      console.error("Remove card API failed:", err);
+    } finally {
+      localStorage.removeItem("savedCard");
+      setSavedCard(null);
+      showToast("Card removed.");
+    }
+  };
+
+  //  Paymob payment handler//
+  const handlePayment = async (amount) => {
+    setPayLoading(true);
+    try {
+      const response = await api.post("/payments/initiate", { amount });
+      const { iframeUrl } = response.data;
+      window.location.href = iframeUrl;
+    } catch (err) {
+      console.error("Payment initiation failed:", err);
+      showToast("Payment could not be initiated. Please try again.", "error");
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
+  return (
+    <TeenlancerLayout>
+      <Toast toast={toast} />
+
+
+      <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>
+        <Link to="/home" className="hover:text-[#FFC085] transition-colors">Home</Link>
+        {" › "}
+        <Link to="/teenlancer/profile" className="hover:text-[#FFC085] transition-colors">Profile</Link>
+        {" › "}
+        <span style={{ color: "#FFC085" }}>Payment Details</span>
+      </p>
+
+      <h1 className="text-white font-bold text-2xl tracking-tight mb-8">Payment Details</h1>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {[
+          { label: "Total Earnings", value: statsLoading ? "..." : totalEarnings, desc: "Updated from completed gigs" },
+          { label: "Pending Payments", value: statsLoading ? "..." : pendingPayments, desc: "Awaiting approval" },
+        ].map((stat) => (
+          <div key={stat.label} className="p-4 rounded-2xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
+            <p className="font-bold text-lg"
+              style={{ color: stat.value === "$0" || stat.value === "..." ? "#B2B2D2" : "#FFC085" }}>
+              {stat.value}
             </p>
+            <p className="text-xs mt-1" style={{ color: "#B2B2D2" }}>{stat.desc}</p>
+          </div>
+        ))}
+        <div className="p-4 rounded-2xl flex items-center justify-between"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div>
+            <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>Withdrawal Method</p>
+            {savedCard ? (
+              <p className="text-white text-sm font-medium">{savedCard.maskedNumber}</p>
+            ) : (
+              <p className="text-sm italic" style={{ color: "rgba(178,178,210,0.4)" }}>No card added</p>
+            )}
+          </div>
+          <button onClick={() => setShowCardForm(!showCardForm)}
+            className="hover:opacity-80 transition-opacity" style={{ color: "#FFC085" }}>
+            ✎
+          </button>
+        </div>
+      </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>Total Earnings</p>
-                    <p className="font-bold text-lg" style={{ color: "#FFC085" }}>₹430.00</p>
-                    <p className="text-xs mt-1" style={{ color: "#B2B2D2" }}>as of 31 December 2022</p>
+      {/*Paymob Payment Section */}
+      <div className="p-6 rounded-2xl mb-8"
+        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-white font-semibold">Make a Payment</h2>
+          <div className="flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="#4ade80" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="text-xs font-medium" style={{ color: "#4ade80" }}>Secured by Paymob</span>
+          </div>
+        </div>
+        <p className="text-sm mb-6" style={{ color: "#B2B2D2" }}>
+          Securely pay for your gigs. Your card details are never stored on our servers.
+        </p>
+
+        {/* Quick amount buttons */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          {[50, 100, 200, 500].map(amount => (
+            <button key={amount} onClick={() => handlePayment(amount)} disabled={payLoading}
+              className="py-3 rounded-xl text-sm font-semibold hover:opacity-90 hover:scale-105 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.3)" }}>
+              ${amount}
+            </button>
+          ))}
+        </div>
+
+        <CustomAmountInput onPay={handlePayment} loading={payLoading} />
+      </div>
+
+
+
+      {savedCard && !showCardForm && (
+        <div className="p-5 rounded-2xl mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-5"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="relative w-64 h-36 rounded-2xl overflow-hidden p-4 flex flex-col justify-between flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
+            <div className="flex justify-between items-start">
+              <div className="w-8 h-6 rounded-md" style={{ background: "rgba(255,192,133,0.4)" }} />
+              <span className="text-white font-bold text-xs">{savedCard.cardType}</span>
+            </div>
+            <div>
+              <p className="text-white text-xs tracking-widest mb-2">{savedCard.maskedNumber}</p>
+              <p className="text-white text-xs font-medium">{savedCard.name}</p>
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-white font-semibold mb-1">
+              {savedCard.cardType} ending in {savedCard.number?.replace(/\s/g, "").slice(-4)}
+            </p>
+            <p className="text-xs mb-4" style={{ color: "#B2B2D2" }}>Expires {savedCard.expiry}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowCardForm(true)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                Edit Card
+              </button>
+              <button onClick={handleRemoveCard}
+                className="px-4 py-2 rounded-full text-xs font-semibold transition-colors hover:bg-white/10"
+                style={{ border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
+                Remove Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Card Form */}
+      {(showCardForm || !savedCard) && (
+        <div className="p-6 rounded-2xl mb-8"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-white font-semibold">{savedCard ? "Edit Card" : "Add Payment Card"}</h2>
+            {savedCard && (
+              <button onClick={() => setShowCardForm(false)}
+                className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#B2B2D2" }}>
+                Cancel
+              </button>
+            )}
+          </div>
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex-1 flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>Card Type</label>
+                <select name="cardType" value={cardData.cardType} onChange={handleCardChange}
+                  className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  {["Mastercard", "Visa", "Amex"].map((t) => (
+                    <option key={t} style={{ background: "#060834" }}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              {[
+                { label: "Name on Card", name: "name", type: "text", placeholder: "Your full name", maxLength: undefined },
+                { label: "Card Number", name: "number", type: "text", placeholder: "1234 5678 9012 3456", maxLength: 19 },
+              ].map((f) => (
+                <div key={f.name} className="flex flex-col gap-1">
+                  <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{f.label}</label>
+                  <input type={f.type} name={f.name} value={cardData[f.name]}
+                    onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength}
+                    className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
                 </div>
-                <div className="p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>Pending Payments</p>
-                    <p className="font-bold text-lg" style={{ color: "#FFC085" }}>₹100.00</p>
-                    <p className="text-xs mt-1" style={{ color: "#B2B2D2" }}>as of 31 December 2022</p>
+              ))}
+              <div className="flex gap-4">
+                {[
+                  { label: "Expiry Date", name: "expiry", placeholder: "MM / YY", maxLength: 7, type: "text" },
+                  { label: "CCV", name: "ccv", placeholder: "• • •", maxLength: 4, type: "password" },
+                ].map((f) => (
+                  <div key={f.name} className="flex flex-col gap-1 flex-1">
+                    <label className="text-xs font-medium" style={{ color: "#B2B2D2" }}>{f.label}</label>
+                    <input type={f.type} name={f.name} value={cardData[f.name]}
+                      onChange={handleCardChange} placeholder={f.placeholder} maxLength={f.maxLength}
+                      className="w-full rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:ring-1 focus:ring-[#FFC085]"
+                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                  </div>
+                ))}
+              </div>
+              {cardError && <p className="text-xs" style={{ color: "#f87171" }}>{cardError}</p>}
+              <button onClick={handleSaveCard}
+                className="w-full py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                Save Card
+              </button>
+            </div>
+
+            {/* Card Preview */}
+            <div className="w-full lg:w-64 flex-shrink-0">
+              <div className="relative w-full h-40 rounded-2xl overflow-hidden p-5 flex flex-col justify-between"
+                style={{ background: "linear-gradient(135deg, #1a3a6b, #0a1f4d)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <div className="flex justify-between items-start">
+                  <div className="w-10 h-7 rounded-md" style={{ background: "rgba(255,192,133,0.4)" }} />
+                  <span className="text-white font-bold text-xs">{cardData.cardType}</span>
                 </div>
-                <div className="p-4 rounded-2xl flex items-center justify-between" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div>
-                        <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>Withdrawal Method</p>
-                        <p className="text-white text-sm font-medium">1502••••••••4832</p>
+                <div>
+                  <p className="text-white text-xs tracking-widest mb-2">
+                    {cardData.number || "•••• •••• •••• ••••"}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-white text-xs font-medium">{cardData.name || "YOUR NAME"}</p>
+                    <div className="flex">
+                      <div className="w-6 h-6 rounded-full opacity-80" style={{ background: "#EB001B" }} />
+                      <div className="w-6 h-6 rounded-full -ml-3 opacity-80" style={{ background: "#F79E1B" }} />
                     </div>
-                    <button className="text-[#FFC085] hover:opacity-80">✎</button>
+                  </div>
                 </div>
+              </div>
+              <p className="text-xs text-center mt-2" style={{ color: "#B2B2D2" }}>Card preview</p>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Payment History Table */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <div className="p-6 pb-3">
-                    <h2 className="text-white font-semibold text-lg">Payment History</h2>
-                </div>
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                            {["Order ID", "Date", "Amount", "Total Questions", "Status"].map((h) => (
-                                <th key={h} className="px-6 py-3 text-left text-xs font-semibold" style={{ color: "#B2B2D2" }}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paymentHistory.map((row) => (
-                            <tr key={row.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                                <td className="px-6 py-3 text-white">{row.id}</td>
-                                <td className="px-6 py-3" style={{ color: "#B2B2D2" }}>{row.date}</td>
-                                <td className="px-6 py-3 text-white">{row.amount}</td>
-                                <td className="px-6 py-3 text-white">{row.questions}</td>
-                                <td className="px-6 py-3 font-medium" style={{ color: statusColor[row.status] }}>{row.status}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <div className="px-6 py-4 flex items-center gap-2">
-                    <select className="text-xs px-3 py-1.5 rounded-lg outline-none" style={{ background: "rgba(255,255,255,0.08)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
-                        <option>10</option>
-                        <option>25</option>
-                        <option>50</option>
-                    </select>
-                    <span className="text-xs" style={{ color: "#B2B2D2" }}>per page</span>
-                </div>
-            </div>
-        </TeenlancerLayout>
-    );
+      {/* Payment History */}
+      <div className="rounded-2xl overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="p-6 pb-3">
+          <h2 className="text-white font-semibold text-lg">Payment History</h2>
+        </div>
+        {historyLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 rounded-full border-2 animate-spin"
+              style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
+          </div>
+        ) : paymentHistory.length > 0 ? (
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                {["Order ID", "Date", "Amount", "Status"].map((h) => (
+                  <th key={h} className="px-6 py-3 text-left text-xs font-semibold"
+                    style={{ color: "#B2B2D2" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paymentHistory.map((row, i) => (
+                <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <td className="px-6 py-3 text-white">{row.id}</td>
+                  <td className="px-6 py-3" style={{ color: "#B2B2D2" }}>{row.date}</td>
+                  <td className="px-6 py-3 text-white">{row.amount}</td>
+                  <td className="px-6 py-3 font-medium"
+                    style={{ color: statusColor[row.status] || "#B2B2D2" }}>{row.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-3" fill="none"
+              viewBox="0 0 24 24" stroke="#B2B2D2" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+            </svg>
+            <p className="text-sm font-medium text-white mb-1">No payment history yet</p>
+            <p className="text-xs" style={{ color: "rgba(178,178,210,0.4)" }}>
+              Payments will appear here once you complete gigs.
+            </p>
+          </div>
+        )}
+      </div>
+    </TeenlancerLayout>
+  );
 }
