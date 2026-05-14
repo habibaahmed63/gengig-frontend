@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
+import { useSearchParams } from "react-router-dom";
 
 export default function TeenlancerDashboard() {
   const navigate = useNavigate();
@@ -14,6 +15,13 @@ export default function TeenlancerDashboard() {
   const [myApplications, setMyApplications] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const revisionApps = myApplications.filter(a =>
+    a.status === "revision_requested" ||
+    a.status === "revision" ||
+    a.workRejected === true
+  );
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -47,7 +55,6 @@ export default function TeenlancerDashboard() {
     { label: "Accepted", value: acceptedApps.length, color: "#4ade80" },
     { label: "Pending", value: pendingApps.length, color: "#FFC085" },
     { label: "Completed", value: completedApps.length, color: "#63b3ed" },
-
   ];
 
   const appStatusStyle = {
@@ -56,6 +63,13 @@ export default function TeenlancerDashboard() {
     pending: { bg: "rgba(255,192,133,0.1)", color: "#FFC085", label: "Pending" },
     completed: { bg: "rgba(99,179,237,0.1)", color: "#63b3ed", label: "Completed" },
   };
+
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("tab") === "revisions") {
+      setActiveTab("revisions");
+    }
+  }, [searchParams]);
 
   const AppCard = ({ app }) => {
     const style = appStatusStyle[app.status] || appStatusStyle.pending;
@@ -182,9 +196,7 @@ export default function TeenlancerDashboard() {
             style={{ borderColor: "#FFC085", borderTopColor: "transparent" }} />
           <p className="text-sm" style={{ color: "#B2B2D2" }}>Loading your dashboard...</p>
         </div>
-
       ) : !hasActivity ? (
-
         /* ── Empty State ── */
         <div className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)" }}>
@@ -209,7 +221,7 @@ export default function TeenlancerDashboard() {
           <button onClick={() => navigate("/Exploreagig")}
             className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-            Explore Gigs →
+            Explore Gigs
           </button>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
@@ -226,117 +238,302 @@ export default function TeenlancerDashboard() {
             ))}
           </div>
         </div>
-
       ) : (
-        <div className="flex flex-col gap-6">
+        <>
+          {/* ── Tab Navigation ── */}
+          {hasActivity && (
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+              {[
+                { key: "overview", label: "Overview", count: null },
+                { key: "applications", label: "My Applications", count: myApplications.length },
+                {
+                  key: "revisions", label: "Revisions Requested",
+                  count: revisionApps.length,
+                  highlight: revisionApps.length > 0
+                },
+                { key: "active", label: "Active Gigs", count: acceptedApps.length },
+                { key: "completed", label: "Completed", count: completedApps.length },
+              ].map(tab => (
+                <button key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0"
+                  style={{
+                    background: activeTab === tab.key
+                      ? "linear-gradient(90deg, #FFC085, #e8a060)"
+                      : tab.highlight
+                        ? "rgba(248,113,113,0.1)"
+                        : "rgba(255,255,255,0.05)",
+                    color: activeTab === tab.key
+                      ? "white"
+                      : tab.highlight
+                        ? "#f87171"
+                        : "#B2B2D2",
+                    border: activeTab === tab.key
+                      ? "none"
+                      : tab.highlight
+                        ? "1px solid rgba(248,113,113,0.3)"
+                        : "1px solid rgba(255,255,255,0.08)",
+                  }}>
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+                      style={{
+                        background: activeTab === tab.key
+                          ? "rgba(255,255,255,0.25)"
+                          : tab.highlight
+                            ? "rgba(248,113,113,0.2)"
+                            : "rgba(255,255,255,0.1)",
+                        color: activeTab === tab.key ? "white" : tab.highlight ? "#f87171" : "#B2B2D2",
+                      }}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* ── SECTION 1: Active / Accepted — teenlancer accepted, work in progress ── */}
-          {acceptedApps.length > 0 && (
-            <div className="p-6 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-white font-semibold">Active Gigs</h2>
-                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                    Your application was accepted — work is in progress
-                  </p>
+          {/* ── REVISIONS TAB ── */}
+          {activeTab === "revisions" && (
+            <div className="flex flex-col gap-4">
+              {revisionApps.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
+                  style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
+                  <p className="text-3xl mb-3">✅</p>
+                  <p className="text-white font-medium mb-1">No revisions requested</p>
+                  <p className="text-sm" style={{ color: "#B2B2D2" }}>All your submissions are looking good!</p>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full font-medium"
-                  style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
-                  {acceptedApps.length} active
-                </span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {acceptedApps.map(app => <AppCard key={app._id || app.id} app={app} />)}
+              ) : (
+                revisionApps.map(app => {
+                  const gigTitle = app.gigTitle || app.gig?.title || "Untitled Gig";
+                  const agentName = app.agentName || app.agent?.name || "Agent";
+                  const reason = app.revisionReason || app.rejectionReason || app.reason || "";
+                  const appId = app._id || app.id;
+                  return (
+                    <div key={appId} className="p-5 rounded-2xl"
+                      style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.25)" }}>
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background: "rgba(248,113,113,0.1)" }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none"
+                              viewBox="0 0 24 24" stroke="#f87171" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-white font-semibold text-sm">{gigTitle}</p>
+                            <p className="text-xs" style={{ color: "#B2B2D2" }}>
+                              by {agentName}
+                              {app.revisionCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 rounded-full text-xs"
+                                  style={{ background: "rgba(248,113,113,0.1)", color: "#f87171" }}>
+                                  Revision #{app.revisionCount}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
+                          style={{
+                            background: "rgba(248,113,113,0.1)", color: "#f87171",
+                            border: "1px solid rgba(248,113,113,0.2)"
+                          }}>
+                          Revision Requested
+                        </span>
+                      </div>
+                      {/* Revision reason */}
+                      {reason && (
+                        <div className="p-4 rounded-xl mb-4"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                          <p className="text-xs font-semibold mb-2" style={{ color: "#f87171" }}>
+                            📋 Agent's Feedback
+                          </p>
+                          <p className="text-sm leading-relaxed" style={{ color: "#B2B2D2" }}>
+                            {reason}
+                          </p>
+                        </div>
+                      )}
+                      {/* Action button */}
+                      <button
+                        onClick={() => navigate(
+                          `/teenlancer/submitwork/${appId}?revision=true&reason=${encodeURIComponent(reason)}`
+                        )}
+                        className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                        style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Submit Revised Work
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* ── OVERVIEW TAB (existing content) ── */}
+          {(activeTab === "overview" || !hasActivity) && (
+            <div className="flex flex-col gap-6">
+              {acceptedApps.length > 0 && (
+                <div className="p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-white font-semibold">Active Gigs</h2>
+                    <span className="text-xs px-2 py-1 rounded-full"
+                      style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
+                      {acceptedApps.length} active
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {acceptedApps.map(app => <AppCard key={app._id || app.id} app={app} />)}
+                  </div>
+                </div>
+              )}
+              {revisionApps.length > 0 && (
+                <div className="p-5 rounded-2xl cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setActiveTab("revisions")}
+                  style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.25)" }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        style={{ background: "rgba(248,113,113,0.1)" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
+                          viewBox="0 0 24 24" stroke="#f87171" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white font-semibold text-sm">Revisions Requested</p>
+                        <p className="text-xs" style={{ color: "#B2B2D2" }}>
+                          {revisionApps.length} gig{revisionApps.length > 1 ? "s need" : " needs"} revision
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-medium" style={{ color: "#f87171" }}>View →</span>
+                  </div>
+                </div>
+              )}
+              {myApplications.length > 0 && (
+                <div className="p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-white font-semibold">My Applications</h2>
+                    <span className="text-xs px-2 py-1 rounded-full"
+                      style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
+                      {myApplications.length} total
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {myApplications.slice(0, 5).map(app => <AppCard key={app._id || app.id} app={app} />)}
+                    {myApplications.length > 5 && (
+                      <button onClick={() => setActiveTab("applications")}
+                        className="text-xs text-center hover:opacity-80"
+                        style={{ color: "#FFC085" }}>
+                        View all {myApplications.length} applications →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Earnings Summary */}
+              {stats && (stats.totalEarnings && stats.totalEarnings !== "$0" && stats.totalEarnings !== 0) && (
+                <div className="p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <h2 className="text-white font-semibold mb-4">Earnings Summary</h2>
+                  <div className="flex flex-wrap gap-6">
+                    {[
+                      { label: "Total Earned", value: stats.totalEarnings },
+                      { label: "Gigs Completed", value: stats.completedGigs || completedApps.length },
+                      { label: "Avg per Gig", value: stats.avgPerGig || "—" },
+                      { label: "Your Rating", value: stats.rating || "—" },
+                    ].map(item => (
+                      <div key={item.label}>
+                        <p className="text-xs mb-1" style={{ color: "#B2B2D2" }}>{item.label}</p>
+                        <p className="text-white font-bold text-lg">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-3">
+                <button onClick={() => navigate("/Exploreagig")}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80"
+                  style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
+                  Explore More Gigs
+                </button>
+                <button onClick={() => navigate("/teenlancer/profile")}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  Update Profile
+                </button>
+                <button onClick={() => navigate("/teenlancer/savedgigs")}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  Saved Gigs
+                </button>
               </div>
             </div>
           )}
 
-          {/* ── SECTION 2: All Applications — every application with status ── */}
-          {myApplications.length > 0 && (
+          {/* ── APPLICATIONS TAB ── */}
+          {activeTab === "applications" && (
             <div className="p-6 rounded-2xl"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-white font-semibold">My Applications</h2>
-                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                    All gigs you've applied to
-                  </p>
-                </div>
-                <span className="text-xs px-2 py-1 rounded-full font-medium"
-                  style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
-                  {myApplications.length} total
-                </span>
-              </div>
+              <h2 className="text-white font-semibold mb-4">All Applications</h2>
               <div className="flex flex-col gap-3">
                 {myApplications.map(app => <AppCard key={app._id || app.id} app={app} />)}
               </div>
             </div>
           )}
 
-          {/* ── SECTION 3: Completed Gigs ── */}
-          {completedApps.length > 0 && (
-            <div className="p-6 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-white font-semibold">Completed Gigs</h2>
-                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                    Successfully finished projects
-                  </p>
+          {/* ── ACTIVE TAB ── */}
+          {activeTab === "active" && (
+            <div className="flex flex-col gap-4">
+              {acceptedApps.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
+                  style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
+                  <p className="text-white font-medium mb-1">No active gigs</p>
+                  <p className="text-sm" style={{ color: "#B2B2D2" }}>Accepted applications will appear here.</p>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full font-medium"
-                  style={{ background: "rgba(99,179,237,0.1)", color: "#63b3ed" }}>
-                  {completedApps.length} completed
-                </span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {completedApps.map(app => <AppCard key={app._id || app.id} app={app} />)}
-              </div>
-            </div>
-          )}
-
-          {/* Earnings Summary */}
-          {stats && (stats.totalEarnings && stats.totalEarnings !== "$0" && stats.totalEarnings !== 0) && (
-            <div className="p-6 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <h2 className="text-white font-semibold mb-4">Earnings Summary</h2>
-              <div className="flex flex-wrap gap-6">
-                {[
-                  { label: "Total Earned", value: stats.totalEarnings },
-                  { label: "Gigs Completed", value: stats.completedGigs || completedApps.length },
-                  { label: "Avg per Gig", value: stats.avgPerGig || "—" },
-                  { label: "Your Rating", value: stats.rating || "—" },
-                ].map(item => (
-                  <div key={item.label}>
-                    <p className="text-xs mb-1" style={{ color: "#B2B2D2" }}>{item.label}</p>
-                    <p className="text-white font-bold text-lg">{item.value}</p>
+              ) : (
+                <div className="p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex flex-col gap-3">
+                    {acceptedApps.map(app => <AppCard key={app._id || app.id} app={app} />)}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap gap-3">
-            <button onClick={() => navigate("/Exploreagig")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
-              style={{ background: "rgba(255,192,133,0.12)", color: "#FFC085", border: "1px solid rgba(255,192,133,0.25)" }}>
-              Explore More Gigs
-            </button>
-            <button onClick={() => navigate("/teenlancer/profile")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
-              style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
-              Update Profile
-            </button>
-            <button onClick={() => navigate("/teenlancer/community")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
-              style={{ background: "rgba(255,255,255,0.06)", color: "#B2B2D2", border: "1px solid rgba(255,255,255,0.1)" }}>
-              Community Hub
-            </button>
-          </div>
-
-        </div>
+          {/* ── COMPLETED TAB ── */}
+          {activeTab === "completed" && (
+            <div className="flex flex-col gap-4">
+              {completedApps.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
+                  style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
+                  <p className="text-white font-medium mb-1">No completed gigs yet</p>
+                  <p className="text-sm" style={{ color: "#B2B2D2" }}>Finished projects will appear here.</p>
+                </div>
+              ) : (
+                <div className="p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex flex-col gap-3">
+                    {completedApps.map(app => <AppCard key={app._id || app.id} app={app} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </TeenlancerLayout>
   );

@@ -51,6 +51,8 @@ import MyGigs from "../pages/agent/MyGigs";
 import PostGig from "../pages/PostGig";
 import AgentChat from "../pages/agent/Chat";
 import ReviewWork from "../pages/agent/ReviewWork";
+import ReviewRevision from "../pages/agent/ReviewRevision";
+
 
 
 // Category pages
@@ -130,6 +132,8 @@ export default function AppRouter() {
         <Route path="/agent/my-gigs" element={<PrivateRoute><MyGigs /></PrivateRoute>} />
         <Route path="/agent/chat" element={<PrivateRoute><AgentChat /></PrivateRoute>} />
         <Route path="/agent/reviewwork/:applicationId" element={<PrivateRoute><ReviewWork /></PrivateRoute>} />
+        <Route path="/agent/review-revision/:applicationId"
+          element={<PrivateRoute><ReviewRevision /></PrivateRoute>} />
 
 
 

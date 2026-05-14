@@ -77,10 +77,6 @@ export default function Notifications() {
       case "application_rejected":
         return "/teenlancer/dashboard";
 
-      case "work_submitted":
-        return notif.applicationId
-          ? `/agent/reviewwork/${notif.applicationId}`
-          : "/agent/applications";
 
       case "work_approved":
         return gigId ? `/gig/${gigId}` : "/teenlancer/dashboard";
@@ -102,6 +98,16 @@ export default function Notifications() {
       case "payment":
       case "payment_released":
         return role === "agent" ? "/agent/payment" : "/teenlancer/payment";
+
+    
+
+      case "work_submitted":
+        if (notif.applicationId) {
+          return notif.revisionCount > 0
+            ? `/agent/review-revision/${notif.applicationId}`
+            : `/agent/review-work/${notif.applicationId}`;
+        }
+        return "/agent/applications";
 
       default:
         return notif.link || notif.url || null;
@@ -178,7 +184,7 @@ export default function Notifications() {
           {[
             { key: "all", label: "All" },
             { key: "unread", label: "Unread" },
-            
+
           ].map(filter => (
             <button key={filter.key} onClick={() => setActiveFilter(filter.key)}
               className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
