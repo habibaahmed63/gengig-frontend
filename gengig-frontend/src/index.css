@@ -15,6 +15,11 @@
   }
 }
 
+html, body {
+  background: #060834;
+  overflow-x: hidden;
+}
+
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }

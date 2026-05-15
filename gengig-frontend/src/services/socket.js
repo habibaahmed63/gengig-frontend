@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
 
 // Create socket ONCE — outside component
-const socket = io('http://localhost:3000', {
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+const socket = io(BASE_URL, {
   transports: ['polling', 'websocket'],
   reconnection: true,
   reconnectionAttempts: 10,
