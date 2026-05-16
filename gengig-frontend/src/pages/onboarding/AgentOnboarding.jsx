@@ -81,7 +81,7 @@ export default function AgentOnboarding() {
             {/* Card */}
             <div className="w-full max-w-lg p-8 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-                {/* Step 1 - Photo + Company Info */}
+                {/*Photo + Company Info */}
                 {step === 1 && (
                     <div className="flex flex-col gap-5">
                         <div>
@@ -140,7 +140,7 @@ export default function AgentOnboarding() {
                     </div>
                 )}
 
-                {/* Step 2 - Work Types */}
+                {/*Work Types */}
                 {step === 2 && (
                     <div className="flex flex-col gap-5">
                         <div>

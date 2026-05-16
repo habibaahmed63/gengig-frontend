@@ -9,7 +9,6 @@ export default function PremiumCheckout() {
 
     const { userType, billingCycle, price, planName } = location.state || {};
 
-    // If landed here without state — redirect to premium page
     useEffect(() => {
         if (!price) navigate("/premium");
     }, [price, navigate]);
@@ -85,8 +84,7 @@ export default function PremiumCheckout() {
                     </ul>
                 </div>
 
-                {/* This page is rarely seen — payment goes directly via iframeUrl redirect.
-                    This button is a fallback if someone navigates here directly. */}
+                
                 <Link to="/premium"
                     className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 hover:opacity-90 transition-opacity mb-4"
                     style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>

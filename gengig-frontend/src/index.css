@@ -15,7 +15,8 @@
   }
 }
 
-html, body {
+html,
+body {
   background: #060834;
   overflow-x: hidden;
 }
@@ -25,38 +26,38 @@ html, body {
 }
 
 
-/* Page titles — h1 on every dashboard page */
+/* Page titles*/
 .text-page-title {
-  font-size: 1.75rem;     /* 28px */
+  font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
-/* Section headings — card titles, widget headers */
+/* Section headings*/
 .text-section-title {
-  font-size: 1rem;        /* 16px */
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 /* Body text */
 .text-body {
-  font-size: 0.875rem;    /* 14px */
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.6;
 }
 
 /* Secondary/metadata text */
 .text-meta {
-  font-size: 0.75rem;     /* 12px */
+  font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.5;
 }
 
 /* Labels */
 .text-label {
-  font-size: 0.6875rem;   /* 11px */
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -64,21 +65,39 @@ html, body {
 
 
 /* Page layout */
-.page-padding   { padding: 2rem; }            /* main content area */
-.section-gap    { margin-bottom: 2rem; }       /* between major sections */
-
-/* Cards */
-.card           { 
-  padding: 1.5rem;                             /* p-6 — ALL cards use this */
-  border-radius: 1rem;                         /* rounded-2xl */
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+.page-padding {
+  padding: 2rem;
 }
 
-.card-sm        { padding: 1rem; }             /* p-4 — compact cards */
-.card-gap       { gap: 1.5rem; }               /* gap between cards in a grid */
+.section-gap {
+  margin-bottom: 2rem;
+}
+
+/* Cards */
+.card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card-sm {
+  padding: 1rem;
+}
+
+.card-gap {
+  gap: 1.5rem;
+}
 
 /* Inside cards */
-.card-header-mb { margin-bottom: 1.25rem; }    /* space below card title */
-.field-gap      { gap: 0.75rem; }              /* gap between form fields */
-.item-gap       { gap: 1rem; }                 /* gap between list items */
+.card-header-mb {
+  margin-bottom: 1.25rem;
+}
+
+.field-gap {
+  gap: 0.75rem;
+}
+
+.item-gap {
+  gap: 1rem;
+}

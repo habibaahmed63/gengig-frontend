@@ -85,7 +85,6 @@ export default function TeenlancerOnboarding() {
             {/* Card */}
             <div className="w-full max-w-lg p-8 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-                {/* Step 1 - Photo + Bio */}
                 {step === 1 && (
                     <div className="flex flex-col gap-5">
                         <div>
@@ -136,7 +135,7 @@ export default function TeenlancerOnboarding() {
                     </div>
                 )}
 
-                {/* Step 2 - Skills */}
+                {/* Skills */}
                 {step === 2 && (
                     <div className="flex flex-col gap-5">
                         <div>
@@ -169,7 +168,7 @@ export default function TeenlancerOnboarding() {
                     </div>
                 )}
 
-                {/* Step 3 - Availability + Rate */}
+                {/* Availability & Rate */}
                 {step === 3 && (
                     <div className="flex flex-col gap-5">
                         <div>

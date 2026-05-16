@@ -168,7 +168,7 @@ export default function AgentDashboard() {
           <button onClick={() => navigate("/post")}
             className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200 mt-4"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-            Post Your First Gig →
+            Post Your First Gig 
           </button>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
@@ -209,7 +209,7 @@ export default function AgentDashboard() {
                 </p>
               </div>
             </div>
-            <span className="text-sm font-medium" style={{ color: "#FFC085" }}>View all →</span>
+            <span className="text-sm font-medium" style={{ color: "#FFC085" }}>View all</span>
           </div>
 
           {/* Recent Applications */}
@@ -221,7 +221,7 @@ export default function AgentDashboard() {
                 <button onClick={() => navigate("/agent/applications")}
                   className="text-xs hover:opacity-80 transition-opacity"
                   style={{ color: "#FFC085" }}>
-                  View all →
+                  View all 
                 </button>
               </div>
               <div className="flex flex-col gap-3">
@@ -297,7 +297,7 @@ export default function AgentDashboard() {
                   <button onClick={() => navigate("/agent/applications")}
                     className="text-xs hover:opacity-80 transition-opacity"
                     style={{ color: "#FFC085" }}>
-                    View Applications →
+                    View Applications 
                   </button>
                 </div>
               </div>

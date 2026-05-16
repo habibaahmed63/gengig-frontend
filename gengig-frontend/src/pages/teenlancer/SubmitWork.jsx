@@ -53,7 +53,6 @@ export default function SubmitWork() {
             data.append("isRevision", isRevision ? "true" : "false");
             if (form.file) data.append("file", form.file);
 
-            // ✅ Same endpoint — backend handles both initial and revision
             await api.post(`/applications/${applicationId}/submitwork`, data);
             setSubmitted(true);
         } catch (err) {
@@ -132,7 +131,6 @@ export default function SubmitWork() {
                         : "Upload your completed work for the agent to review and approve."}
                 </p>
 
-                {/* ✅ Show revision reason if this is a resubmission */}
                 {isRevision && revisionReason && (
                     <div className="p-4 rounded-2xl mb-6 flex gap-3"
                         style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}>

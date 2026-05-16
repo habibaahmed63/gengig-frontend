@@ -168,7 +168,7 @@ export default function AgentPayment() {
         }
     };
 
-    // Paymob payment handler
+    // Paymob payment handler//
     const handlePayment = async (amount) => {
         setPayLoading(true);
         try {
