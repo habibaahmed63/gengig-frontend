@@ -377,7 +377,7 @@ export default function TeenlancerDashboard() {
             </div>
           )}
 
-          {/* ── OVERVIEW TAB (existing content) ── */}
+          {/* ── OVERVIEW TAB── */}
           {(activeTab === "overview" || !hasActivity) && (
             <div className="flex flex-col gap-6">
               {acceptedApps.length > 0 && (

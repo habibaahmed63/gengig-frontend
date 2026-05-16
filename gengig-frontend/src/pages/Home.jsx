@@ -203,7 +203,6 @@ export default function Home() {
 
             {/* ── EXPLORE GENGIG ── */}
             <section className="py-24 px-6 md:px-16 text-center relative" style={{ background: "#0a0d2e" }}>
-                {/* Decorative background blur */}
                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#FFC085]/5 blur-[100px] rounded-full" />
 
                 <div className="max-w-6xl mx-auto relative z-10">
@@ -225,7 +224,6 @@ export default function Home() {
                                     backdropFilter: "blur(8px)"
                                 }}>
 
-                                {/* Hover Glow Effect */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#FFC085]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                 <div className="relative z-10">
@@ -240,7 +238,6 @@ export default function Home() {
                                     </p>
                                 </div>
 
-                                {/* Bottom accent line */}
                                 <div className="absolute bottom-0 left-0 h-[2px] bg-[#FFC085] w-0 group-hover:w-full transition-all duration-500" />
                             </div>
                         ))}

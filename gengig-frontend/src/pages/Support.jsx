@@ -40,7 +40,6 @@ export default function Support() {
     }
     setLoading(true);
     setError(null);
-    // lesa backend
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
@@ -234,7 +233,7 @@ export default function Support() {
                 className="text-sm text-center mt-2 hover:opacity-80 transition-opacity"
                 style={{ color: "#FFC085" }}
               >
-                View all FAQs →
+                View all FAQs 
               </Link>
             </div>
           </div>

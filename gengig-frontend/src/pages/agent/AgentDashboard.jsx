@@ -23,7 +23,6 @@ export default function AgentDashboard() {
         try {
             await api.post(`/gigs/${gigId}/approve-revision`);
             setSubmittedRevisions(prev => prev.filter(g => g._id !== gigId));
-            // Notify teenlancer via socket or refresh
         } catch (err) {
             console.error("Failed to approve:", err);
         }
@@ -33,7 +32,6 @@ export default function AgentDashboard() {
         try {
             await api.post(`/gigs/${gigId}/request-revision`, { requestedChanges: changes });
             setSubmittedRevisions(prev => prev.filter(g => g._id !== gigId));
-            // Notify teenlancer via socket
         } catch (err) {
             console.error("Failed to request revision:", err);
         }
@@ -85,8 +83,7 @@ export default function AgentDashboard() {
                 </div>
             )}
 
-            {/* Other agent dashboard content */}
-            {/* ...existing code... */}
+          
         </div>
     );
 }

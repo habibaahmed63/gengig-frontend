@@ -12,7 +12,7 @@ export default function TeenlancerChat() {
     || localStorage.getItem("_id")
     || "";
 
-  // All state declarations
+  // All state declarations//
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -45,7 +45,7 @@ export default function TeenlancerChat() {
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  // ── Socket.io ──
+  // ── Socket.io //
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -126,7 +126,7 @@ export default function TeenlancerChat() {
     };
   }, [currentUserId]);
 
-  // ── Fetch contacts ──
+  // Fetch contacts //
   const fetchContacts = async () => {
     setContactsLoading(true);
     setContactsError(false);
@@ -214,7 +214,7 @@ export default function TeenlancerChat() {
     return () => clearInterval(pollTimerRef.current);
   }, [selectedContact]);
 
-  // ── Send message ──
+  // ── Send message ──//
   const sendMessage = async () => {
     if (!input.trim() || !selectedContact || sending) return;
     const content = input.trim();
@@ -353,11 +353,11 @@ export default function TeenlancerChat() {
   const totalUnread = contacts.reduce((s, c) => s + (c.unread || 0), 0);
   const isContactTyping = selectedContact && typingUsers.has(getContactId(selectedContact));
 
-  // Fetch pending revisions on mount (or via socket updates)
+  // Fetch pending revisions //
   useEffect(() => {
     const fetchPendingRevisions = async () => {
       try {
-        const res = await api.get("/gigs/my-gigs?status=pending"); // Adjust endpoint
+        const res = await api.get("/gigs/my-gigs?status=pending");
         setPendingRevisionsCount(res.data.filter(g => g.revisionStatus === "pending").length);
       } catch (err) {
         console.error("Failed to fetch pending revisions:", err);
@@ -610,7 +610,6 @@ export default function TeenlancerChat() {
                         <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                       </div>
                       {msgs.map((msg, i) => {
-                        // Handle revision request messages differently
                         if (msg.type === "revision_request") {
                           return (
                             <div key={msg._id} className="flex justify-start mb-3">
@@ -645,7 +644,7 @@ export default function TeenlancerChat() {
                           );
                         }
 
-                        // Regular messages
+                        // Regular messages//
                         const isMine =
                           msg.isMine === true ||
                           String(msg.senderId) === String(currentUserId) ||

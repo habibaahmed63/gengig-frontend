@@ -27,7 +27,6 @@ export default function AuthCallback() {
                         return;
                     }
 
-                    // Use user data directly
                     await processGoogleUser({
                         email: user.email,
                         name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0],
@@ -61,7 +60,6 @@ export default function AuthCallback() {
                 const d = res.data;
                 console.log("Backend response:", d);
 
-                // Wipe old data
                 ["token", "role", "name", "photo", "userId", "bio", "skills", "company",
                     "industry", "location", "hourlyRate", "availability", "portfolio"]
                     .forEach(k => localStorage.removeItem(k));

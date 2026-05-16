@@ -50,7 +50,7 @@ export default function ReviewWork() {
             await api.post(`/applications/${applicationId}/reject-work`, {
                 reason: rejectReason,
             });
-            setRejected(true); // ← add this state
+            setRejected(true);
         } catch (err) {
             setError(err.response?.data?.message || "Failed to send revision request.");
         } finally {
@@ -84,7 +84,7 @@ export default function ReviewWork() {
         </AgentLayout>
     );
 
-    // ── Step 2: Rate the teenlancer after approving ──
+    // ── Rate the teenlancer after approving ─//
     if (approved && !reviewDone) return (
         <AgentLayout>
             <div className="max-w-lg mx-auto py-12 text-center">
@@ -157,7 +157,7 @@ export default function ReviewWork() {
         </AgentLayout>
     );
 
-    // ── Step 3: Review submitted ──
+    // ── Review submitted ──//
     if (reviewDone) return (
         <AgentLayout>
             <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto">
@@ -216,7 +216,7 @@ export default function ReviewWork() {
         </AgentLayout>
     );
 
-    // ── Step 1: Review the submitted work ──
+    // Review the submitted work //
     return (
         <AgentLayout>
             <p className="text-xs mb-6" style={{ color: "#B2B2D2" }}>

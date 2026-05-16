@@ -124,7 +124,7 @@ export default function PremiumPage() {
                     </div>
                 </div>
 
-                {/* Both roles comparison — only show if not logged in or show both for context */}
+                {/* Both roles comparison*/}
                 {!localStorage.getItem("token") && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
                         {Object.entries(ROLE_PERKS).map(([type, data]) => (
@@ -154,7 +154,7 @@ export default function PremiumPage() {
                     </div>
                 )}
 
-                {/* Subscription Plans component */}
+                {/* Subscription Plans */}
                 <SubscriptionPlans
                     userType={userType}
                     onSelectPlan={handlePremiumPayment}

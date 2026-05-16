@@ -90,7 +90,7 @@ export default function SignIn() {
                 localStorage.setItem("portfolio", JSON.stringify(d.portfolio || d.user?.portfolio || []));
             }
 
-            // ── Stats (if returned in login response) ──
+            // ── Stats ──
             if (d.stats) {
                 if (d.stats.completedGigs != null) localStorage.setItem("completedGigs", d.stats.completedGigs);
                 if (d.stats.totalEarnings != null) localStorage.setItem("totalEarnings", d.stats.totalEarnings);

@@ -146,7 +146,7 @@ export default function PostGig() {
                             <button onClick={() => navigate("/agent/my-gigs")}
                                 className="flex-1 py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-opacity"
                                 style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                View All My Gigs →
+                                View All My Gigs
                             </button>
                             <button onClick={() => navigate("/agent/dashboard")}
                                 className="flex-1 py-3 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors"
@@ -552,7 +552,7 @@ export default function PostGig() {
                                     <button onClick={nextStep}
                                         className="px-8 py-2.5 rounded-full text-sm font-semibold text-white hover:opacity-90"
                                         style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-                                        Continue →
+                                        Continue
                                     </button>
                                 ) : (
                                     <button onClick={handleSubmit} disabled={loading}
