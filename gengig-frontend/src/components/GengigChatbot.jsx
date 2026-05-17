@@ -100,8 +100,7 @@ export default function GengigChatbot() {
     setLoading(true);
 
     try {
-      const chatUrl = `${(import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')}/chat/send`;
-      const response = await fetch(chatUrl, {
+      const response = await fetch("http://localhost:3000/chat/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
