@@ -86,7 +86,7 @@ export default function PostGig() {
         const e = {};
         if (s === 0) {
             if (!form.title.trim()) e.title = "Gig title is required.";
-            if (!form.category) e.category = "Please select a category.";
+            if (!form.category) e.category = "Please select a category."; 
             if (!form.description.trim()) e.description = "Please describe your gig.";
             else if (form.description.trim().length < 30) e.description = "Description must be at least 30 characters.";
         }
