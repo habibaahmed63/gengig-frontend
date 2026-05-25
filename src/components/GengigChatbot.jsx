@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from "../services/config";
 
 const SYSTEM_PROMPT = `You are Gengig Assistant, a helpful AI chatbot for the Gengig platform. Gengig is a freelancing platform designed specifically for teenagers (called Teenlancers) and the businesses/individuals who hire them (called Agents).
 
@@ -100,7 +101,7 @@ export default function GengigChatbot() {
     setLoading(true);
 
     try {
-      const chatUrl = `${(import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')}/chat/send`;
+      const chatUrl = `${API_BASE_URL}/chat/send`;
       const response = await fetch(chatUrl, {
         method: "POST",
         headers: {

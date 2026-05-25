@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from "./config";
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+const BASE_URL = API_BASE_URL;
 
 const socket = io(BASE_URL, {
   transports: ['polling', 'websocket'],
@@ -38,6 +39,5 @@ if (socket.connected) joinRoom();
 
 
 export default socket;
-
 
 

@@ -2,8 +2,9 @@ import { useState } from "react";
 import logo from "../assets/Gengig LOGO.png";
 import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../services/config";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const BASE_URL = API_BASE_URL;
 
 export default function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
