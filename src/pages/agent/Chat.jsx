@@ -324,7 +324,7 @@ export default function AgentChat() {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div className="w-2 h-2 rounded-full" style={{ background: connected ? "#4ade80" : "#f87171" }} />
-                                <span className="text-xs" style={{ color: "#B2B2D2" }}>{connected ? "Online" : "Offline"}</span>
+                                <span className="text-xs" style={{ color: "#B2B2D2" }}>{connected ? "Online" : "Online"}</span>
                             </div>
                         </div>
 

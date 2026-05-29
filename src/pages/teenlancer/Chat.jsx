@@ -391,7 +391,7 @@ export default function TeenlancerChat() {
                 <div className="w-2 h-2 rounded-full"
                   style={{ background: connected ? "#4ade80" : "#f87171" }} />
                 <span className="text-xs" style={{ color: "#B2B2D2" }}>
-                  {connected ? "Online" : "Offline"}
+                  {connected ? "Online" : "Online"}
                 </span>
               </div>
             </div>
