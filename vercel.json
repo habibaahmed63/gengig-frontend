@@ -1,7 +1,7 @@
 {
     "framework": "vite",
-    "buildCommand": "cd gengig-frontend && npm run build",
-    "outputDirectory": "gengig-frontend/dist",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
     "rewrites": [
         {
             "source": "/(.*)",
