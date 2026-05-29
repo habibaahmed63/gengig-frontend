@@ -2,14 +2,37 @@ import { io } from 'socket.io-client';
 import { API_BASE_URL } from "./config";
 
 const BASE_URL = API_BASE_URL;
+const rawSocketEnabled = import.meta.env.VITE_ENABLE_SOCKET;
+const SOCKET_ENABLED = (
+  rawSocketEnabled ?? (import.meta.env.DEV ? 'true' : 'false')
+)
+  .toString()
+  .toLowerCase() === 'true';
 
-const socket = io(BASE_URL, {
-  transports: ['polling', 'websocket'],
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 3000,
-  autoConnect: true,
-});
+function createDisabledSocket() {
+  const noop = () => disabledSocket;
+  const disabledSocket = {
+    connected: false,
+    id: undefined,
+    emit: noop,
+    on: noop,
+    once: noop,
+    off: noop,
+    connect: noop,
+    disconnect: noop,
+  };
+  return disabledSocket;
+}
+
+const socket = SOCKET_ENABLED
+  ? io(BASE_URL, {
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 3000,
+      autoConnect: true,
+    })
+  : createDisabledSocket();
 
 const joinRoom = () => {
   const userId = localStorage.getItem("userId");
@@ -20,24 +43,25 @@ const joinRoom = () => {
 };
 
 
-socket.on('connect', () => {
-  console.log('✅ Socket connected:', socket.id);
-  const userId = localStorage.getItem('userId');
-  if (userId) socket.emit('join', { userId });
-});
+if (SOCKET_ENABLED) {
+  socket.on('connect', () => {
+    console.log('✅ Socket connected:', socket.id);
+    const userId = localStorage.getItem('userId');
+    if (userId) socket.emit('join', { userId });
+  });
 
-socket.on('disconnect', (reason) => {
-  console.log('❌ Socket disconnected:', reason);
-});
+  socket.on('disconnect', (reason) => {
+    console.log('❌ Socket disconnected:', reason);
+  });
 
-socket.on('reconnect', () => {
-  const userId = localStorage.getItem('userId');
-  if (userId) socket.emit('join', { userId });
-});
+  socket.on('reconnect', () => {
+    const userId = localStorage.getItem('userId');
+    if (userId) socket.emit('join', { userId });
+  });
 
-if (socket.connected) joinRoom();
+  if (socket.connected) joinRoom();
+}
 
 
 export default socket;
-
 

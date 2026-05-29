@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { io } from "socket.io-client";
 import TeenlancerLayout from "../../layouts/TeenlancerLayout";
 import api from "../../services/api";
 import socket from "../../services/socket";
