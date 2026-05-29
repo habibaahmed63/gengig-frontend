@@ -356,8 +356,11 @@ export default function TeenlancerChat() {
   useEffect(() => {
     const fetchPendingRevisions = async () => {
       try {
-        const res = await api.get("/gigs/my-gigs?status=pending");
-        setPendingRevisionsCount(res.data.filter(g => g.revisionStatus === "pending").length);
+        const res = await api.get("/teenlancer/applications");
+        const list = Array.isArray(res.data) ? res.data : [];
+        setPendingRevisionsCount(
+          list.filter((app) => app?.status === "revision_requested").length
+        );
       } catch (err) {
         console.error("Failed to fetch pending revisions:", err);
       }
