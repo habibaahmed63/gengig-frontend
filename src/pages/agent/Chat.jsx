@@ -45,7 +45,7 @@ export default function AgentChat() {
 
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
+        const userId = currentUserId;
         if (userId) socket.emit("join", { userId });
 
         const handleReceiveMessage = (message) => {
@@ -77,7 +77,7 @@ export default function AgentChat() {
         };
         const handleConnected = () => {
             setConnected(true);
-            const uid = localStorage.getItem("userId");
+            const uid = currentUserId;
             if (uid) socket.emit("join", { userId: uid });
         };
         const handleDisconnected = () => setConnected(false);

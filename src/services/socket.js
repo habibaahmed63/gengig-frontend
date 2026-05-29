@@ -1,13 +1,23 @@
 import { io } from 'socket.io-client';
 import { API_BASE_URL } from "./config";
 
-const BASE_URL = API_BASE_URL;
+const SOCKET_BASE_URL = (
+  import.meta.env.VITE_SOCKET_URL ||
+  import.meta.env.VITE_API_PROXY_TARGET ||
+  import.meta.env.VITE_API_URL ||
+  API_BASE_URL
+).replace(/\/+$/, "");
 const rawSocketEnabled = import.meta.env.VITE_ENABLE_SOCKET;
 const SOCKET_ENABLED = (
   rawSocketEnabled ?? (import.meta.env.DEV ? 'true' : 'false')
 )
   .toString()
   .toLowerCase() === 'true';
+
+const getStoredUserId = () =>
+  localStorage.getItem("userId") ||
+  localStorage.getItem("id") ||
+  localStorage.getItem("_id");
 
 function createDisabledSocket() {
   const noop = () => disabledSocket;
@@ -25,7 +35,7 @@ function createDisabledSocket() {
 }
 
 const socket = SOCKET_ENABLED
-  ? io(BASE_URL, {
+  ? io(SOCKET_BASE_URL, {
       transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: 5,
@@ -35,7 +45,7 @@ const socket = SOCKET_ENABLED
   : createDisabledSocket();
 
 const joinRoom = () => {
-  const userId = localStorage.getItem("userId");
+  const userId = getStoredUserId();
   if (userId) {
     socket.emit("join", { userId });
     console.log("Socket joined room:", userId);
@@ -46,7 +56,7 @@ const joinRoom = () => {
 if (SOCKET_ENABLED) {
   socket.on('connect', () => {
     console.log('✅ Socket connected:', socket.id);
-    const userId = localStorage.getItem('userId');
+    const userId = getStoredUserId();
     if (userId) socket.emit('join', { userId });
   });
 
@@ -55,7 +65,7 @@ if (SOCKET_ENABLED) {
   });
 
   socket.on('reconnect', () => {
-    const userId = localStorage.getItem('userId');
+    const userId = getStoredUserId();
     if (userId) socket.emit('join', { userId });
   });
 
@@ -64,4 +74,3 @@ if (SOCKET_ENABLED) {
 
 
 export default socket;
-
