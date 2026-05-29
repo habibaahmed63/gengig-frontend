@@ -480,21 +480,24 @@ export default function AgentChat() {
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-white font-semibold text-sm">{selectedContact.name}</p>
-                                    <p className="text-xs" style={{ color: isContactTyping ? "#4ade80" : "#B2B2D2" }}>
-                                        {isContactTyping
-                                            ? "typing..."
-                                            : onlineUsers.has(getContactId(selectedContact))
-                                                ? "Online"
-                                                : "Offline"}
-                                    </p>
+                                    {/* TEMPORARILY DISABLED 
+<p className="text-xs" style={{ color: isContactTyping ? "#4ade80" : "#B2B2D2" }}>
+    {isContactTyping
+        ? "typing..."
+        : onlineUsers.has(getContactId(selectedContact))
+            ? "Online"
+            : "Offline"}
+</p>
+*/}
                                 </div>
-                                {!connected && (
-                                    <span className="text-xs px-2 py-1 rounded-full flex-shrink-0"
-                                        style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
-                                        Reconnecting...
-                                    </span>
-                                )}
+                                {/* TEMPORARILY DISABLED 
+{!connected && (
+    <span className="text-xs px-2 py-1 rounded-full flex-shrink-0"
+        style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
+        Reconnecting...
+    </span>
+)}
+*/}
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-1">
