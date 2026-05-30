@@ -94,22 +94,21 @@ export default function AgentDashboard() {
         <span style={{ color: "#FFC085" }}>Dashboard</span>
       </p>
 
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
-          </h1>
-          <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-4 mb-8">        <div>
+        <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+          Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
+        </h1>
+        <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
+      </div>
+        <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
           <button onClick={() => navigate("/agent/my-gigs")}
             className="px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors hidden sm:block"
             style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#fff" }}>
             My Gigs
           </button>
           <button onClick={() => navigate("/post")}
-            className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200"
-            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+            className="px-4 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-all duration-200"
+            style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)", fontSize: "clamp(11px, 2.5vw, 14px)" }}>
             + Post a Gig
           </button>
         </div>
@@ -117,25 +116,23 @@ export default function AgentDashboard() {
 
       {/* Stat Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-5 rounded-2xl animate-pulse"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", height: "90px" }} />
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">          {[...Array(4)].map((_, i) => (
+          <div key={i} className="p-5 rounded-2xl animate-pulse"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", height: "90px" }} />
+        ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statCards.map(stat => (
-            <div key={stat.label}
-              className="p-5 rounded-2xl hover:scale-105 transition-all duration-200"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
-              <p className="font-bold text-2xl tracking-tight"
-                style={{ color: stat.value === 0 ? "#B2B2D2" : stat.color }}>
-                {stat.value}
-              </p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">          {statCards.map(stat => (
+          <div key={stat.label}
+            className="p-5 rounded-2xl hover:scale-105 transition-all duration-200"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
+            <p className="font-bold text-2xl tracking-tight"
+              style={{ color: stat.value === 0 ? "#B2B2D2" : stat.color }}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
         </div>
       )}
 
@@ -168,7 +165,7 @@ export default function AgentDashboard() {
           <button onClick={() => navigate("/post")}
             className="px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 hover:scale-105 transition-all duration-200 mt-4"
             style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
-            Post Your First Gig 
+            Post Your First Gig
           </button>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-2xl w-full px-4">
             {[
@@ -221,7 +218,7 @@ export default function AgentDashboard() {
                 <button onClick={() => navigate("/agent/applications")}
                   className="text-xs hover:opacity-80 transition-opacity"
                   style={{ color: "#FFC085" }}>
-                  View all 
+                  View all
                 </button>
               </div>
               <div className="flex flex-col gap-3">
@@ -248,31 +245,34 @@ export default function AgentDashboard() {
                         Applied for: {app.gigTitle || app.gig?.title || "Unknown gig"}
                       </p>
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium"
-                      style={{
-                        background: app.status === "pending" ? "rgba(255,192,133,0.12)" : "rgba(74,222,128,0.1)",
-                        color: app.status === "pending" ? "#FFC085" : "#4ade80",
-                      }}>
-                      {app.status === "pending" ? "New" : "Reviewed"}
-                      
+                    {/* ✅ Status badge and action button separated — no button inside span */}
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{
+                          background: app.status === "pending" ? "rgba(255,192,133,0.12)" : "rgba(74,222,128,0.1)",
+                          color: app.status === "pending" ? "#FFC085" : "#4ade80",
+                        }}>
+                        {app.status === "pending" ? "New" : "Reviewed"}
+                      </span>
                       {(app.status === "work_submitted" || app.workSubmitted) && (
                         <button
-                          onClick={() => {
+                          onClick={e => {
+                            e.stopPropagation();
                             const path = app.revisionCount > 0
                               ? `/agent/review-revision/${app._id}`
                               : `/agent/review-work/${app._id}`;
                             navigate(path);
                           }}
-                          className="text-xs px-3 py-1.5 rounded-full font-medium text-white hover:opacity-90"
+                          className="text-xs px-2 py-1 rounded-full font-medium text-white hover:opacity-90"
                           style={{
                             background: app.revisionCount > 0
                               ? "linear-gradient(90deg, #f87171, #ef4444)"
                               : "linear-gradient(90deg, #FFC085, #e8a060)"
                           }}>
-                          {app.revisionCount > 0 ? "Review Revision" : "Review Work"}
+                          {app.revisionCount > 0 ? "Revision" : "Review"}
                         </button>
                       )}
-                    </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -297,7 +297,7 @@ export default function AgentDashboard() {
                   <button onClick={() => navigate("/agent/applications")}
                     className="text-xs hover:opacity-80 transition-opacity"
                     style={{ color: "#FFC085" }}>
-                    View Applications 
+                    View Applications
                   </button>
                 </div>
               </div>

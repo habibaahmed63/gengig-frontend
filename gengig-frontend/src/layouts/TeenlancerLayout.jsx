@@ -186,7 +186,7 @@ export default function TeenlancerLayout({ children }) {
                     <SidebarContent isCollapsed={collapsed} />
                 </aside>
 
-                <main className="flex-1 p-4 md:p-8">
+                <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
                     {children}
 
                 </main>

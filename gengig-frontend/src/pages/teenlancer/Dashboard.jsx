@@ -87,7 +87,7 @@ export default function TeenlancerDashboard() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end max-w-[160px] sm:max-w-none">
           <span className="text-xs px-2.5 py-1 rounded-full font-medium"
             style={{ background: style.bg, color: style.color }}>
             {style.label}
@@ -146,13 +146,12 @@ export default function TeenlancerDashboard() {
         <span style={{ color: "#FFC085" }}>Dashboard</span>
       </p>
 
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-            Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
-          </h1>
-          <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
-        </div>
+      <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-4 mb-8">        <div>
+        <h1 className="font-bold text-white mb-1" style={{ fontSize: "clamp(1.5rem, 3vw, 2.5rem)" }}>
+          Welcome back, <span className="text-gradient">{name.split(" ")[0]}</span>
+        </h1>
+        <p className="text-sm" style={{ color: "#B2B2D2" }}>{dateStr} · {timeStr}</p>
+      </div>
 
         <button onClick={() => navigate('/teenlancer/savedgigs')}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
@@ -168,25 +167,23 @@ export default function TeenlancerDashboard() {
 
       {/* Stat Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-5 rounded-2xl animate-pulse"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", height: "80px" }} />
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">          {[...Array(4)].map((_, i) => (
+          <div key={i} className="p-5 rounded-2xl animate-pulse"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", height: "80px" }} />
+        ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statCards.map(stat => (
-            <div key={stat.label}
-              className="p-5 rounded-2xl hover:scale-105 transition-all duration-200"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-xs mb-2" style={{ color: "#B2B2D2" }}>{stat.label}</p>
-              <p className="font-bold text-2xl tracking-tight"
-                style={{ color: stat.value === 0 ? "#B2B2D2" : stat.color }}>
-                {stat.value}
-              </p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">          {statCards.map(stat => (
+          <div key={stat.label}
+            className="p-4 rounded-2xl hover:scale-105 transition-all duration-200"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-xs mb-2 truncate" style={{ color: "#B2B2D2" }}>{stat.label}</p>
+            <p className="font-bold text-xl tracking-tight"
+              style={{ color: stat.value === 0 ? "#B2B2D2" : stat.color }}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
         </div>
       )}
 
@@ -242,7 +239,7 @@ export default function TeenlancerDashboard() {
         <>
           {/* ── Tab Navigation ── */}
           {hasActivity && (
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-1 px-1">
               {[
                 { key: "overview", label: "Overview", count: null },
                 { key: "applications", label: "My Applications", count: myApplications.length },
