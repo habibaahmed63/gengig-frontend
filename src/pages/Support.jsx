@@ -229,7 +229,7 @@ export default function Support() {
                 </div>
               ))}
               <Link
-                to="/faqs"
+                to="/terms"
                 className="text-sm text-center mt-2 hover:opacity-80 transition-opacity"
                 style={{ color: "#FFC085" }}
               >
