@@ -186,7 +186,7 @@ export default function Support() {
                   className="w-full py-3 rounded-full font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
                   style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}
                 >
-                  {loading ? "Sending..." : "Send Message →"}
+                  {loading ? "Sending..." : "Send Message"}
                 </button>
               </form>
             )}
