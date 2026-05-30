@@ -168,7 +168,7 @@ export default function Terms() {
                                     Contact Support
                                 </Link>
                                 <Link
-                                    to="/faqs"
+                                    to="/terms"
                                     className="px-6 py-2.5 rounded-full text-sm font-semibold transition-colors hover:bg-white/10"
                                     style={{ border: "1px solid rgba(255,255,255,0.15)", color: "#B2B2D2" }}
                                 >
