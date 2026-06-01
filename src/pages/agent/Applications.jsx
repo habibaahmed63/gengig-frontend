@@ -313,25 +313,16 @@ export default function AgentApplications() {
                                                 </span>
                                             )}
 
-                    
-                                           
                                             {(app.status === "work_submitted" || app.workSubmitted) && (
                                                 <button
-                                                    onClick={() => {
-                                                        const path = app.revisionCount > 0
-                                                            ? `/agent/review-revision/${app._id}`
-                                                            : `/agent/review-work/${app._id}`;
-                                                        navigate(path);
-                                                    }}
+                                                    onClick={() => navigate(`/agent/reviewwork/${app._id}`)}
                                                     className="text-xs px-3 py-1.5 rounded-full font-medium text-white hover:opacity-90"
-                                                    style={{
-                                                        background: app.revisionCount > 0
-                                                            ? "linear-gradient(90deg, #f87171, #ef4444)"
-                                                            : "linear-gradient(90deg, #FFC085, #e8a060)"
-                                                    }}>
-                                                    {app.revisionCount > 0 ? "Review Revision" : "Review Work"}
+                                                    style={{ background: "linear-gradient(90deg, #FFC085, #e8a060)" }}>
+                                                    Review Work
                                                 </button>
                                             )}
+                                           
+                                        
 
                                             {app.coverLetter && (
                                                 <button onClick={() => setExpandedApp(isExpanded ? null : appId)}
