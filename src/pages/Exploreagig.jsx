@@ -8,7 +8,7 @@ const categories = [
     { label: "Graphic Design", img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400" },
     { label: "Logo Design", img: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400" },
     { label: "Video Editing", img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400" },
-    { label: "Web Design", img: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=400" },
+    { label: "Web Development", img: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=400" },
     { label: "Photography", img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400" },
 ];
 
