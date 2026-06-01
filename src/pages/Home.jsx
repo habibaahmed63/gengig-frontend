@@ -440,7 +440,7 @@ export default function Home() {
             <section className="py-24 px-6 md:px-16" style={{ background: "#060834" }}>
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-1 w-full">
-                        <img src="../src/assets/team3.png"
+                        <img src="./src/assets/team3.png"
                             alt="About Gengig"
                             className="w-full h-72 md:h-96 object-cover rounded-2xl" />
                     </div>
