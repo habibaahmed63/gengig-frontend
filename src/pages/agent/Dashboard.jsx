@@ -245,7 +245,6 @@ export default function AgentDashboard() {
                         Applied for: {app.gigTitle || app.gig?.title || "Unknown gig"}
                       </p>
                     </div>
-                    {/* ✅ Status badge and action button separated — no button inside span */}
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                         style={{
