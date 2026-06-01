@@ -261,147 +261,136 @@ export default function AgentDashboard() {
                           Review Work
                         </button>
                       )}
-
-                      className="text-xs px-2 py-1 rounded-full font-medium text-white hover:opacity-90"
-                      style={{
-                        background: app.revisionCount > 0
-                          ? "linear-gradient(90deg, #f87171, #ef4444)"
-                          : "linear-gradient(90deg, #FFC085, #e8a060)"
-                      }}>
-                      {app.revisionCount > 0 ? "Revision" : "Review"}
-                    </button>
-                      )}
-                  </div>
+                    </div>
                   </div>
                 ))}
-            </div>
-            </div>
-      )}
-
-      {/* ── Open Gigs ── */}
-      {openGigs.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-white font-bold text-lg">Open Gigs</h2>
-              <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                Posted — waiting for teenlancers to apply
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs px-2 py-1 rounded-full font-medium"
-                style={{ background: "rgba(99,179,237,0.1)", color: "#63b3ed" }}>
-                {openGigs.length} open
-              </span>
-              <button onClick={() => navigate("/agent/applications")}
-                className="text-xs hover:opacity-80 transition-opacity"
-                style={{ color: "#FFC085" }}>
-                View Applications
-              </button>
-            </div>
-          </div>
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            {openGigs.map((gig, i) => (
-              <GigRow key={gig._id || gig.title} gig={gig}
-                statusLabel="Open"
-                statusColor="#63b3ed"
-                statusBg="rgba(99,179,237,0.1)"
-                last={i === openGigs.length - 1}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Active Gigs ── */}
-      {activeGigs.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-white font-bold text-lg">Active Gigs</h2>
-              <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                Teenlancer accepted — work in progress
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs px-2 py-1 rounded-full font-medium"
-                style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
-                {activeGigs.length} in progress
-              </span>
-              <button onClick={() => navigate("/agent/my-gigs")}
-                className="text-xs hover:opacity-80 transition-opacity"
-                style={{ color: "#FFC085" }}>
-                Manage
-              </button>
-            </div>
-          </div>
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            {activeGigs.map((gig, i) => (
-              <GigRow key={gig._id || gig.title} gig={gig}
-                statusLabel="Active"
-                statusColor="#FFC085"
-                statusBg="rgba(255,192,133,0.1)"
-                last={i === activeGigs.length - 1}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Completed Gigs ── */}
-      {completedGigs.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-white font-bold text-lg">Completed Gigs</h2>
-              <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
-                Successfully finished projects
-              </p>
-            </div>
-            <span className="text-xs px-2 py-1 rounded-full font-medium"
-              style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
-              {completedGigs.length} completed
-            </span>
-          </div>
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            {completedGigs.map((gig, i) => (
-              <GigRow key={gig._id || gig.title} gig={gig}
-                statusLabel="Completed"
-                statusColor="#4ade80"
-                statusBg="rgba(74,222,128,0.1)"
-                last={i === completedGigs.length - 1}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Spending Summary */}
-      {stats && stats.totalSpent && stats.totalSpent !== "$0" && stats.totalSpent !== 0 && (
-        <div className="p-6 rounded-2xl"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <h2 className="text-white font-semibold mb-4">Spending Summary</h2>
-          <div className="flex flex-wrap gap-6">
-            {[
-              { label: "Total Spent", value: stats.totalSpent },
-              { label: "Gigs Completed", value: stats.completedGigs || completedGigs.length },
-              { label: "Teenlancers Hired", value: stats.teenlancersHired },
-              { label: "Avg per Gig", value: stats.avgPerGig || "—" },
-            ].map(item => (
-              <div key={item.label}>
-                <p className="text-xs mb-1" style={{ color: "#B2B2D2" }}>{item.label}</p>
-                <p className="text-white font-bold text-lg">{item.value}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* ── Open Gigs ── */}
+          {openGigs.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-white font-bold text-lg">Open Gigs</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
+                    Posted — waiting for teenlancers to apply
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs px-2 py-1 rounded-full font-medium"
+                    style={{ background: "rgba(99,179,237,0.1)", color: "#63b3ed" }}>
+                    {openGigs.length} open
+                  </span>
+                  <button onClick={() => navigate("/agent/applications")}
+                    className="text-xs hover:opacity-80 transition-opacity"
+                    style={{ color: "#FFC085" }}>
+                    View Applications
+                  </button>
+                </div>
+              </div>
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                {openGigs.map((gig, i) => (
+                  <GigRow key={gig._id || gig.title} gig={gig}
+                    statusLabel="Open"
+                    statusColor="#63b3ed"
+                    statusBg="rgba(99,179,237,0.1)"
+                    last={i === openGigs.length - 1}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Active Gigs ── */}
+          {activeGigs.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-white font-bold text-lg">Active Gigs</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
+                    Teenlancer accepted — work in progress
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs px-2 py-1 rounded-full font-medium"
+                    style={{ background: "rgba(255,192,133,0.1)", color: "#FFC085" }}>
+                    {activeGigs.length} in progress
+                  </span>
+                  <button onClick={() => navigate("/agent/my-gigs")}
+                    className="text-xs hover:opacity-80 transition-opacity"
+                    style={{ color: "#FFC085" }}>
+                    Manage
+                  </button>
+                </div>
+              </div>
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                {activeGigs.map((gig, i) => (
+                  <GigRow key={gig._id || gig.title} gig={gig}
+                    statusLabel="Active"
+                    statusColor="#FFC085"
+                    statusBg="rgba(255,192,133,0.1)"
+                    last={i === activeGigs.length - 1}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Completed Gigs ── */}
+          {completedGigs.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-white font-bold text-lg">Completed Gigs</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "#B2B2D2" }}>
+                    Successfully finished projects
+                  </p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full font-medium"
+                  style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>
+                  {completedGigs.length} completed
+                </span>
+              </div>
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                {completedGigs.map((gig, i) => (
+                  <GigRow key={gig._id || gig.title} gig={gig}
+                    statusLabel="Completed"
+                    statusColor="#4ade80"
+                    statusBg="rgba(74,222,128,0.1)"
+                    last={i === completedGigs.length - 1}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Spending Summary */}
+          {stats && stats.totalSpent && stats.totalSpent !== "$0" && stats.totalSpent !== 0 && (
+            <div className="p-6 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <h2 className="text-white font-semibold mb-4">Spending Summary</h2>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { label: "Total Spent", value: stats.totalSpent },
+                  { label: "Gigs Completed", value: stats.completedGigs || completedGigs.length },
+                  { label: "Teenlancers Hired", value: stats.teenlancersHired },
+                  { label: "Avg per Gig", value: stats.avgPerGig || "—" },
+                ].map(item => (
+                  <div key={item.label}>
+                    <p className="text-xs mb-1" style={{ color: "#B2B2D2" }}>{item.label}</p>
+                    <p className="text-white font-bold text-lg">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
-    </div>
-  )
-}
-    </AgentLayout >
+    </AgentLayout>
   );
 }
